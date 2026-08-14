@@ -12,53 +12,50 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 2. Comprehensive Restaurant Menu Catalog
+// 2. Full Menu Catalog
 let menuCatalog = [
-  // Momos
-  { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, cat: "momos", img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=400" },
-  { id: "m2", name: "Chicken Fried Momo (10 Pcs)", price: 140, cat: "momos", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=400" },
-  { id: "m3", name: "Chicken Schezwan Gravy Momo", price: 160, cat: "momos", img: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=400" },
-  { id: "m4", name: "Pork Steamed Momo (10 Pcs)", price: 130, cat: "momos", img: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=400" },
-  { id: "m5", name: "Pork Fried Momo (10 Pcs)", price: 150, cat: "momos", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=400" },
-  { id: "m6", name: "Cheese & Veg Momo (10 Pcs)", price: 130, cat: "momos", img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400" },
+  { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, mrp: 160, cat: "momos", img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" },
+  { id: "m2", name: "Chicken Fried Momo (10 Pcs)", price: 140, mrp: 180, cat: "momos", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
+  { id: "m3", name: "Chicken Schezwan Gravy Momo", price: 160, mrp: 200, cat: "momos", img: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=500" },
+  { id: "m4", name: "Pork Steamed Momo (10 Pcs)", price: 130, mrp: 170, cat: "momos", img: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=500" },
+  { id: "m5", name: "Pork Fried Momo (10 Pcs)", price: 150, mrp: 190, cat: "momos", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
+  { id: "m6", name: "Cheese & Veg Momo (10 Pcs)", price: 130, mrp: 160, cat: "momos", img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=500" },
 
-  // Rolls & Fast Food
-  { id: "r1", name: "Single Egg Chicken Roll", price: 90, cat: "rolls", img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=400" },
-  { id: "r2", name: "Double Egg Double Chicken Roll", price: 120, cat: "rolls", img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=400" },
-  { id: "r3", name: "Special Pork Roll", price: 130, cat: "rolls", img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=400" },
-  { id: "r4", name: "Crispy French Fries (Peri-Peri)", price: 80, cat: "rolls", img: "https://images.unsplash.com/photo-1576107232684-1279f3908594?w=400" },
+  { id: "r1", name: "Single Egg Chicken Roll", price: 90, mrp: 120, cat: "rolls", img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500" },
+  { id: "r2", name: "Double Egg Double Chicken Roll", price: 120, mrp: 150, cat: "rolls", img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=500" },
+  { id: "r3", name: "Special Pork Roll", price: 130, mrp: 160, cat: "rolls", img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500" },
+  { id: "r4", name: "Crispy French Fries (Peri-Peri)", price: 80, mrp: 110, cat: "rolls", img: "https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500" },
 
-  // Chicken Main Course
-  { id: "c1", name: "Chicken Butter Masala (Boneless)", price: 280, cat: "chicken", img: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=400" },
-  { id: "c2", name: "Chicken Curry / Kadhai Chicken", price: 260, cat: "chicken", img: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400" },
-  { id: "c3", name: "Crispy Chilli Chicken (Dry)", price: 220, cat: "chicken", img: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=400" },
+  { id: "c1", name: "Chicken Butter Masala (Boneless)", price: 280, mrp: 350, cat: "chicken", img: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=500" },
+  { id: "c2", name: "Chicken Curry / Kadhai Chicken", price: 260, mrp: 320, cat: "chicken", img: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500" },
+  { id: "c3", name: "Crispy Chilli Chicken (Dry)", price: 220, mrp: 280, cat: "chicken", img: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=500" },
 
-  // Pork Specials
-  { id: "p1", name: "Pork Curry with Bamboo Shoot", price: 300, cat: "pork", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=400" },
-  { id: "p2", name: "Smoked Pork Dry Fry", price: 320, cat: "pork", img: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=400" },
-  { id: "p3", name: "Pork Bhuna Masala", price: 310, cat: "pork", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=400" },
+  { id: "p1", name: "Pork Curry with Bamboo Shoot", price: 300, mrp: 380, cat: "pork", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500" },
+  { id: "p2", name: "Smoked Pork Dry Fry", price: 320, mrp: 400, cat: "pork", img: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=500" },
+  { id: "p3", name: "Pork Bhuna Masala", price: 310, mrp: 390, cat: "pork", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500" },
 
-  // Chow & Thukpa
-  { id: "ct1", name: "Special Chicken Hakka Chowmein", price: 130, cat: "chow_thukpa", img: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400" },
-  { id: "ct2", name: "Special Pork Chowmein", price: 150, cat: "chow_thukpa", img: "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=400" },
-  { id: "ct3", name: "Hot Chicken Thukpa Soup", price: 140, cat: "chow_thukpa", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400" },
+  { id: "ct1", name: "Special Chicken Hakka Chowmein", price: 130, mrp: 170, cat: "chow_thukpa", img: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=500" },
+  { id: "ct2", name: "Special Pork Chowmein", price: 150, mrp: 190, cat: "chow_thukpa", img: "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=500" },
+  { id: "ct3", name: "Hot Chicken Thukpa Soup", price: 140, mrp: 180, cat: "chow_thukpa", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=500" },
 
-  // Cakes
-  { id: "ck1", name: "Chocolate Truffle Cake (1 Kg)", price: 850, cat: "cakes", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400" },
-  { id: "ck2", name: "Black Forest Cake (1 Kg)", price: 800, cat: "cakes", img: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=400" },
-  { id: "ck3", name: "Vanilla / Pineapple Cake (1 Kg)", price: 750, cat: "cakes", img: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=400" },
+  { id: "ck1", name: "Chocolate Truffle Cake (1 Kg)", price: 850, mrp: 1100, cat: "cakes", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500" },
+  { id: "ck2", name: "Black Forest Cake (1 Kg)", price: 800, mrp: 1000, cat: "cakes", img: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=500" },
+  { id: "ck3", name: "Vanilla / Pineapple Cake (1 Kg)", price: 750, mrp: 950, cat: "cakes", img: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=500" },
 
-  // Drinks
-  { id: "dr1", name: "Cold Drinks 750ml (Coke / Sprite)", price: 45, cat: "drinks", img: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400" },
-  { id: "dr2", name: "Fresh Sweet Lassi / Cold Coffee", price: 70, cat: "drinks", img: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=400" }
+  { id: "dr1", name: "Cold Drinks 750ml (Coke / Sprite)", price: 45, mrp: 50, cat: "drinks", img: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500" },
+  { id: "dr2", name: "Fresh Sweet Lassi / Cold Coffee", price: 70, mrp: 90, cat: "drinks", img: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=500" }
 ];
 
 let cart = [];
+let wishlist = JSON.parse(localStorage.getItem("kd_wishlist") || "[]");
 let activePayment = 'COD';
 let currentActiveOrder = null;
 let selectedCakeWeight = 1.0;
 let selectedCakePrice = 850;
 let appliedDiscount = 0;
+let coinsRedeemed = false;
+let currentPdpItem = null;
+let adminUploadBase64 = "";
 
 // 3. Render Food Catalog
 function renderFoodItems(items) {
@@ -66,16 +63,18 @@ function renderFoodItems(items) {
   if(!container) return;
   container.innerHTML = '';
   items.forEach(dish => {
+    const isWished = wishlist.includes(dish.id);
     container.innerHTML += `
-      <div class="food-card">
+      <div class="food-card" onclick="openProductDetail('${dish.id}')">
         <div class="dish-img-wrap">
           <img src="${dish.img}" alt="${dish.name}" />
+          <button class="card-wish-btn ${isWished ? 'active' : ''}" onclick="event.stopPropagation(); toggleCardWish('${dish.id}', this)"><i class="fa-solid fa-heart"></i></button>
         </div>
         <div class="food-card-content">
           <div class="food-name">${dish.name}</div>
           <div class="food-price-row">
             <span class="food-price">₹${dish.price}</span>
-            <button class="add-btn" onclick="addToCart('${dish.id}', '${dish.name}', ${dish.price})">ADD +</button>
+            <button class="add-btn" onclick="event.stopPropagation(); addToCart('${dish.id}', '${dish.name}', ${dish.price})">ADD +</button>
           </div>
         </div>
       </div>
@@ -85,7 +84,93 @@ function renderFoodItems(items) {
 
 renderFoodItems(menuCatalog);
 
-// 4. Cart Management
+// 4. Product Detail Page (PDP)
+function openProductDetail(dishId) {
+  const dish = menuCatalog.find(d => d.id === dishId);
+  if(!dish) return;
+  currentPdpItem = dish;
+
+  document.getElementById('pdpImg').src = dish.img;
+  document.getElementById('pdpTitle').innerText = dish.name;
+  document.getElementById('pdpPrice').innerText = `₹${dish.price}`;
+  document.getElementById('pdpMrp').innerText = `₹${dish.mrp || (dish.price + 50)}`;
+  
+  const isWished = wishlist.includes(dish.id);
+  const wishBtn = document.getElementById('pdpWishBtn');
+  if(isWished) wishBtn.classList.add('active');
+  else wishBtn.classList.remove('active');
+
+  const similarContainer = document.getElementById('similarDishesScroll');
+  similarContainer.innerHTML = '';
+  menuCatalog.filter(d => d.cat === dish.cat && d.id !== dish.id).slice(0, 5).forEach(sim => {
+    similarContainer.innerHTML += `
+      <div class="cat-item" onclick="openProductDetail('${sim.id}')">
+        <div class="cat-circle"><img src="${sim.img}" style="width:100%;height:100%;object-fit:cover;" /></div>
+        <div class="cat-name">${sim.name.substring(0, 12)}..</div>
+      </div>
+    `;
+  });
+
+  document.getElementById('productDetailModal').style.display = 'flex';
+}
+
+function toggleCurrentWish() {
+  if(!currentPdpItem) return;
+  toggleCardWish(currentPdpItem.id);
+  const btn = document.getElementById('pdpWishBtn');
+  btn.classList.toggle('active');
+}
+
+function toggleCardWish(id, el) {
+  const idx = wishlist.indexOf(id);
+  if(idx > -1) {
+    wishlist.splice(idx, 1);
+    if(el) el.classList.remove('active');
+  } else {
+    wishlist.push(id);
+    if(el) el.classList.add('active');
+  }
+  localStorage.setItem("kd_wishlist", JSON.stringify(wishlist));
+  syncWishlistToCloud();
+}
+
+function syncWishlistToCloud() {
+  const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
+  if(profile.phone) {
+    db.ref("customers/" + profile.phone + "/wishlist").set(wishlist);
+  }
+}
+
+function selectDishVariant(type, extra, el) {
+  document.querySelectorAll('#pdpVariantBox .weight-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  if(currentPdpItem) {
+    document.getElementById('pdpPrice').innerText = `₹${currentPdpItem.price + extra}`;
+  }
+}
+
+function addPdpToCart() {
+  if(!currentPdpItem) return;
+  addToCart(currentPdpItem.id, currentPdpItem.name, currentPdpItem.price);
+  closeModal('productDetailModal');
+}
+
+function buyNowPdp() {
+  if(!currentPdpItem) return;
+  addToCart(currentPdpItem.id, currentPdpItem.name, currentPdpItem.price);
+  closeModal('productDetailModal');
+  openCartModal();
+}
+
+function shareCurrentItem() {
+  if(navigator.share && currentPdpItem) {
+    navigator.share({ title: currentPdpItem.name, text: `Check out ${currentPdpItem.name} at S&A Restaurant!`, url: window.location.href });
+  } else {
+    alert("Link copied to clipboard!");
+  }
+}
+
+// 5. Cart Operations
 function addToCart(id, name, price) {
   const existing = cart.find(i => i.id === id);
   if(existing) existing.qty += 1;
@@ -101,7 +186,8 @@ function updateCartBar() {
   }
   const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const grandTotal = Math.max(0, subtotal + 9 - appliedDiscount);
+  const coinDiscount = coinsRedeemed ? 20 : 0;
+  const grandTotal = Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount);
 
   document.getElementById('cartCount').innerText = `${totalQty} Item${totalQty > 1 ? 's' : ''}`;
   document.getElementById('cartTotal').innerText = `₹${grandTotal}`;
@@ -126,14 +212,14 @@ function openCartModal() {
     `;
   });
 
-  // Auto populate customer saved details
   const savedProfile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   if(savedProfile.name) document.getElementById('custName').value = savedProfile.name;
   if(savedProfile.phone) document.getElementById('custPhone').value = savedProfile.phone;
   if(savedProfile.address) document.getElementById('custAddress').value = savedProfile.address;
 
+  const coinDiscount = coinsRedeemed ? 20 : 0;
   document.getElementById('billSubtotal').innerText = `₹${subtotal}`;
-  document.getElementById('billGrandTotal').innerText = `₹${Math.max(0, subtotal + 9 - appliedDiscount)}`;
+  document.getElementById('billGrandTotal').innerText = `₹${Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount)}`;
   document.getElementById('cartModal').style.display = 'flex';
 }
 
@@ -146,36 +232,43 @@ function setPaymentMethod(method) {
   document.getElementById('upiQrBox').style.display = (method === 'UPI') ? 'block' : 'none';
 }
 
+function toggleCoinRedemption() {
+  coinsRedeemed = document.getElementById('redeemCoinsCheck').checked;
+  document.getElementById('coinsDiscountRow').style.display = coinsRedeemed ? 'flex' : 'none';
+  updateCartBar();
+  openCartModal();
+}
+
 function applyDiscountCoupon() {
   const code = document.getElementById('couponCodeInput').value.trim().toUpperCase();
   if(code === "KD50" || code === "WELCOME") {
     appliedDiscount = 50;
     document.getElementById('discountRow').style.display = 'flex';
     document.getElementById('billDiscount').innerText = `-₹50`;
-    alert("🎉 Coupon KD50 Applied! Flat ₹50 OFF.");
+    alert("🎉 Promo Code Applied: ₹50 Discount!");
     updateCartBar();
     openCartModal();
   } else {
-    alert("Invalid Coupon Code. Try 'KD50'");
+    alert("Invalid Promo Code. Try 'KD50'");
   }
 }
 
-// 5. Place Order & Firebase Push
+// 6. Place Order & Permanent Cloud Sync
 function placeOrder() {
   const name = document.getElementById('custName').value.trim();
   const phone = document.getElementById('custPhone').value.trim();
   const address = document.getElementById('custAddress').value.trim();
 
   if(!name || !phone || !address) {
-    alert("Please enter Name, Phone, and Delivery Address.");
+    alert("Please fill Name, Phone and Complete Delivery Address.");
     return;
   }
 
-  // Save profile automatically
   localStorage.setItem("kd_cust_profile", JSON.stringify({ name, phone, address }));
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const grandTotal = Math.max(0, subtotal + 9 - appliedDiscount);
+  const coinDiscount = coinsRedeemed ? 20 : 0;
+  const grandTotal = Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount);
 
   const orderPayload = {
     orderId: "KD" + Math.floor(100000 + Math.random() * 900000),
@@ -189,34 +282,117 @@ function placeOrder() {
     timestamp: firebase.database.ServerValue.TIMESTAMP
   };
 
-  db.ref("orders").push(orderPayload).then(() => {
+  // 1. Push to Live Orders for Admin
+  const newOrderRef = db.ref("orders").push(orderPayload);
+
+  // 2. Push to Permanent Customer History (Never gets deleted)
+  db.ref("customer_history/" + phone).push(orderPayload);
+
+  newOrderRef.then(() => {
     currentActiveOrder = orderPayload;
     cart = [];
     appliedDiscount = 0;
+    coinsRedeemed = false;
     updateCartBar();
     closeModal('cartModal');
-    openTrackingModal();
+    openTrackingModal(true);
   });
 }
 
-// 6. Live Tracking
-function openTrackingModal() {
+// 7. Permanent Orders History (Customer History View)
+function openOrderHistoryModal() {
+  const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
+  const phone = profile.phone;
+  const container = document.getElementById('orderHistoryContainer');
+  container.innerHTML = '<p style="text-align:center; color:var(--gray); margin-top:20px;">Fetching your permanent order records...</p>';
+  document.getElementById('orderHistoryModal').style.display = 'flex';
+
+  if(!phone) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:30px 0;">
+        <i class="fa-solid fa-user-lock" style="font-size:36px; color:#cbd5e1; margin-bottom:10px;"></i>
+        <p style="font-size:13px; color:var(--gray);">Please save your mobile number in Account tab to view your permanent order history.</p>
+        <button class="admin-btn btn-primary" style="margin-top:12px;" onclick="closeModal('orderHistoryModal'); switchNavTab('account');">Open Account</button>
+      </div>
+    `;
+    return;
+  }
+
+  db.ref("customer_history/" + phone).on("value", snapshot => {
+    const data = snapshot.val();
+    container.innerHTML = '';
+
+    if(!data) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:30px 0;">
+          <i class="fa-solid fa-box-open" style="font-size:36px; color:#cbd5e1; margin-bottom:8px;"></i>
+          <p style="font-size:13px; color:var(--gray);">No past orders found for +91 ${phone}</p>
+        </div>
+      `;
+    } else {
+      Object.keys(data).reverse().forEach(key => {
+        const ord = data[key];
+        const itemsList = ord.items ? ord.items.map(i => `${i.name} (x${i.qty})`).join(", ") : "Items";
+        const dateStr = ord.timestamp ? new Date(ord.timestamp).toLocaleDateString("en-IN", { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Recent";
+
+        container.innerHTML += `
+          <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:12px; box-shadow:var(--shadow);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-size:12px; font-weight:700; color:var(--primary);">#${ord.orderId}</span>
+              <span style="font-size:11px; color:var(--gray);">${dateStr}</span>
+            </div>
+            <div style="font-size:13px; font-weight:600; margin-bottom:4px;">${itemsList}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+              <span style="font-weight:700; font-size:14px;">₹${ord.grandTotal} (${ord.paymentMode})</span>
+              <button class="add-btn" onclick="reorderItems('${key}', '${phone}')">🔄 Reorder</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+  });
+}
+
+function reorderItems(key, phone) {
+  db.ref("customer_history/" + phone + "/" + key).once("value", snap => {
+    const ord = snap.val();
+    if(ord && ord.items) {
+      ord.items.forEach(i => {
+        addToCart(i.id || "dish_" + Date.now(), i.name, i.price);
+      });
+      closeModal('orderHistoryModal');
+      openCartModal();
+      alert("✅ Added previous order items to Bag!");
+    }
+  });
+}
+
+// 8. Order Tracking View
+function openTrackingModal(isNew = false) {
   const content = document.getElementById('trackingContent');
   if(!currentActiveOrder) {
-    content.innerHTML = `<div style="text-align:center; padding:30px 0;"><p>No active orders right now.</p></div>`;
+    content.innerHTML = `<div style="text-align:center; padding:30px 0;"><i class="fa-solid fa-box" style="font-size:36px; color:#cbd5e1; margin-bottom:8px;"></i><p>No active orders currently.</p></div>`;
   } else {
     content.innerHTML = `
+      ${isNew ? `
+        <div class="success-checkmark"><i class="fa-solid fa-check"></i></div>
+        <h3 style="text-align:center; font-size:16px; margin-bottom:4px;">Order Placed Successfully!</h3>
+        <p style="text-align:center; font-size:12px; color:var(--gray); margin-bottom:16px;">We have received your order and are preparing it fresh.</p>
+      ` : ''}
+
       <div style="background:#fff0f3; padding:14px; border-radius:var(--radius); margin-bottom:16px;">
-        <div style="font-size:12px; color:var(--primary); font-weight:700;">ORDER ID: ${currentActiveOrder.orderId}</div>
+        <div style="font-size:12px; color:var(--primary); font-weight:700;">ORDER ID: #${currentActiveOrder.orderId}</div>
         <div style="font-size:16px; font-weight:700; margin:4px 0;">₹${currentActiveOrder.grandTotal} (${currentActiveOrder.paymentMode})</div>
         <p style="font-size:12px; color:var(--gray);">Status: <strong>${currentActiveOrder.status}</strong></p>
       </div>
-      <div style="padding:10px 0;">
-        <p style="font-size:13px; margin-bottom:6px;">📍 <strong>1. Order Placed</strong> — Store ringing alert.</p>
-        <p style="font-size:13px; margin-bottom:6px;">📞 <strong>2. Order Locked</strong> — Confirmed via call.</p>
-        <p style="font-size:13px; margin-bottom:6px;">🍳 <strong>3. Kitchen Preparing</strong> — Fresh cooking.</p>
-        <p style="font-size:13px; margin-bottom:6px;">🛵 <strong>4. Out for Delivery</strong> — Reaching Bengbari.</p>
+
+      <div style="padding:8px 0;">
+        <p style="font-size:13px; margin-bottom:8px;">📍 <strong>1. Order Placed</strong> — Store received alert.</p>
+        <p style="font-size:13px; margin-bottom:8px;">📞 <strong>2. Order Locked</strong> — Confirmed via phone.</p>
+        <p style="font-size:13px; margin-bottom:8px;">🍳 <strong>3. Kitchen Preparing</strong> — Fresh cooking.</p>
+        <p style="font-size:13px; margin-bottom:8px;">🛵 <strong>4. Out for Delivery</strong> — Arriving in Bengbari.</p>
       </div>
+
       <a href="tel:8453270362" class="admin-btn btn-green" style="text-decoration:none; display:block; text-align:center; margin-top:16px;">
         <i class="fa-solid fa-phone"></i> Call Restaurant (8453270362)
       </a>
@@ -225,7 +401,7 @@ function openTrackingModal() {
   document.getElementById('trackingModal').style.display = 'flex';
 }
 
-// 7. Custom Cake Studio Logic
+// 9. Custom Cake Studio Logic
 function openCakeStudio() {
   document.getElementById('cakeStudioModal').style.display = 'flex';
 }
@@ -233,7 +409,7 @@ function openCakeStudio() {
 function selectCakeWeight(wt, price, el) {
   selectedCakeWeight = wt;
   selectedCakePrice = price;
-  document.querySelectorAll('.weight-pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.weight-pills .weight-pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
 }
 
@@ -256,42 +432,108 @@ function addCustomCakeToCart() {
 
   addToCart("cake_" + Date.now(), cakeName, selectedCakePrice);
   closeModal('cakeStudioModal');
-  alert("🎂 Custom Cake added to Cart!");
+  alert("🎂 Custom Cake added to Bag!");
 }
 
-// 8. Customer Profile Logic
-function openProfileModal() {
+// 10. Customer Profile & Cloud Sync
+function switchNavTab(tab) {
+  document.querySelectorAll('.bottom-nav .nav-tab').forEach(t => t.classList.remove('active'));
+  if(tab === 'home') {
+    document.getElementById('tabHome').classList.add('active');
+    closeModal('accountModal');
+  } else if(tab === 'account') {
+    document.getElementById('tabAccount').classList.add('active');
+    openProfileTab();
+  }
+}
+
+function openProfileTab() {
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   if(profile.name) {
-    document.getElementById('profDisplayName').innerText = profile.name;
-    document.getElementById('profNameInput').value = profile.name;
+    document.getElementById('accNameDisplay').innerText = profile.name;
+    document.getElementById('accInputName').value = profile.name;
   }
   if(profile.phone) {
-    document.getElementById('profDisplayPhone').innerText = profile.phone;
-    document.getElementById('profPhoneInput').value = profile.phone;
+    document.getElementById('accPhoneDisplay').innerText = profile.phone;
+    document.getElementById('accInputPhone').value = profile.phone;
+    
+    // Load wishlist from cloud
+    db.ref("customers/" + profile.phone + "/wishlist").once("value", snap => {
+      const cloudW = snap.val();
+      if(cloudW && Array.isArray(cloudW)) {
+        wishlist = cloudW;
+        localStorage.setItem("kd_wishlist", JSON.stringify(wishlist));
+        renderFoodItems(menuCatalog);
+      }
+    });
   }
   if(profile.address) {
-    document.getElementById('profAddressInput').value = profile.address;
+    document.getElementById('accInputAddress').value = profile.address;
   }
-  document.getElementById('profileModal').style.display = 'flex';
+  const savedAvatar = localStorage.getItem("kd_cust_avatar");
+  if(savedAvatar) {
+    document.getElementById('userAvatarImg').src = savedAvatar;
+  }
+  document.getElementById('accountModal').style.display = 'flex';
 }
 
-function saveCustomerProfile() {
-  const name = document.getElementById('profNameInput').value.trim();
-  const phone = document.getElementById('profPhoneInput').value.trim();
-  const address = document.getElementById('profAddressInput').value.trim();
+function uploadCustomerAvatar(input) {
+  if(input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('userAvatarImg').src = e.target.result;
+      localStorage.setItem("kd_cust_avatar", e.target.result);
+      alert("✅ Profile Photo Updated!");
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function saveCustomerAccount() {
+  const name = document.getElementById('accInputName').value.trim();
+  const phone = document.getElementById('accInputPhone').value.trim();
+  const address = document.getElementById('accInputAddress').value.trim();
 
   if(!name || !phone) {
-    alert("Please enter Name and Phone.");
+    alert("Please enter Name and Mobile number.");
     return;
   }
   localStorage.setItem("kd_cust_profile", JSON.stringify({ name, phone, address }));
-  document.getElementById('profDisplayName').innerText = name;
-  document.getElementById('profDisplayPhone').innerText = phone;
-  alert("Profile Details Saved Successfully!");
+  document.getElementById('accNameDisplay').innerText = name;
+  document.getElementById('accPhoneDisplay').innerText = phone;
+
+  // Cloud sync
+  db.ref("customers/" + phone + "/profile").set({ name, phone, address });
+  alert("✅ Account synced and saved permanently to cloud!");
 }
 
-// 9. Admin Control Room Logic (Face ID + PIN + WhatsApp Dispatch + KOT)
+function openSavedItemsModal() {
+  const container = document.getElementById('wishlistItemsContainer');
+  container.innerHTML = '';
+  const savedDishes = menuCatalog.filter(d => wishlist.includes(d.id));
+
+  if(savedDishes.length === 0) {
+    container.innerHTML = '<p style="text-align:center; color:var(--gray); margin-top:30px;">No saved items in your wishlist.</p>';
+  } else {
+    savedDishes.forEach(dish => {
+      container.innerHTML += `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid #e2e8f0;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <img src="${dish.img}" style="width:50px; height:50px; border-radius:6px; object-fit:cover;" />
+            <div>
+              <div style="font-size:13px; font-weight:600;">${dish.name}</div>
+              <div style="font-size:12px; color:var(--primary); font-weight:700;">₹${dish.price}</div>
+            </div>
+          </div>
+          <button class="add-btn" onclick="addToCart('${dish.id}', '${dish.name}', ${dish.price})">ADD</button>
+        </div>
+      `;
+    });
+  }
+  document.getElementById('wishlistModal').style.display = 'flex';
+}
+
+// 11. Admin Control Room Logic
 function openAdminGateway() {
   document.getElementById('adminModal').style.display = 'flex';
 }
@@ -302,7 +544,7 @@ async function unlockAdminBiometric() {
       alert("Face/Biometric Authenticated Successfully!");
       showAdminDashboard();
     } catch(e) {
-      alert("Biometrics error: Enter Master PIN.");
+      alert("Fallback: Enter Master PIN.");
     }
   } else {
     alert("Use Master PIN (0122 / 1220).");
@@ -325,7 +567,7 @@ function showAdminDashboard() {
 }
 
 function listenToLiveOrders() {
-  db.ref("orders").limitToLast(15).on("value", snapshot => {
+  db.ref("orders").limitToLast(20).on("value", snapshot => {
     const data = snapshot.val();
     const list = document.getElementById('adminLiveOrdersList');
     list.innerHTML = '';
@@ -359,7 +601,8 @@ function listenToLiveOrders() {
             <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
               <a href="tel:${cPhone}" class="add-btn" style="text-decoration:none; background:#10b981; color:#fff; border:none; padding:5px 10px; font-size:11px; border-radius:6px;">📞 Call</a>
               <button class="add-btn" style="padding:5px 10px; font-size:11px; border-radius:6px;" onclick="updateOrderStatus('${key}', 'Confirmed & In Kitchen')">Lock & Prepare</button>
-              <button class="add-btn" style="padding:5px 10px; font-size:11px; border-radius:6px; background:#3b82f6; color:#fff; border:none;" onclick="dispatchToRider('${cName}', '${cPhone}', '${cAddress}', '${itemsSummary}', '${cTotal}')">🚴 Dispatch (WhatsApp)</button>
+              <button class="add-btn" style="padding:5px 10px; font-size:11px; border-radius:6px; background:#3b82f6; color:#fff; border:none;" onclick="dispatchToRider('${cName}', '${cPhone}', '${cAddress}', '${itemsSummary}', '${cTotal}')">🚴 Dispatch</button>
+              <button class="add-btn" style="padding:5px 8px; font-size:11px; border-radius:6px; background:#ef4444; color:#fff; border:none;" onclick="adminDeleteOrder('${key}')" title="Delete Order"><i class="fa-solid fa-trash"></i></button>
             </div>
           </div>
         `;
@@ -370,38 +613,65 @@ function listenToLiveOrders() {
   });
 }
 
+function adminDeleteOrder(key) {
+  if(confirm("Delete this order from live screen? (Note: Permanent customer history will stay safe)")) {
+    db.ref("orders/" + key).remove().then(() => {
+      alert("Order cleared from live screen.");
+    });
+  }
+}
+
 function updateOrderStatus(key, status) {
   db.ref("orders/" + key).update({ status: status });
   alert("Order updated to: " + status);
 }
 
 function dispatchToRider(name, phone, address, items, total) {
-  const msg = encodeURIComponent(`🚨 *NEW RESTAURANT DELIVERY DISPATCH*\nCustomer: ${name}\nPhone: ${phone}\nAddress: ${address}\nItems: ${items}\nTotal Bill: ₹${total} (Collect Cash/Verify UPI)`);
+  const msg = encodeURIComponent(`🚨 *NEW RESTAURANT DELIVERY DISPATCH*\nCustomer: ${name}\nPhone: ${phone}\nAddress: ${address}\nItems: ${items}\nTotal: ₹${total}`);
   window.open(`https://wa.me/918453270362?text=${msg}`, '_blank');
 }
 
-function adminAddNewDish() {
+function previewAdminDishUpload(input) {
+  if(input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      adminUploadBase64 = e.target.result;
+      const preview = document.getElementById('adminDishPreview');
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function adminSaveNewDish() {
   const name = document.getElementById('newDishName').value.trim();
   const price = Number(document.getElementById('newDishPrice').value);
   const cat = document.getElementById('newDishCat').value;
-  const img = document.getElementById('newDishImg').value.trim() || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400";
+  const urlLink = document.getElementById('newDishImgUrl').value.trim();
+  const finalImg = adminUploadBase64 || urlLink || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500";
 
   if(!name || !price) {
     alert("Please enter Dish Name and Price.");
     return;
   }
-  menuCatalog.unshift({ id: "dish_" + Date.now(), name, price, cat, img });
+
+  menuCatalog.unshift({ id: "dish_" + Date.now(), name, price, mrp: price + 50, cat, img: finalImg });
   renderFoodItems(menuCatalog);
   alert(`✅ Added "${name}" (₹${price}) to Menu!`);
+
   document.getElementById('newDishName').value = '';
   document.getElementById('newDishPrice').value = '';
+  document.getElementById('newDishImgUrl').value = '';
+  document.getElementById('adminDishPreview').style.display = 'none';
+  adminUploadBase64 = "";
 }
 
 function adminCreateCoupon() {
   const code = document.getElementById('newCouponCode').value.trim();
   const discount = document.getElementById('newCouponDiscount').value;
   if(code && discount) {
-    alert(`Coupon "${code}" with ₹${discount} discount created successfully!`);
+    alert(`Promo Code "${code}" created with ₹${discount} discount!`);
     document.getElementById('newCouponCode').value = '';
     document.getElementById('newCouponDiscount').value = '';
   }
@@ -445,5 +715,5 @@ function filterCategory(cat, el) {
   else renderFoodItems(menuCatalog.filter(d => d.cat === cat));
 }
 function triggerVoiceSearch() {
-  alert("Voice Search: Speak dish name (e.g. 'Pork Momo' or 'Cake')");
+  alert("Voice Search: Say dish name (e.g. 'Pork Momo' or 'Chocolate Cake')");
 }
