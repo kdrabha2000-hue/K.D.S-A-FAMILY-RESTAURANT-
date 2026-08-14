@@ -5,25 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>S & A FAMILY RESTAURANT | K.D RABHA</title>
   
-  <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#ff3e6c" />
 
-  <!-- Icons & Fonts -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
-  <!-- Top App Header -->
   <header class="app-header">
     <div class="top-bar">
       <div class="brand-box">
@@ -31,55 +26,59 @@
         <p><i class="fa-solid fa-location-dot"></i> Bengbari, Udalguri (784523)</p>
       </div>
       <div class="header-actions">
-        <div class="vip-pill" id="userVipBadge"><i class="fa-solid fa-crown"></i> VIP GUEST</div>
-        <div class="admin-icon-btn" onclick="openAdminGateway()"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="vip-pill" id="userVipBadge"><i class="fa-solid fa-crown"></i> GUEST</div>
+        <div class="admin-icon-btn" onclick="openAdminGateway()" title="Admin Control Room"><i class="fa-solid fa-shield-halved"></i></div>
       </div>
     </div>
     
-    <!-- Search Bar -->
     <div class="search-box">
       <i class="fa-solid fa-magnifying-glass search-icon"></i>
-      <input type="text" id="searchInput" placeholder="Search momos, cakes, curry, rolls..." onkeyup="searchDishes()" />
+      <input type="text" id="searchInput" placeholder="Search momos, rolls, curry, cakes..." onkeyup="searchDishes()" />
       <i class="fa-solid fa-microphone mic-icon" onclick="triggerVoiceSearch()"></i>
     </div>
   </header>
 
-  <!-- Live Promo Banner -->
   <div class="promo-carousel">
     <span class="promo-badge">🎉 FESTIVAL DEAL</span>
     <h2 id="bannerTitle">K.D RABHA SPECIAL</h2>
-    <p id="bannerSub">Flat ₹9 Fixed Delivery on All Orders!</p>
+    <p id="bannerSub">Flat ₹9 Fixed Delivery on All Orders in Bengbari!</p>
   </div>
 
-  <!-- Category Slider -->
   <div class="category-scroll" id="categoryContainer">
-    <div class="cat-item active" onclick="filterCategory('all')">
+    <div class="cat-item active" onclick="filterCategory('all', this)">
       <div class="cat-circle"><i class="fa-solid fa-utensils"></i></div>
       <div class="cat-name">All Items</div>
     </div>
-    <div class="cat-item" onclick="filterCategory('cakes')">
-      <div class="cat-circle"><i class="fa-solid fa-cake-candles"></i></div>
-      <div class="cat-name">Cakes</div>
-    </div>
-    <div class="cat-item" onclick="filterCategory('momos')">
+    <div class="cat-item" onclick="filterCategory('momos', this)">
       <div class="cat-circle"><i class="fa-solid fa-bowl-rice"></i></div>
       <div class="cat-name">Momos</div>
     </div>
-    <div class="cat-item" onclick="filterCategory('main')">
-      <div class="cat-circle"><i class="fa-solid fa-drumstick-bite"></i></div>
-      <div class="cat-name">Main Course</div>
-    </div>
-    <div class="cat-item" onclick="filterCategory('rolls')">
+    <div class="cat-item" onclick="filterCategory('rolls', this)">
       <div class="cat-circle"><i class="fa-solid fa-bread-slice"></i></div>
-      <div class="cat-name">Rolls/Fast Food</div>
+      <div class="cat-name">Rolls</div>
     </div>
-    <div class="cat-item" onclick="filterCategory('drinks')">
+    <div class="cat-item" onclick="filterCategory('chicken', this)">
+      <div class="cat-circle"><i class="fa-solid fa-drumstick-bite"></i></div>
+      <div class="cat-name">Chicken</div>
+    </div>
+    <div class="cat-item" onclick="filterCategory('pork', this)">
+      <div class="cat-circle"><i class="fa-solid fa-bacon"></i></div>
+      <div class="cat-name">Pork Special</div>
+    </div>
+    <div class="cat-item" onclick="filterCategory('chow_thukpa', this)">
+      <div class="cat-circle"><i class="fa-solid fa-plate-wheat"></i></div>
+      <div class="cat-name">Chow & Soup</div>
+    </div>
+    <div class="cat-item" onclick="filterCategory('cakes', this)">
+      <div class="cat-circle"><i class="fa-solid fa-cake-candles"></i></div>
+      <div class="cat-name">Cakes Studio</div>
+    </div>
+    <div class="cat-item" onclick="filterCategory('drinks', this)">
       <div class="cat-circle"><i class="fa-solid fa-wine-glass"></i></div>
-      <div class="cat-name">Drinks/Dairy</div>
+      <div class="cat-name">Beverages</div>
     </div>
   </div>
 
-  <!-- Dishes Section -->
   <div class="section-title">
     <span>Recommended Dishes</span>
     <span style="font-size:12px; color:var(--primary); font-weight:600;">8:00 AM - 10:00 PM</span>
@@ -87,78 +86,134 @@
 
   <div class="food-grid" id="foodGrid"></div>
 
-  <!-- Floating Cart Bar -->
   <div class="floating-cart-bar" id="floatingCart" onclick="openCartModal()">
     <div>
       <span id="cartCount" style="font-weight:700;">1 Item</span> | <span id="cartTotal">₹0</span>
-      <div style="font-size:10px; opacity:0.8;">+ ₹9 Delivery Included</div>
+      <div style="font-size:10px; opacity:0.8;">+ ₹9 Fixed Delivery</div>
     </div>
     <div style="font-weight:700;">View Bag <i class="fa-solid fa-arrow-right"></i></div>
   </div>
 
-  <!-- Bottom Navigation -->
   <nav class="bottom-nav">
-    <div class="nav-tab active"><i class="fa-solid fa-house"></i>Home</div>
-    <div class="nav-tab" onclick="filterCategory('cakes')"><i class="fa-solid fa-cake-candles"></i>Cakes</div>
+    <div class="nav-tab active" onclick="switchMainTab('home', this)"><i class="fa-solid fa-house"></i>Home</div>
+    <div class="nav-tab" onclick="openCakeStudio()"><i class="fa-solid fa-cake-candles"></i>Cakes</div>
     <div class="nav-tab" onclick="openTrackingModal()"><i class="fa-solid fa-bag-shopping"></i>My Orders</div>
-    <div class="nav-tab" onclick="alert('KD RABHA Rewards Active: Earn coins on every order!')"><i class="fa-solid fa-gift"></i>Rewards</div>
+    <div class="nav-tab" onclick="openProfileModal()"><i class="fa-solid fa-user"></i>Profile</div>
   </nav>
 
-  <!-- Cart & Checkout Modal -->
+  <div class="full-modal" id="cakeStudioModal">
+    <div class="modal-header">
+      <h3>🎂 Custom Cake Design Studio</h3>
+      <i class="fa-solid fa-xmark close-btn" onclick="closeModal('cakeStudioModal')"></i>
+    </div>
+    <div style="padding:16px;">
+      <p style="font-size:12px; color:var(--gray); margin-bottom:12px;">Customize weight, message and photo for birthday/anniversary cakes.</p>
+      
+      <label class="form-label">Select Flavor / Design</label>
+      <select id="cakeFlavorSelect" class="form-input">
+        <option value="Black Forest Special">Black Forest Special (Fresh Cream)</option>
+        <option value="Chocolate Truffle Loaded">Chocolate Truffle Loaded</option>
+        <option value="Fresh Pineapple Delight">Fresh Pineapple Delight</option>
+        <option value="Red Velvet Heart">Red Velvet Heart</option>
+        <option value="Butterscotch Crunch">Butterscotch Crunch</option>
+      </select>
+
+      <label class="form-label">Select Weight</label>
+      <div class="weight-pills">
+        <div class="weight-pill" onclick="selectCakeWeight(0.5, 450, this)">0.5 Kg (₹450)</div>
+        <div class="weight-pill active" onclick="selectCakeWeight(1.0, 850, this)">1.0 Kg (₹850)</div>
+        <div class="weight-pill" onclick="selectCakeWeight(2.0, 1650, this)">2.0 Kg (₹1650)</div>
+      </div>
+
+      <label class="form-label">Message on Cake</label>
+      <input type="text" id="cakeCustomText" class="form-input" placeholder="e.g. Happy Birthday Rahul!" />
+
+      <label class="form-label">Upload Reference Photo / Design</label>
+      <input type="file" id="cakePhotoFile" accept="image/*" class="form-input" onchange="previewCakeUpload(this)" />
+      <img id="cakePhotoPreview" style="display:none; width:100%; height:140px; object-fit:cover; border-radius:8px; margin-bottom:12px;" />
+
+      <button class="admin-btn btn-primary" onclick="addCustomCakeToCart()">ADD CUSTOM CAKE TO CART</button>
+    </div>
+  </div>
+
+  <div class="full-modal" id="profileModal">
+    <div class="modal-header">
+      <h3>👤 Customer Profile & Settings</h3>
+      <i class="fa-solid fa-xmark close-btn" onclick="closeModal('profileModal')"></i>
+    </div>
+    <div style="padding:16px;">
+      <div class="profile-card">
+        <div class="profile-avatar"><i class="fa-solid fa-user-check"></i></div>
+        <div>
+          <h4 id="profDisplayName">Guest Customer</h4>
+          <p id="profDisplayPhone" style="font-size:12px; color:var(--gray);">No phone saved</p>
+          <span class="vip-pill" id="profBadge" style="margin-top:4px;"><i class="fa-solid fa-crown"></i> Silver Member</span>
+        </div>
+      </div>
+
+      <h4 style="font-size:14px; margin:16px 0 8px;">Edit Default Delivery Details</h4>
+      <input type="text" id="profNameInput" class="form-input" placeholder="Your Name" />
+      <input type="tel" id="profPhoneInput" class="form-input" placeholder="Phone Number" />
+      <textarea id="profAddressInput" class="form-input" placeholder="Full Delivery Address in Bengbari/Udalguri"></textarea>
+      
+      <button class="admin-btn btn-green" onclick="saveCustomerProfile()">SAVE PROFILE DETAILS</button>
+      
+      <div style="margin-top:20px; background:#fff; padding:12px; border-radius:var(--radius); border:1px solid #e2e8f0;">
+        <h5 style="font-size:13px; margin-bottom:6px;"><i class="fa-solid fa-coins" style="color:var(--gold);"></i> KD Rabha Coin Balance</h5>
+        <p style="font-size:12px; color:var(--gray);">You have <strong id="userCoins">20</strong> reward coins (Use on checkout for discounts).</p>
+      </div>
+    </div>
+  </div>
+
   <div class="full-modal" id="cartModal">
     <div class="modal-header">
-      <h3 style="font-size:16px;">Review Order & Checkout</h3>
-      <i class="fa-solid fa-xmark" style="font-size:20px; cursor:pointer;" onclick="closeModal('cartModal')"></i>
+      <h3>Review Order & Checkout</h3>
+      <i class="fa-solid fa-xmark close-btn" onclick="closeModal('cartModal')"></i>
     </div>
     <div style="padding:16px;">
       <div id="cartItemsList"></div>
 
-      <!-- Bill Breakdown -->
+      <div style="display:flex; gap:8px; margin:12px 0;">
+        <input type="text" id="couponCodeInput" class="form-input" placeholder="Enter Promo Code (e.g. KD50)" style="margin-bottom:0;" />
+        <button class="add-btn" style="padding:0 16px;" onclick="applyDiscountCoupon()">APPLY</button>
+      </div>
+
       <div class="bill-box">
         <h4 style="font-size:14px; margin-bottom:8px;">Bill Summary</h4>
-        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
-          <span>Item Total:</span><span id="billSubtotal">₹0</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
-          <span>Fixed Delivery Fee:</span><span>₹9</span>
-        </div>
+        <div class="bill-row"><span>Item Total:</span><span id="billSubtotal">₹0</span></div>
+        <div class="bill-row"><span>Fixed Delivery Fee:</span><span>₹9</span></div>
+        <div class="bill-row" id="discountRow" style="display:none; color:var(--green);"><span>Coupon Discount:</span><span id="billDiscount">-₹0</span></div>
         <hr style="border:none; border-top:1px dashed #cbd5e1; margin:8px 0;" />
-        <div style="display:flex; justify-content:space-between; font-weight:700; font-size:14px;">
-          <span>Grand Total:</span><span id="billGrandTotal" style="color:var(--primary);">₹0</span>
-        </div>
+        <div class="bill-row" style="font-weight:700; font-size:15px;"><span>Grand Total:</span><span id="billGrandTotal" style="color:var(--primary);">₹0</span></div>
       </div>
 
-      <!-- Customer Details Input -->
       <h4 style="font-size:14px; margin-bottom:8px;">Delivery Details</h4>
       <input type="text" id="custName" class="form-input" placeholder="Your Full Name" />
-      <input type="tel" id="custPhone" class="form-input" placeholder="Mobile Number (For Call Confirmation)" />
-      <textarea id="custAddress" class="form-input" placeholder="Complete Address in Bengbari/Udalguri..."></textarea>
+      <input type="tel" id="custPhone" class="form-input" placeholder="Mobile Number (For Confirmation Call)" />
+      <textarea id="custAddress" class="form-input" placeholder="Complete Address / Landmark in Bengbari..."></textarea>
 
-      <!-- Payment Modes -->
-      <h4 style="font-size:14px; margin-bottom:8px;">Select Payment Mode</h4>
-      <div style="display:flex; gap:10px; margin-bottom:16px;">
-        <button class="add-btn" style="flex:1; padding:10px;" onclick="setPaymentMethod('COD')">Cash on Delivery</button>
-        <button class="add-btn" style="flex:1; padding:10px; background:#e0f2fe; color:#0284c7; border-color:#0284c7;" onclick="setPaymentMethod('UPI')">Google Pay / UPI</button>
+      <h4 style="font-size:14px; margin-bottom:8px;">Payment Mode</h4>
+      <div style="display:flex; gap:10px; margin-bottom:14px;">
+        <button class="add-btn" id="codBtn" style="flex:1; padding:10px; background:var(--primary); color:#fff;" onclick="setPaymentMethod('COD')">Cash on Delivery</button>
+        <button class="add-btn" id="upiBtn" style="flex:1; padding:10px; background:#f1f5f9; color:var(--dark); border-color:#cbd5e1;" onclick="setPaymentMethod('UPI')">Google Pay / UPI</button>
       </div>
 
-      <!-- QR Code View for UPI -->
       <div id="upiQrBox" class="upi-box">
-        <p style="font-size:12px; font-weight:600; margin-bottom:8px;">Scan & Pay via Google Pay / UPI</p>
-        <p style="font-size:11px; color:var(--gray); margin-bottom:6px;">UPI ID: <strong>6000026478@okbizaxis</strong></p>
+        <p style="font-size:12px; font-weight:600; margin-bottom:4px;">Scan & Pay via Google Pay / Any UPI</p>
+        <p style="font-size:11px; color:var(--gray); margin-bottom:8px;">UPI ID: <strong>6000026478@okbizaxis</strong></p>
         <div style="background:#fff; padding:10px; display:inline-block; border-radius:8px; box-shadow:var(--shadow);">
           <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=6000026478@okbizaxis&pn=KD%20RABHA%20Coffee%20Shops" alt="UPI QR" style="width:160px; height:160px;" />
         </div>
       </div>
 
-      <button class="admin-btn btn-primary" onclick="placeOrder()">PLACE ORDER (CONFIRM)</button>
+      <button class="admin-btn btn-primary" onclick="placeOrder()">CONFIRM & PLACE ORDER</button>
     </div>
   </div>
 
-  <!-- 4-Stage Live Tracking Modal -->
   <div class="full-modal" id="trackingModal">
     <div class="modal-header">
-      <h3 style="font-size:16px;">Live Order Tracking</h3>
-      <i class="fa-solid fa-xmark" style="font-size:20px; cursor:pointer;" onclick="closeModal('trackingModal')"></i>
+      <h3>Live Order Tracking</h3>
+      <i class="fa-solid fa-xmark close-btn" onclick="closeModal('trackingModal')"></i>
     </div>
     <div style="padding:16px;" id="trackingContent">
       <div style="text-align:center; padding:30px 0; color:var(--gray);">
@@ -168,61 +223,91 @@
     </div>
   </div>
 
-  <!-- Face-Locked Admin Panel Modal -->
   <div class="full-modal admin-modal" id="adminModal">
     <div class="modal-header" style="background:#0f172a; border-color:#334155;">
-      <h3 style="color:#f8fafc; font-size:16px;"><i class="fa-solid fa-user-shield" style="color:var(--primary);"></i> S&A Manager Admin Room</h3>
-      <i class="fa-solid fa-xmark" style="font-size:20px; cursor:pointer; color:#f8fafc;" onclick="closeModal('adminModal')"></i>
+      <h3 style="color:#f8fafc;"><i class="fa-solid fa-user-shield" style="color:var(--primary);"></i> S&A Restaurant Admin Control</h3>
+      <i class="fa-solid fa-xmark close-btn" style="color:#f8fafc;" onclick="closeModal('adminModal')"></i>
     </div>
     
-    <!-- Face / PIN Lock Shield -->
     <div id="adminLockScreen" style="padding:30px 20px; text-align:center;">
       <div style="width:80px; height:80px; border-radius:50%; background:#1e293b; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border:2px solid var(--primary);">
         <i class="fa-solid fa-face-smile" style="font-size:36px; color:var(--primary);"></i>
       </div>
       <h3 style="margin-bottom:6px;">Biometric & Face Unlock</h3>
-      <p style="font-size:12px; color:#94a3b8; margin-bottom:20px;">Unlock using Device Face ID or Master PIN</p>
+      <p style="font-size:12px; color:#94a3b8; margin-bottom:20px;">Use Device Biometrics or Master PIN</p>
       <button class="admin-btn btn-primary" onclick="unlockAdminBiometric()"><i class="fa-solid fa-expand"></i> Scan Face / Fingerprint</button>
-      <div style="margin:15px 0; color:#64748b; font-size:12px;">— OR USE MASTER PIN —</div>
-      <input type="password" id="adminPinInput" placeholder="Enter 4-Digit Master PIN" style="width:100%; padding:12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#fff; text-align:center; font-size:16px; margin-bottom:10px;" />
-      <button class="admin-btn btn-blue" onclick="unlockAdminWithPin()">Unlock with PIN</button>
+      <div style="margin:15px 0; color:#64748b; font-size:12px;">— OR ENTER MASTER PIN —</div>
+      <input type="password" id="adminPinInput" placeholder="Master PIN (0122 / 1220)" style="width:100%; padding:12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#fff; text-align:center; font-size:16px; margin-bottom:10px;" />
+      <button class="admin-btn btn-blue" onclick="unlockAdminWithPin()">Unlock with Master PIN</button>
     </div>
 
-    <!-- Admin Dashboard Controls (Unlocked) -->
     <div id="adminDashboard" style="display:none; padding:10px 0;">
       
-      <!-- Live Orders & Call -->
+      <div class="admin-card">
+        <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-chart-line"></i> Daily Sales & Analytics</h4>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:center;">
+          <div style="background:#0f172a; padding:10px; border-radius:8px;">
+            <div style="font-size:11px; color:#94a3b8;">Today's Revenue</div>
+            <div id="statTotalSales" style="font-size:18px; font-weight:700; color:#10b981;">₹0</div>
+          </div>
+          <div style="background:#0f172a; padding:10px; border-radius:8px;">
+            <div style="font-size:11px; color:#94a3b8;">Total Orders</div>
+            <div id="statOrderCount" style="font-size:18px; font-weight:700; color:#38bdf8;">0</div>
+          </div>
+        </div>
+      </div>
+
       <div class="admin-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <h4 style="font-size:14px; color:#38bdf8;"><i class="fa-solid fa-bell"></i> Live Customer Orders</h4>
+          <h4 style="font-size:14px; color:#38bdf8;"><i class="fa-solid fa-bell"></i> Live Orders & KOT Control</h4>
           <span class="vip-pill" style="background:#10b981; color:#fff;">Live Ringer Active</span>
         </div>
         <div id="adminLiveOrdersList">
-          <p style="font-size:12px; color:#94a3b8;">Listening for new orders in real-time...</p>
+          <p style="font-size:12px; color:#94a3b8;">Listening for live orders in real-time...</p>
         </div>
       </div>
 
-      <!-- Store Control -->
       <div class="admin-card">
-        <h4 style="font-size:14px; margin-bottom:10px; color:#38bdf8;"><i class="fa-solid fa-store"></i> Store & Banner Manager</h4>
-        <button class="admin-btn btn-green" onclick="toggleStoreStatus()" id="storeStatusBtn">Restaurant is: OPEN (8am - 10pm)</button>
-        <button class="admin-btn btn-blue" onclick="editPromoBanner()">Edit Live Carousel Banner</button>
+        <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-utensils"></i> Add New Dish / Edit Price</h4>
+        <input type="text" id="newDishName" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Dish Name (e.g. Pork Schezwan Momo)" />
+        <input type="number" id="newDishPrice" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Price (₹)" />
+        <select id="newDishCat" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;">
+          <option value="momos">Momos</option>
+          <option value="rolls">Rolls</option>
+          <option value="chicken">Chicken</option>
+          <option value="pork">Pork</option>
+          <option value="chow_thukpa">Chow / Soup</option>
+          <option value="cakes">Cakes</option>
+          <option value="drinks">Drinks</option>
+        </select>
+        <input type="text" id="newDishImg" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Photo Image URL (or Unsplash link)" />
+        <button class="admin-btn btn-green" onclick="adminAddNewDish()">ADD DISH TO MENU</button>
       </div>
 
-      <!-- Customer VIP Badge Giver -->
       <div class="admin-card">
-        <h4 style="font-size:14px; margin-bottom:10px; color:#38bdf8;"><i class="fa-solid fa-crown"></i> Assign Customer VIP Badge</h4>
-        <input type="tel" id="vipCustPhone" placeholder="Enter Customer Phone No." style="width:100%; padding:10px; border-radius:8px; background:#0f172a; border:1px solid #334155; color:#fff; margin-bottom:8px;" />
-        <button class="admin-btn btn-primary" onclick="assignVipBadge()">Activate Gold/VIP Badge</button>
+        <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-tags"></i> Create Discount Coupon</h4>
+        <input type="text" id="newCouponCode" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Coupon Code (e.g. SUNDAY50)" />
+        <input type="number" id="newCouponDiscount" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Discount Value in ₹" />
+        <button class="admin-btn btn-blue" onclick="adminCreateCoupon()">SAVE COUPON</button>
+      </div>
+
+      <div class="admin-card">
+        <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-store"></i> Store & Carousel Control</h4>
+        <button class="admin-btn btn-green" onclick="toggleStoreStatus()" id="storeStatusBtn">Restaurant is: OPEN (8am - 10pm)</button>
+        <button class="admin-btn btn-blue" onclick="editPromoBanner()">Edit Home Banner Headline</button>
+      </div>
+
+      <div class="admin-card">
+        <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-crown"></i> Customer VIP Badge</h4>
+        <input type="tel" id="vipCustPhone" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Customer Mobile Number" />
+        <button class="admin-btn btn-primary" onclick="assignVipBadge()">ACTIVATE VIP GOLD BADGE</button>
       </div>
 
     </div>
   </div>
 
-  <!-- Audio Tone for Live Order Ringing -->
   <audio id="orderAudioAlert" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
-
-  <!-- External Script -->
+  
   <script src="app.js"></script>
 </body>
 </html>
