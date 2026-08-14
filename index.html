@@ -8,17 +8,20 @@
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#ff3e6c" />
 
+  <!-- FontAwesome & Google Fonts -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="style.css" />
 
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
+  <!-- Top App Header -->
   <header class="app-header">
     <div class="top-bar">
       <div class="brand-box">
@@ -26,24 +29,27 @@
         <p><i class="fa-solid fa-location-dot"></i> Bengbari, Udalguri (784523)</p>
       </div>
       <div class="header-actions">
-        <div class="vip-pill" id="userVipBadge"><i class="fa-solid fa-crown"></i> GUEST</div>
+        <div class="coin-pill" onclick="openProfileTab()"><i class="fa-solid fa-coins"></i> <span id="headerCoins">25</span></div>
         <div class="admin-icon-btn" onclick="openAdminGateway()" title="Admin Control Room"><i class="fa-solid fa-shield-halved"></i></div>
       </div>
     </div>
     
+    <!-- Search Bar -->
     <div class="search-box">
       <i class="fa-solid fa-magnifying-glass search-icon"></i>
-      <input type="text" id="searchInput" placeholder="Search momos, rolls, curry, cakes..." onkeyup="searchDishes()" />
+      <input type="text" id="searchInput" placeholder="Search momos, rolls, thukpa, cakes..." onkeyup="searchDishes()" />
       <i class="fa-solid fa-microphone mic-icon" onclick="triggerVoiceSearch()"></i>
     </div>
   </header>
 
+  <!-- Live Promo Banner -->
   <div class="promo-carousel">
     <span class="promo-badge">🎉 FESTIVAL DEAL</span>
     <h2 id="bannerTitle">K.D RABHA SPECIAL</h2>
     <p id="bannerSub">Flat ₹9 Fixed Delivery on All Orders in Bengbari!</p>
   </div>
 
+  <!-- Category Slider -->
   <div class="category-scroll" id="categoryContainer">
     <div class="cat-item active" onclick="filterCategory('all', this)">
       <div class="cat-circle"><i class="fa-solid fa-utensils"></i></div>
@@ -79,6 +85,7 @@
     </div>
   </div>
 
+  <!-- Dishes Section -->
   <div class="section-title">
     <span>Recommended Dishes</span>
     <span style="font-size:12px; color:var(--primary); font-weight:600;">8:00 AM - 10:00 PM</span>
@@ -86,6 +93,7 @@
 
   <div class="food-grid" id="foodGrid"></div>
 
+  <!-- Floating Cart Bar -->
   <div class="floating-cart-bar" id="floatingCart" onclick="openCartModal()">
     <div>
       <span id="cartCount" style="font-weight:700;">1 Item</span> | <span id="cartTotal">₹0</span>
@@ -94,22 +102,186 @@
     <div style="font-weight:700;">View Bag <i class="fa-solid fa-arrow-right"></i></div>
   </div>
 
+  <!-- Bottom Navigation -->
   <nav class="bottom-nav">
-    <div class="nav-tab active" onclick="switchMainTab('home', this)"><i class="fa-solid fa-house"></i>Home</div>
-    <div class="nav-tab" onclick="openCakeStudio()"><i class="fa-solid fa-cake-candles"></i>Cakes</div>
-    <div class="nav-tab" onclick="openTrackingModal()"><i class="fa-solid fa-bag-shopping"></i>My Orders</div>
-    <div class="nav-tab" onclick="openProfileModal()"><i class="fa-solid fa-user"></i>Profile</div>
+    <div class="nav-tab active" id="tabHome" onclick="switchNavTab('home')"><i class="fa-solid fa-house"></i>Home</div>
+    <div class="nav-tab" id="tabCakes" onclick="openCakeStudio()"><i class="fa-solid fa-cake-candles"></i>Cakes</div>
+    <div class="nav-tab" id="tabOrders" onclick="openOrderHistoryModal()"><i class="fa-solid fa-bag-shopping"></i>My Orders</div>
+    <div class="nav-tab" id="tabAccount" onclick="switchNavTab('account')"><i class="fa-solid fa-circle-user"></i>Account</div>
   </nav>
 
+  <!-- ==================== MODAL: PRODUCT DETAIL VIEW (PDP) ==================== -->
+  <div class="full-modal" id="productDetailModal">
+    <div class="modal-header">
+      <i class="fa-solid fa-arrow-left close-btn" onclick="closeModal('productDetailModal')"></i>
+      <div style="font-weight:700; font-size:14px;">Item Details</div>
+      <i class="fa-solid fa-share-nodes" style="font-size:18px; cursor:pointer;" onclick="shareCurrentItem()"></i>
+    </div>
+    <div class="pdp-container">
+      <div class="pdp-img-box">
+        <img id="pdpImg" src="" alt="Dish" />
+        <button class="pdp-wish-btn" id="pdpWishBtn" onclick="toggleCurrentWish()"><i class="fa-solid fa-heart"></i></button>
+      </div>
+
+      <div class="pdp-info">
+        <h2 id="pdpTitle">Dish Title</h2>
+        <div class="pdp-rating-row">
+          <span class="rating-badge"><i class="fa-solid fa-star"></i> 4.5</span>
+          <span style="font-size:12px; color:var(--gray);">(420+ ratings)</span>
+          <span class="bestseller-tag">HOT DEAL</span>
+        </div>
+
+        <div class="pdp-price-row">
+          <span class="pdp-price" id="pdpPrice">₹120</span>
+          <span class="pdp-mrp" id="pdpMrp">₹180</span>
+          <span class="pdp-discount">33% OFF</span>
+        </div>
+
+        <div class="variant-box" id="pdpVariantBox">
+          <label class="form-label">Select Portion / Quantity</label>
+          <div class="weight-pills">
+            <div class="weight-pill active" onclick="selectDishVariant('standard', 0, this)">Standard Portion</div>
+            <div class="weight-pill" onclick="selectDishVariant('double', 60, this)">Double Combo (+₹60)</div>
+          </div>
+        </div>
+
+        <div class="service-strip">
+          <div><i class="fa-solid fa-truck-fast"></i> 30-40 Min Delivery</div>
+          <div><i class="fa-solid fa-bowl-food"></i> 100% Fresh & Hot</div>
+          <div><i class="fa-solid fa-money-bill-wave"></i> Cash / UPI</div>
+        </div>
+
+        <div class="review-section">
+          <h4>Customer Reviews (Bengbari Food Lovers)</h4>
+          <div class="review-item">
+            <div class="rev-header"><span>⭐ 5.0 - Pranjal R.</span><small>Yesterday</small></div>
+            <p>Super delicious momos and fast delivery in Batiyamari area!</p>
+          </div>
+          <div class="review-item">
+            <div class="rev-header"><span>⭐ 5.0 - Anjana R.</span><small>3 days ago</small></div>
+            <p>Best custom birthday cake in Udalguri. Very soft & fresh.</p>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;">
+          <h4 style="font-size:14px; margin-bottom:10px;">Similar Dishes You May Like</h4>
+          <div class="category-scroll" id="similarDishesScroll"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pdp-bottom-bar">
+      <button class="pdp-btn btn-cart" onclick="addPdpToCart()"><i class="fa-solid fa-bag-shopping"></i> Add to Bag</button>
+      <button class="pdp-btn btn-buy" onclick="buyNowPdp()"><i class="fa-solid fa-bolt"></i> Order Now</button>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: SHOPSY STYLE ACCOUNT / PROFILE ==================== -->
+  <div class="full-modal" id="accountModal">
+    <div class="modal-header">
+      <h3>My Account</h3>
+      <i class="fa-solid fa-xmark close-btn" onclick="closeModal('accountModal')"></i>
+    </div>
+    
+    <div class="account-container">
+      <div class="account-header">
+        <div class="avatar-wrapper">
+          <img id="userAvatarImg" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" />
+          <label for="avatarFileInput" class="avatar-edit-icon"><i class="fa-solid fa-camera"></i></label>
+          <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="uploadCustomerAvatar(this)" />
+        </div>
+        <div class="account-info">
+          <h3 id="accNameDisplay">KD RABHA</h3>
+          <p id="accPhoneDisplay">+91 8453270362</p>
+          <span class="vip-pill"><i class="fa-solid fa-crown"></i> VIP Member</span>
+        </div>
+      </div>
+
+      <!-- 4 Action Cards -->
+      <div class="account-grid-4">
+        <div class="acc-tile" onclick="openOrderHistoryModal()">
+          <i class="fa-solid fa-box-open" style="color:#ff3e6c;"></i>
+          <span>Orders History</span>
+        </div>
+        <div class="acc-tile" onclick="openSavedItemsModal()">
+          <i class="fa-solid fa-heart" style="color:#ef4444;"></i>
+          <span>Saved Items</span>
+        </div>
+        <div class="acc-tile" onclick="alert('Language: English / Assamese / Hindi')">
+          <i class="fa-solid fa-language" style="color:#0284c7;"></i>
+          <span>Language</span>
+        </div>
+        <div class="acc-tile" onclick="window.open('tel:8453270362')">
+          <i class="fa-solid fa-headset" style="color:#10b981;"></i>
+          <span>Contact Us</span>
+        </div>
+      </div>
+
+      <div class="account-reward-card">
+        <div>
+          <div style="font-size:12px; font-weight:700;">SuperCoins & Rewards</div>
+          <div style="font-size:18px; font-weight:800; color:var(--gold);"><i class="fa-solid fa-coins"></i> <span id="accCoinCount">25</span> Coins</div>
+        </div>
+        <button class="add-btn" style="background:#fff; color:var(--dark); border:none;" onclick="alert('Coins give instant discounts at checkout!')">Use Coins</button>
+      </div>
+
+      <div class="account-section">
+        <h4><i class="fa-solid fa-location-dot"></i> Delivery Address & Login Sync</h4>
+        <input type="text" id="accInputName" class="form-input" placeholder="Your Full Name" />
+        <input type="tel" id="accInputPhone" class="form-input" placeholder="Phone Number (For Cloud History Sync)" />
+        <textarea id="accInputAddress" class="form-input" placeholder="Complete Street/House Landmark in Bengbari/Udalguri"></textarea>
+        <button class="admin-btn btn-green" onclick="saveCustomerAccount()">SYNC & SAVE ACCOUNT</button>
+      </div>
+
+      <div class="acc-menu-list">
+        <div class="acc-menu-row" onclick="alert('Refer code: KD100. Share with friends to earn 50 Coins!')">
+          <div><i class="fa-solid fa-share-nodes"></i> Refer & Earn with S&A</div>
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
+        <div class="acc-menu-row" onclick="openSavedItemsModal()">
+          <div><i class="fa-solid fa-heart"></i> My Wishlist & Favourites</div>
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
+        <div class="acc-menu-row" onclick="openAdminGateway()">
+          <div><i class="fa-solid fa-shield-halved"></i> Restaurant Admin Gateway</div>
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: PERMANENT ORDERS HISTORY ==================== -->
+  <div class="full-modal" id="orderHistoryModal">
+    <div class="modal-header">
+      <h3>📦 My Orders & History</h3>
+      <i class="fa-solid fa-xmark close-btn" onclick="closeModal('orderHistoryModal')"></i>
+    </div>
+    <div style="padding:16px;" id="orderHistoryContainer">
+      <p style="text-align:center; color:var(--gray); margin-top:30px;">Loading your permanent orders history from cloud...</p>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: PERMANENT SAVED ITEMS / WISHLIST ==================== -->
+  <div class="full-modal" id="wishlistModal">
+    <div class="modal-header">
+      <h3>❤️ Saved Dishes (Wishlist)</h3>
+      <i class="fa-solid fa-xmark close-btn" onclick="closeModal('wishlistModal')"></i>
+    </div>
+    <div style="padding:16px;" id="wishlistItemsContainer">
+      <p style="text-align:center; color:var(--gray); margin-top:30px;">No saved items in your wishlist.</p>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: CUSTOM CAKE STUDIO ==================== -->
   <div class="full-modal" id="cakeStudioModal">
     <div class="modal-header">
-      <h3>🎂 Custom Cake Design Studio</h3>
+      <h3>🎂 Custom Cake Studio</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('cakeStudioModal')"></i>
     </div>
     <div style="padding:16px;">
-      <p style="font-size:12px; color:var(--gray); margin-bottom:12px;">Customize weight, message and photo for birthday/anniversary cakes.</p>
+      <p style="font-size:12px; color:var(--gray); margin-bottom:12px;">Customize weight, message and design for fresh delivery in Udalguri.</p>
       
-      <label class="form-label">Select Flavor / Design</label>
+      <label class="form-label">Select Flavor</label>
       <select id="cakeFlavorSelect" class="form-input">
         <option value="Black Forest Special">Black Forest Special (Fresh Cream)</option>
         <option value="Chocolate Truffle Loaded">Chocolate Truffle Loaded</option>
@@ -128,43 +300,15 @@
       <label class="form-label">Message on Cake</label>
       <input type="text" id="cakeCustomText" class="form-input" placeholder="e.g. Happy Birthday Rahul!" />
 
-      <label class="form-label">Upload Reference Photo / Design</label>
+      <label class="form-label">Upload Custom Design / Photo</label>
       <input type="file" id="cakePhotoFile" accept="image/*" class="form-input" onchange="previewCakeUpload(this)" />
       <img id="cakePhotoPreview" style="display:none; width:100%; height:140px; object-fit:cover; border-radius:8px; margin-bottom:12px;" />
 
-      <button class="admin-btn btn-primary" onclick="addCustomCakeToCart()">ADD CUSTOM CAKE TO CART</button>
+      <button class="admin-btn btn-primary" onclick="addCustomCakeToCart()">ADD CUSTOM CAKE TO BAG</button>
     </div>
   </div>
 
-  <div class="full-modal" id="profileModal">
-    <div class="modal-header">
-      <h3>👤 Customer Profile & Settings</h3>
-      <i class="fa-solid fa-xmark close-btn" onclick="closeModal('profileModal')"></i>
-    </div>
-    <div style="padding:16px;">
-      <div class="profile-card">
-        <div class="profile-avatar"><i class="fa-solid fa-user-check"></i></div>
-        <div>
-          <h4 id="profDisplayName">Guest Customer</h4>
-          <p id="profDisplayPhone" style="font-size:12px; color:var(--gray);">No phone saved</p>
-          <span class="vip-pill" id="profBadge" style="margin-top:4px;"><i class="fa-solid fa-crown"></i> Silver Member</span>
-        </div>
-      </div>
-
-      <h4 style="font-size:14px; margin:16px 0 8px;">Edit Default Delivery Details</h4>
-      <input type="text" id="profNameInput" class="form-input" placeholder="Your Name" />
-      <input type="tel" id="profPhoneInput" class="form-input" placeholder="Phone Number" />
-      <textarea id="profAddressInput" class="form-input" placeholder="Full Delivery Address in Bengbari/Udalguri"></textarea>
-      
-      <button class="admin-btn btn-green" onclick="saveCustomerProfile()">SAVE PROFILE DETAILS</button>
-      
-      <div style="margin-top:20px; background:#fff; padding:12px; border-radius:var(--radius); border:1px solid #e2e8f0;">
-        <h5 style="font-size:13px; margin-bottom:6px;"><i class="fa-solid fa-coins" style="color:var(--gold);"></i> KD Rabha Coin Balance</h5>
-        <p style="font-size:12px; color:var(--gray);">You have <strong id="userCoins">20</strong> reward coins (Use on checkout for discounts).</p>
-      </div>
-    </div>
-  </div>
-
+  <!-- ==================== MODAL: CART & CHECKOUT ==================== -->
   <div class="full-modal" id="cartModal">
     <div class="modal-header">
       <h3>Review Order & Checkout</h3>
@@ -174,8 +318,13 @@
       <div id="cartItemsList"></div>
 
       <div style="display:flex; gap:8px; margin:12px 0;">
-        <input type="text" id="couponCodeInput" class="form-input" placeholder="Enter Promo Code (e.g. KD50)" style="margin-bottom:0;" />
+        <input type="text" id="couponCodeInput" class="form-input" placeholder="Promo Code (e.g. KD50)" style="margin-bottom:0;" />
         <button class="add-btn" style="padding:0 16px;" onclick="applyDiscountCoupon()">APPLY</button>
+      </div>
+
+      <div style="background:#fffbeb; border:1px solid #fde68a; padding:10px 14px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="font-size:12px;"><span>🪙 Pay with SuperCoins (Use 20 Coins)</span></div>
+        <input type="checkbox" id="redeemCoinsCheck" onchange="toggleCoinRedemption()" />
       </div>
 
       <div class="bill-box">
@@ -183,14 +332,15 @@
         <div class="bill-row"><span>Item Total:</span><span id="billSubtotal">₹0</span></div>
         <div class="bill-row"><span>Fixed Delivery Fee:</span><span>₹9</span></div>
         <div class="bill-row" id="discountRow" style="display:none; color:var(--green);"><span>Coupon Discount:</span><span id="billDiscount">-₹0</span></div>
+        <div class="bill-row" id="coinsDiscountRow" style="display:none; color:var(--gold);"><span>Coins Discount:</span><span>-₹20</span></div>
         <hr style="border:none; border-top:1px dashed #cbd5e1; margin:8px 0;" />
         <div class="bill-row" style="font-weight:700; font-size:15px;"><span>Grand Total:</span><span id="billGrandTotal" style="color:var(--primary);">₹0</span></div>
       </div>
 
       <h4 style="font-size:14px; margin-bottom:8px;">Delivery Details</h4>
-      <input type="text" id="custName" class="form-input" placeholder="Your Full Name" />
-      <input type="tel" id="custPhone" class="form-input" placeholder="Mobile Number (For Confirmation Call)" />
-      <textarea id="custAddress" class="form-input" placeholder="Complete Address / Landmark in Bengbari..."></textarea>
+      <input type="text" id="custName" class="form-input" placeholder="Full Name" />
+      <input type="tel" id="custPhone" class="form-input" placeholder="Mobile Number (For Delivery Confirmation)" />
+      <textarea id="custAddress" class="form-input" placeholder="Full Landmark / House Address in Bengbari..."></textarea>
 
       <h4 style="font-size:14px; margin-bottom:8px;">Payment Mode</h4>
       <div style="display:flex; gap:10px; margin-bottom:14px;">
@@ -210,12 +360,13 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL: 4-STAGE LIVE TRACKING ==================== -->
   <div class="full-modal" id="trackingModal">
     <div class="modal-header">
-      <h3>Live Order Tracking</h3>
+      <h3>Order Status & Tracking</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('trackingModal')"></i>
     </div>
-    <div style="padding:16px;" id="trackingContent">
+    <div style="padding:20px 16px;" id="trackingContent">
       <div style="text-align:center; padding:30px 0; color:var(--gray);">
         <i class="fa-solid fa-clock-rotate-left" style="font-size:40px; margin-bottom:10px;"></i>
         <p>No active orders placed yet.</p>
@@ -223,9 +374,10 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL: 35-FEATURE ADMIN ROOM ==================== -->
   <div class="full-modal admin-modal" id="adminModal">
     <div class="modal-header" style="background:#0f172a; border-color:#334155;">
-      <h3 style="color:#f8fafc;"><i class="fa-solid fa-user-shield" style="color:var(--primary);"></i> S&A Restaurant Admin Control</h3>
+      <h3 style="color:#f8fafc;"><i class="fa-solid fa-user-shield" style="color:var(--primary);"></i> S&A Manager Admin Room</h3>
       <i class="fa-solid fa-xmark close-btn" style="color:#f8fafc;" onclick="closeModal('adminModal')"></i>
     </div>
     
@@ -268,8 +420,8 @@
       </div>
 
       <div class="admin-card">
-        <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-utensils"></i> Add New Dish / Edit Price</h4>
-        <input type="text" id="newDishName" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Dish Name (e.g. Pork Schezwan Momo)" />
+        <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-utensils"></i> Add Dish (Camera / Gallery / URL)</h4>
+        <input type="text" id="newDishName" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Dish Name" />
         <input type="number" id="newDishPrice" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Price (₹)" />
         <select id="newDishCat" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;">
           <option value="momos">Momos</option>
@@ -280,21 +432,26 @@
           <option value="cakes">Cakes</option>
           <option value="drinks">Drinks</option>
         </select>
-        <input type="text" id="newDishImg" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Photo Image URL (or Unsplash link)" />
-        <button class="admin-btn btn-green" onclick="adminAddNewDish()">ADD DISH TO MENU</button>
+        
+        <label class="form-label" style="color:#94a3b8;">Select Photo from Phone Camera / Gallery</label>
+        <input type="file" id="newDishPhotoFile" accept="image/*" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" onchange="previewAdminDishUpload(this)" />
+        <input type="text" id="newDishImgUrl" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Or Paste Image URL Link" />
+        <img id="adminDishPreview" style="display:none; width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:10px;" />
+
+        <button class="admin-btn btn-green" onclick="adminSaveNewDish()">SAVE DISH TO LIVE MENU</button>
       </div>
 
       <div class="admin-card">
-        <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-tags"></i> Create Discount Coupon</h4>
-        <input type="text" id="newCouponCode" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Coupon Code (e.g. SUNDAY50)" />
+        <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-tags"></i> Promo Code Creator</h4>
+        <input type="text" id="newCouponCode" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Code (e.g. BIKASH50)" />
         <input type="number" id="newCouponDiscount" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Discount Value in ₹" />
-        <button class="admin-btn btn-blue" onclick="adminCreateCoupon()">SAVE COUPON</button>
+        <button class="admin-btn btn-blue" onclick="adminCreateCoupon()">SAVE PROMO CODE</button>
       </div>
 
       <div class="admin-card">
         <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-store"></i> Store & Carousel Control</h4>
         <button class="admin-btn btn-green" onclick="toggleStoreStatus()" id="storeStatusBtn">Restaurant is: OPEN (8am - 10pm)</button>
-        <button class="admin-btn btn-blue" onclick="editPromoBanner()">Edit Home Banner Headline</button>
+        <button class="admin-btn btn-blue" onclick="editPromoBanner()">Edit Carousel Banner Headline</button>
       </div>
 
       <div class="admin-card">
