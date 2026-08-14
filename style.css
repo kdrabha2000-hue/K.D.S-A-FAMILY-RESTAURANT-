@@ -27,7 +27,7 @@ body {
   padding-bottom: 80px;
 }
 
-/* Top App Header */
+/* App Header */
 .app-header {
   position: sticky;
   top: 0;
@@ -45,7 +45,7 @@ body {
 }
 
 .brand-box h1 {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   color: var(--primary);
   letter-spacing: -0.5px;
@@ -59,14 +59,12 @@ body {
   gap: 4px;
 }
 
-.brand-box p i {
-  color: var(--primary);
-}
+.brand-box p i { color: var(--primary); }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .vip-pill {
@@ -95,7 +93,7 @@ body {
   color: var(--dark);
 }
 
-/* Search & Filter Bar */
+/* Search Bar */
 .search-box {
   position: relative;
   display: flex;
@@ -127,28 +125,18 @@ body {
   font-size: 14px;
 }
 
-/* Live Promo Carousel */
+/* Carousel Banner */
 .promo-carousel {
   margin: 14px 16px;
   border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow);
   background: linear-gradient(135deg, #ff3e6c, #ff6b8b);
   color: var(--white);
   padding: 16px;
-  position: relative;
+  box-shadow: var(--shadow);
 }
 
-.promo-carousel h2 {
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.promo-carousel p {
-  font-size: 12px;
-  margin: 4px 0 8px;
-  opacity: 0.9;
-}
+.promo-carousel h2 { font-size: 18px; font-weight: 800; }
+.promo-carousel p { font-size: 12px; margin: 4px 0 8px; opacity: 0.9; }
 
 .promo-badge {
   background: rgba(255,255,255,0.25);
@@ -159,7 +147,7 @@ body {
   display: inline-block;
 }
 
-/* Category Pill Slider */
+/* Categories */
 .category-scroll {
   display: flex;
   gap: 12px;
@@ -179,8 +167,8 @@ body {
 }
 
 .cat-circle {
-  width: 58px;
-  height: 58px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: var(--white);
   display: flex;
@@ -189,16 +177,24 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   border: 2px solid transparent;
   margin-bottom: 6px;
-  font-size: 20px;
+  font-size: 18px;
   color: var(--primary);
-  overflow: hidden;
 }
 
-.cat-circle img { width: 100%; height: 100%; object-fit: cover; }
-.cat-item.active .cat-circle { border-color: var(--primary); background: #fff0f3; }
-.cat-name { font-size: 11px; font-weight: 600; color: var(--dark); text-align: center; }
+.cat-item.active .cat-circle {
+  border-color: var(--primary);
+  background: #fff0f3;
+}
 
-/* Product Grid */
+.cat-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dark);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Dishes Grid */
 .section-title {
   padding: 0 16px 10px;
   font-size: 15px;
@@ -222,7 +218,6 @@ body {
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  position: relative;
 }
 
 .dish-img-wrap {
@@ -237,25 +232,6 @@ body {
   height: 100%;
   object-fit: cover;
 }
-
-.wish-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(255,255,255,0.9);
-  border: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #94a3b8;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-.wish-btn.active { color: var(--primary); }
 
 .food-card-content {
   padding: 10px;
@@ -299,7 +275,7 @@ body {
 
 .add-btn:active { background: var(--primary); color: var(--white); }
 
-/* Floating Cart Bar */
+/* Floating Cart */
 .floating-cart-bar {
   position: fixed;
   bottom: 65px;
@@ -317,7 +293,7 @@ body {
   cursor: pointer;
 }
 
-/* Bottom Navigation */
+/* Bottom Nav */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -338,7 +314,6 @@ body {
   align-items: center;
   gap: 3px;
   color: var(--gray);
-  text-decoration: none;
   font-size: 10px;
   font-weight: 600;
   cursor: pointer;
@@ -347,7 +322,54 @@ body {
 .nav-tab i { font-size: 18px; }
 .nav-tab.active { color: var(--primary); }
 
-/* Modals & Full Overlays */
+/* Cake Studio & Weight Selector */
+.weight-pills {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.weight-pill {
+  flex: 1;
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.weight-pill.active {
+  border-color: var(--primary);
+  background: #fff0f3;
+  color: var(--primary);
+}
+
+/* Profile Card */
+.profile-card {
+  background: var(--white);
+  border: 1px solid #e2e8f0;
+  padding: 16px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.profile-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #fff0f3;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+/* Forms & Modals */
 .full-modal {
   position: fixed;
   top: 0;
@@ -359,7 +381,7 @@ body {
   display: none;
   flex-direction: column;
   overflow-y: auto;
-  padding-bottom: 30px;
+  padding-bottom: 40px;
 }
 
 .modal-header {
@@ -374,22 +396,39 @@ body {
   z-index: 10;
 }
 
+.close-btn { font-size: 20px; cursor: pointer; }
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  outline: none;
+}
+
 .bill-box {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   padding: 14px;
   border-radius: var(--radius);
-  margin: 16px 0;
+  margin: 14px 0;
 }
 
-.form-input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  font-size: 13px;
-  outline: none;
+.bill-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
 }
 
 .upi-box {
@@ -398,11 +437,11 @@ body {
   background: #f8fafc;
   padding: 14px;
   border-radius: var(--radius);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   border: 1px solid #e2e8f0;
 }
 
-/* Admin Panel Style */
+/* Admin Dashboard Styling */
 .admin-modal {
   background: #0f172a;
   color: #f8fafc;
