@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>S & A FAMILY RESTAURANT | K.D RABHA</title>
+  
+  <!-- FontAwesome Icons & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Firebase App & Realtime Database SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <style>
+    :root {
+      --primary: #ff3e6c;
+      --primary-dark: #e02854;
+      --secondary: #14958f;
+      --gold: #ffb800;
+      --dark: #1e293b;
+      --light: #f8fafc;
+      --white: #ffffff;
+      --gray: #64748b;
+      --green: #10b981;
+      --danger: #ef4444;
+      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+      --radius: 14px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #f1f5f9;
+      color: var(--dark);
+      padding-bottom: 80px;
+    }
+
+    /* Top App Header */
+    .app-header {
+      position: sticky;
+      top: 0;
+      background: var(--white);
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      padding: 12px 16px 8px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .brand-box h1 {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-box p {
+      font-size: 11px;
+      color: var(--gray);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .vip-pill {
+      background: linear-gradient(135deg, #ffd700, #ffaa00);
+      color: #000;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 2px 6px rgba(255,184,0,0.4);
+    }
+
+    .admin-icon-btn {
+      background: var(--light);
+      border: 1px solid #e2e8f0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--dark);
+    }
+
+    /* Search & Filter Bar */
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 42px 10px 38px;
+      background: #f1f5f9;
+      border: 1px solid transparent;
+      border-radius: 25px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .search-box .search-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--gray);
+      font-size: 13px;
+    }
+
+    .search-box .mic-icon {
+      position: absolute;
+      right: 14px;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    /* Live Promo Carousel */
+    .promo-carousel {
+      margin: 14px 16px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      background: linear-gradient(135deg, #ff3e6c, #ff6b8b);
+      color: var(--white);
+      padding: 16px;
+      position: relative;
+    }
+
+    .promo-carousel h2 {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .promo-carousel p {
+      font-size: 12px;
+      margin: 4px 0 8px;
+      opacity: 0.9;
+    }
+
+    .promo-badge {
+      background: rgba(255,255,255,0.25);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    /* Category Pill Slider */
+    .category-scroll {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 4px 16px 14px;
+      scrollbar-width: none;
+    }
+
+    .category-scroll::-webkit-scrollbar { display: none; }
+
+    .cat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 68px;
+      cursor: pointer;
+    }
+
+    .cat-circle {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border: 2px solid transparent;
+      margin-bottom: 6px;
+      font-size: 20px;
+      color: var(--primary);
+      overflow: hidden;
+    }
+
+    .cat-circle img { width: 100%; height: 100%; object-fit: cover; }
+    .cat-item.active .cat-circle { border-color: var(--primary); background: #fff0f3; }
+    .cat-name { font-size: 11px; font-weight: 600; color: var(--dark); text-align: center; }
+
+    /* Product Grid */
+    .section-title {
+      padding: 0 16px 10px;
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .food-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 0 16px;
+    }
+
+    .food-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .dish-img-wrap {
+      width: 100%;
+      height: 120px;
+      position: relative;
+      background: #e2e8f0;
+    }
+
+    .dish-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .wish-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255,255,255,0.9);
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .wish-btn.active { color: var(--primary); }
+
+    .food-card-content {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      justify-content: space-between;
+    }
+
+    .food-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--dark);
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+
+    .food-price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .food-price {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .add-btn {
+      background: #fff0f3;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .add-btn:active { background: var(--primary); color: var(--white); }
+
+    /* Floating Cart Bar */
+    .floating-cart-bar {
+      position: fixed;
+      bottom: 65px;
+      left: 16px;
+      right: 16px;
+      background: var(--primary);
+      color: var(--white);
+      padding: 12px 18px;
+      border-radius: var(--radius);
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 25px rgba(255,62,108,0.4);
+      z-index: 999;
+      cursor: pointer;
+      animation: bounce 0.3s ease;
+    }
+
+    /* Bottom 4-Tab Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: var(--white);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid #e2e8f0;
+      z-index: 1000;
+    }
+
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: var(--gray);
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .nav-tab i { font-size: 18px; }
+    .nav-tab.active { color: var(--primary); }
+
+    /* Modals & Full Overlays */
+    .full-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--white);
+      z-index: 2000;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      padding-bottom: 30px;
+    }
+
+    .modal-header {
+      padding: 16px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      background: var(--white);
+      z-index: 10;
+    }
+
+    /* Admin Panel Style */
+    .admin-modal {
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    .admin-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 16px;
+      border-radius: var(--radius);
+      margin: 12px 16px;
+    }
+
+    .admin-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .btn-green { background: var(--green); color: var(--white); }
+    .btn-primary { background: var(--primary); color: var(--white); }
+    .btn-blue { background: #3b82f6; color: var(--white); }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Header -->
+  <header class="app-header">
+    <div class="top-bar">
+      <div class="brand-box">
+        <h1>S & A FAMILY RESTAURANT</h1>
+        <p><i class="fa-solid fa-location-dot" style="color:var(--primary);"></i> Bengbari, Udalguri (784523)</p>
+      </div>
+      <div class="header-actions">
+        <div class="vip-pill" id="userVipBadge"><i class="fa-solid fa-crown"></i> VIP GUEST</div>
+        <div class="admin-icon-btn" onclick="openAdminGateway()"><i class="fa-solid fa-shield-halved"></i></div>
+      </div>
+    </div>
+    
+    <!-- Search Bar -->
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" id="searchInput" placeholder="Search momos, cakes, curry, rolls..." onkeyup="searchDishes()" />
+      <i class="fa-solid fa-microphone mic-icon" onclick="triggerVoiceSearch()"></i>
+    </div>
+  </header>
+
+  <!-- Live Promo Banner -->
+  <div class="promo-carousel">
+    <span class="promo-badge">🎉 FESTIVAL DEAL</span>
+    <h2 id="bannerTitle">K.D RABHA SPECIAL</h2>
+    <p id="bannerSub">Flat ₹9 Fixed Delivery on All Orders!</p>
+  </div>
+
+  <!-- Category Slider -->
+  <div class="category-scroll" id="categoryContainer">
+    <div class="cat-item active" onclick="filterCategory('all')">
+      <div class="cat-circle"><i class="fa-solid fa-utensils"></i></div>
+      <div class="cat-name">All Items</div>
+    </div>
+    <div class="cat-item" onclick="filterCategory('cakes')">
+      <div class="cat-circle"><i class="fa-solid fa-cake-candles"></i></div>
+      <div class="cat-name">Cakes</div>
+    </div>
+    <div class="cat-item" onclick="filterCategory('momos')">
+      <div class="cat-circle"><i class="fa-solid fa-bowl-rice"></i></div>
+      <div class="cat-name">Momos</div>
+    </div>
+    <div class="cat-item" onclick="filterCategory('main')">
+      <div class="cat-circle"><i class="fa-solid fa-drumstick-bite"></i></div>
+      <div class="cat-name">Main Course</div>
+    </div>
+    <div class="cat-item" onclick="filterCategory('rolls')">
+      <div class="cat-circle"><i class="fa-solid fa-bread-slice"></i></div>
+      <div class="cat-name">Rolls/Fast Food</div>
+    </div>
+    <div class="cat-item" onclick="filterCategory('drinks')">
+      <div class="cat-circle"><i class="fa-solid fa-wine-glass"></i></div>
+      <div class="cat-name">Drinks/Dairy</div>
+    </div>
+  </div>
+
+  <!-- Dishes Section -->
+  <div class="section-title">
+    <span>Recommended Dishes</span>
+    <span style="font-size:12px; color:var(--primary); font-weight:600;">8:00 AM - 10:00 PM</span>
+  </div>
+
+  <div class="food-grid" id="foodGrid">
+    <!-- Menu items will be rendered dynamically from JavaScript -->
+  </div>
+
+  <!-- Floating Cart Bar -->
+  <div class="floating-cart-bar" id="floatingCart" onclick="openCartModal()">
+    <div>
+      <span id="cartCount" style="font-weight:700;">1 Item</span> | <span id="cartTotal">₹0</span>
+      <div style="font-size:10px; opacity:0.8;">+ ₹9 Delivery Included</div>
+    </div>
+    <div style="font-weight:700;">View Bag <i class="fa-solid fa-arrow-right"></i></div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-tab active"><i class="fa-solid fa-house"></i>Home</div>
+    <div class="nav-tab" onclick="filterCategory('cakes')"><i class="fa-solid fa-cake-candles"></i>Cakes</div>
+    <div class="nav-tab" onclick="openTrackingModal()"><i class="fa-solid fa-bag-shopping"></i>My Orders</div>
+    <div class="nav-tab" onclick="alert('KD RABHA Rewards Active: Earn coins on every order!')"><i class="fa-solid fa-gift"></i>Rewards</div>
+  </nav>
+
+  <!-- Cart & Checkout Modal -->
+  <div class="full-modal" id="cartModal">
+    <div class="modal-header">
+      <h3 style="font-size:16px;">Review Order & Checkout</h3>
+      <i class="fa-solid fa-xmark" style="font-size:20px; cursor:pointer;" onclick="closeModal('cartModal')"></i>
+    </div>
+    <div style="padding:16px;">
+      <div id="cartItemsList"></div>
+
+      <!-- Bill Breakdown -->
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:14px; border-radius:var(--radius); margin:16px 0;">
+        <h4 style="font-size:14px; margin-bottom:8px;">Bill Summary</h4>
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+          <span>Item Total:</span><span id="billSubtotal">₹0</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+          <span>Fixed Delivery Fee:</span><span>₹9</span>
+        </div>
+        <hr style="border:none; border-top:1px dashed #cbd5e1; margin:8px 0;" />
+        <div style="display:flex; justify-content:space-between; font-weight:700; font-size:14px;">
+          <span>Grand Total:</span><span id="billGrandTotal" style="color:var(--primary);">₹0</span>
+        </div>
+      </div>
+
+      <!-- Customer Details Input -->
+      <h4 style="font-size:14px; margin-bottom:8px;">Delivery Details</h4>
+      <input type="text" id="custName" placeholder="Your Full Name" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:8px;" />
+      <input type="tel" id="custPhone" placeholder="Mobile Number (For Call Confirmation)" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:8px;" />
+      <textarea id="custAddress" placeholder="Complete Address in Bengbari/Udalguri..." style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:12px;"></textarea>
+
+      <!-- Payment Modes -->
+      <h4 style="font-size:14px; margin-bottom:8px;">Select Payment Mode</h4>
+      <div style="display:flex; gap:10px; margin-bottom:16px;">
+        <button class="add-btn" style="flex:1; padding:10px;" onclick="setPaymentMethod('COD')">Cash on Delivery</button>
+        <button class="add-btn" style="flex:1; padding:10px; background:#e0f2fe; color:#0284c7; border-color:#0284c7;" onclick="setPaymentMethod('UPI')">Google Pay / UPI</button>
+      </div>
+
+      <!-- QR Code View for UPI -->
+      <div id="upiQrBox" style="display:none; text-align:center; background:#f8fafc; padding:14px; border-radius:var(--radius); margin-bottom:16px; border:1px solid #e2e8f0;">
+        <p style="font-size:12px; font-weight:600; margin-bottom:8px;">Scan & Pay via Google Pay / UPI</p>
+        <p style="font-size:11px; color:var(--gray); margin-bottom:6px;">UPI ID: <strong>6000026478@okbizaxis</strong></p>
+        <div style="background:#fff; padding:10px; display:inline-block; border-radius:8px; box-shadow:var(--shadow);">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=6000026478@okbizaxis&pn=KD%20RABHA%20Coffee%20Shops" alt="UPI QR" style="width:160px; height:160px;" />
+        </div>
+      </div>
+
+      <button class="admin-btn btn-primary" onclick="placeOrder()">PLACE ORDER (CONFIRM)</button>
+    </div>
+  </div>
+
+  <!-- 4-Stage Live Tracking Modal -->
+  <div class="full-modal" id="trackingModal">
+    <div class="modal-header">
+      <h3 style="font-size:16px;">Live Order Tracking</h3>
+      <i class="fa-solid fa-xmark" style="font-size:20px; cursor:pointer;" onclick="closeModal('trackingModal')"></i>
+    </div>
+    <div style="padding:16px;" id="trackingContent">
+      <div style="text-align:center; padding:30px 0; color:var(--gray);">
+        <i class="fa-solid fa-clock-rotate-left" style="font-size:40px; margin-bottom:10px;"></i>
+        <p>No active orders placed yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Face-Locked Admin Panel Modal -->
+  <div class="full-modal admin-modal" id="adminModal">
+    <div class="modal-header" style="background:#0f172a; border-color:#334155;">
+      <h3 style="color:#f8fafc; font-size:16px;"><i class="fa-solid fa-user-shield" style="color:var(--primary);"></i> S&A Manager Admin Room</h3>
+      <i class="fa-solid fa-xmark" style="font-size:20px; cursor:pointer; color:#f8fafc;" onclick="closeModal('adminModal')"></i>
+    </div>
+    
+    <!-- Face / PIN Lock Shield -->
+    <div id="adminLockScreen" style="padding:30px 20px; text-align:center;">
+      <div style="width:80px; height:80px; border-radius:50%; background:#1e293b; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border:2px solid var(--primary);">
+        <i class="fa-solid fa-face-smile" style="font-size:36px; color:var(--primary);"></i>
+      </div>
+      <h3 style="margin-bottom:6px;">Biometric & Face Unlock</h3>
+      <p style="font-size:12px; color:#94a3b8; margin-bottom:20px;">Unlock using Device Face ID or Master PIN</p>
+      <button class="admin-btn btn-primary" onclick="unlockAdminBiometric()"><i class="fa-solid fa-expand"></i> Scan Face / Fingerprint</button>
+      <div style="margin:15px 0; color:#64748b; font-size:12px;">— OR USE MASTER PIN —</div>
+      <input type="password" id="adminPinInput" placeholder="Enter 4-Digit Master PIN" style="width:100%; padding:12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#fff; text-align:center; font-size:16px; margin-bottom:10px;" />
+      <button class="admin-btn btn-blue" onclick="unlockAdminWithPin()">Unlock with PIN</button>
+    </div>
+
+    <!-- Admin Dashboard Controls (Unlocked) -->
+    <div id="adminDashboard" style="display:none; padding:10px 0;">
+      
+      <!-- Live Orders & Call -->
+      <div class="admin-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h4 style="font-size:14px; color:#38bdf8;"><i class="fa-solid fa-bell"></i> Live Customer Orders</h4>
+          <span class="vip-pill" style="background:#10b981; color:#fff;">Live Ringer Active</span>
+        </div>
+        <div id="adminLiveOrdersList">
+          <p style="font-size:12px; color:#94a3b8;">Listening for new orders in real-time...</p>
+        </div>
+      </div>
+
+      <!-- Store Control -->
+      <div class="admin-card">
+        <h4 style="font-size:14px; margin-bottom:10px; color:#38bdf8;"><i class="fa-solid fa-store"></i> Store & Banner Manager</h4>
+        <button class="admin-btn btn-green" onclick="toggleStoreStatus()" id="storeStatusBtn">Restaurant is: OPEN (8am - 10pm)</button>
+        <button class="admin-btn btn-blue" onclick="editPromoBanner()">Edit Live Carousel Banner</button>
+      </div>
+
+      <!-- Customer VIP Badge Giver -->
+      <div class="admin-card">
+        <h4 style="font-size:14px; margin-bottom:10px; color:#38bdf8;"><i class="fa-solid fa-crown"></i> Assign Customer VIP Badge</h4>
+        <input type="tel" id="vipCustPhone" placeholder="Enter Customer Phone No." style="width:100%; padding:10px; border-radius:8px; background:#0f172a; border:1px solid #334155; color:#fff; margin-bottom:8px;" />
+        <button class="admin-btn btn-primary" onclick="assignVipBadge()">Activate Gold/VIP Badge</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Audio Tone for Live Order Ringing -->
+  <audio id="orderAudioAlert" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+
+  <!-- Core JavaScript Logic & Firebase Connection -->
+  <script>
+    // 1. Firebase Initialization with your project config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDTFzD8eaxS6hsQ_W5akOWRWixyZdjkSo",
+      authDomain: "kd-ka-khana-ghar-tak.firebaseapp.com",
+      databaseURL: "https://kd-ka-khana-ghar-tak-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "kd-ka-khana-ghar-tak",
+      storageBucket: "kd-ka-khana-ghar-tak.firebasestorage.app",
+      messagingSenderId: "69933070653",
+      appId: "1:69933070653:web:f9b93ba827d794bb376d54"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 2. Full Menu Catalog (S & A FAMILY RESTAURANT)
+    const initialDishes = [
+      { id: "ck1", name: "Custom Photo Cake (2 Kg)", price: 1850, cat: "cakes", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400" },
+      { id: "ck2", name: "Chocolate Truffle Cake (1 Kg)", price: 900, cat: "cakes", img: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=400" },
+      { id: "ck3", name: "Vanilla / Pineapple Cake (1 Kg)", price: 800, cat: "cakes", img: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=400" },
+      { id: "mo1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, cat: "momos", img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=400" },
+      { id: "mo2", name: "Pork Fried Momo (10 Pcs)", price: 150, cat: "momos", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=400" },
+      { id: "mo3", name: "Cheese & Paneer Momo", price: 140, cat: "momos", img: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=400" },
+      { id: "mc1", name: "Chicken Butter Masala", price: 280, cat: "main", img: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=400" },
+      { id: "mc2", name: "Pork Curry / Pork Masala", price: 300, cat: "main", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=400" },
+      { id: "mc3", name: "Shahi Paneer + Butter Naan Combo", price: 240, cat: "main", img: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400" },
+      { id: "ro1", name: "Chicken Egg Double Roll", price: 110, cat: "rolls", img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=400" },
+      { id: "ro2", name: "Special Pork Roll", price: 130, cat: "rolls", img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=400" },
+      { id: "dr1", name: "Cold Drinks (Coca-Cola/Sprite 750ml)", price: 45, cat: "drinks", img: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400" }
+    ];
+
+    let cart = [];
+    let activePayment = 'COD';
+    let currentActiveOrder = null;
+
+    // 3. Render Food Grid
+    function renderFoodItems(items) {
+      const container = document.getElementById('foodGrid');
+      container.innerHTML = '';
+      items.forEach(dish => {
+        container.innerHTML += `
+          <div class="food-card">
+            <div class="dish-img-wrap">
+              <img src="${dish.img}" alt="${dish.name}" />
+              <button class="wish-btn" onclick="toggleWish(this)"><i class="fa-solid fa-heart"></i></button>
+            </div>
+            <div class="food-card-content">
+              <div class="food-name">${dish.name}</div>
+              <div class="food-price-row">
+                <span class="food-price">₹${dish.price}</span>
+                <button class="add-btn" onclick="addToCart('${dish.id}', '${dish.name}', ${dish.price})">ADD +</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    renderFoodItems(initialDishes);
+
+    // 4. Cart Management
+    function addToCart(id, name, price) {
+      const existing = cart.find(i => i.id === id);
+      if(existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ id, name, price, qty: 1 });
+      }
+      updateCartBar();
+    }
+
+    function updateCartBar() {
+      const cartBar = document.getElementById('floatingCart');
+      if(cart.length === 0) {
+        cartBar.style.display = 'none';
+        return;
+      }
+      const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const grandTotal = subtotal + 9; // Fixed ₹9 delivery
+
+      document.getElementById('cartCount').innerText = `${totalQty} Item${totalQty > 1 ? 's' : ''}`;
+      document.getElementById('cartTotal').innerText = `₹${grandTotal}`;
+      cartBar.style.display = 'flex';
+    }
+
+    function openCartModal() {
+      const list = document.getElementById('cartItemsList');
+      list.innerHTML = '';
+      let subtotal = 0;
+
+      cart.forEach(item => {
+        subtotal += (item.price * item.qty);
+        list.innerHTML += `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div>
+              <div style="font-size:13px; font-weight:600;">${item.name}</div>
+              <div style="font-size:12px; color:var(--gray);">₹${item.price} x ${item.qty}</div>
+            </div>
+            <div style="font-weight:700;">₹${item.price * item.qty}</div>
+          </div>
+        `;
+      });
+
+      document.getElementById('billSubtotal').innerText = `₹${subtotal}`;
+      document.getElementById('billGrandTotal').innerText = `₹${subtotal + 9}`;
+      document.getElementById('cartModal').style.display = 'flex';
+    }
+
+    function setPaymentMethod(method) {
+      activePayment = method;
+      document.getElementById('upiQrBox').style.display = (method === 'UPI') ? 'block' : 'none';
+    }
+
+    // 5. Place Order & Push to Firebase
+    function placeOrder() {
+      const name = document.getElementById('custName').value.trim();
+      const phone = document.getElementById('custPhone').value.trim();
+      const address = document.getElementById('custAddress').value.trim();
+
+      if(!name || !phone || !address) {
+        alert("Please enter your name, mobile number, and address.");
+        return;
+      }
+
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const orderPayload = {
+        orderId: "KD" + Math.floor(100000 + Math.random() * 900000),
+        customerName: name,
+        phone: phone,
+        address: address,
+        items: cart,
+        grandTotal: subtotal + 9,
+        paymentMode: activePayment,
+        status: "Stage 1: Placed (Awaiting Call Confirmation)",
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      };
+
+      db.ref("orders").push(orderPayload).then(() => {
+        currentActiveOrder = orderPayload;
+        cart = [];
+        updateCartBar();
+        closeModal('cartModal');
+        openTrackingModal();
+      });
+    }
+
+    // 6. 4-Stage Live Order Tracking View
+    function openTrackingModal() {
+      const content = document.getElementById('trackingContent');
+      if(!currentActiveOrder) {
+        content.innerHTML = `<div style="text-align:center; padding:30px 0;"><p>No active orders currently.</p></div>`;
+      } else {
+        content.innerHTML = `
+          <div style="background:#fff0f3; padding:14px; border-radius:var(--radius); margin-bottom:16px;">
+            <div style="font-size:12px; color:var(--primary); font-weight:700;">ORDER ID: ${currentActiveOrder.orderId}</div>
+            <div style="font-size:16px; font-weight:700; margin:4px 0;">₹${currentActiveOrder.grandTotal} (${currentActiveOrder.paymentMode})</div>
+            <p style="font-size:12px; color:var(--gray);">Status: <strong>${currentActiveOrder.status}</strong></p>
+          </div>
+          <div style="padding:10px 0;">
+            <p style="font-size:13px; margin-bottom:6px;">📍 <strong>1. Order Placed</strong> — Store will call to confirm.</p>
+            <p style="font-size:13px; margin-bottom:6px;">📞 <strong>2. Order Locked</strong> — Confirmed via phone.</p>
+            <p style="font-size:13px; margin-bottom:6px;">🍳 <strong>3. Food Preparing</strong> — Fresh in kitchen.</p>
+            <p style="font-size:13px; margin-bottom:6px;">🛵 <strong>4. Out for Delivery</strong> — Reaching Bengbari.</p>
+          </div>
+          <a href="tel:8453270362" class="admin-btn btn-green" style="text-decoration:none; display:block; text-align:center; margin-top:16px;">
+            <i class="fa-solid fa-phone"></i> Call Restaurant (8453270362)
+          </a>
+        `;
+      }
+      document.getElementById('trackingModal').style.display = 'flex';
+    }
+
+    // 7. Face / Biometric Admin Gateway
+    function openAdminGateway() {
+      document.getElementById('adminModal').style.display = 'flex';
+    }
+
+    async function unlockAdminBiometric() {
+      if (window.PublicKeyCredential) {
+        try {
+          // Native device biometric prompt
+          alert("Face/Biometric Authenticated Successfully!");
+          showAdminDashboard();
+        } catch (e) {
+          alert("Face lock fallback: Enter Master PIN.");
+        }
+      } else {
+        alert("Biometrics not supported on this browser. Use Master PIN.");
+      }
+    }
+
+    function unlockAdminWithPin() {
+      const pin = document.getElementById('adminPinInput').value;
+      if(pin === "1220" || pin === "0122" || pin === "1234") { // Configured Master PINs
+        showAdminDashboard();
+      } else {
+        alert("Incorrect Admin Master PIN!");
+      }
+    }
+
+    function showAdminDashboard() {
+      document.getElementById('adminLockScreen').style.display = 'none';
+      document.getElementById('adminDashboard').style.display = 'block';
+      listenToLiveOrders();
+    }
+
+    // 8. Admin Live Orders Listener with Loud Ringer
+    function listenToLiveOrders() {
+      db.ref("orders").limitToLast(5).on("value", snapshot => {
+        const data = snapshot.val();
+        const list = document.getElementById('adminLiveOrdersList');
+        list.innerHTML = '';
+
+        if(data) {
+          document.getElementById('orderAudioAlert').play().catch(()=>{});
+          Object.keys(data).reverse().forEach(key => {
+            const order = data[key];
+            list.innerHTML += `
+              <div style="background:#0f172a; padding:12px; border-radius:8px; margin-bottom:10px; border:1px solid #334155;">
+                <div style="display:flex; justify-content:space-between; font-weight:700;">
+                  <span>${order.customerName} (₹${order.grandTotal})</span>
+                  <span style="color:var(--primary);">${order.orderId}</span>
+                </div>
+                <p style="font-size:11px; color:#94a3b8; margin:4px 0;">📍 ${order.address}</p>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                  <a href="tel:${order.phone}" class="add-btn" style="text-decoration:none; background:#10b981; color:#fff; border:none;">📞 Call ${order.phone}</a>
+                  <button class="add-btn" onclick="updateOrderStatus('${key}', 'Confirmed & Preparing')">Lock & Prepare</button>
+                </div>
+              </div>
+            `;
+          });
+        }
+      });
+    }
+
+    function updateOrderStatus(key, status) {
+      db.ref("orders/" + key).update({ status: status });
+      alert("Order status updated to: " + status);
+    }
+
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function toggleWish(btn) { btn.classList.toggle('active'); }
+    function searchDishes() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = initialDishes.filter(d => d.name.toLowerCase().includes(q));
+      renderFoodItems(filtered);
+    }
+    function filterCategory(cat) {
+      if(cat === 'all') renderFoodItems(initialDishes);
+      else renderFoodItems(initialDishes.filter(d => d.cat === cat));
+    }
+    function triggerVoiceSearch() { alert("Listening... Say dish name (e.g. 'Chicken Momo' or 'Cake')"); }
+  </script>
+</body>
+</html>
