@@ -12,7 +12,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 2. Full Menu Catalog
+// 2. Full Menu Catalog (Momos, Pork, Chicken, Rolls, Cakes, Beverages)
 let menuCatalog = [
   { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, mrp: 160, cat: "momos", img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" },
   { id: "m2", name: "Chicken Fried Momo (10 Pcs)", price: 140, mrp: 180, cat: "momos", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
@@ -282,10 +282,7 @@ function placeOrder() {
     timestamp: firebase.database.ServerValue.TIMESTAMP
   };
 
-  // 1. Push to Live Orders for Admin
   const newOrderRef = db.ref("orders").push(orderPayload);
-
-  // 2. Push to Permanent Customer History (Never gets deleted)
   db.ref("customer_history/" + phone).push(orderPayload);
 
   newOrderRef.then(() => {
@@ -457,7 +454,6 @@ function openProfileTab() {
     document.getElementById('accPhoneDisplay').innerText = profile.phone;
     document.getElementById('accInputPhone').value = profile.phone;
     
-    // Load wishlist from cloud
     db.ref("customers/" + profile.phone + "/wishlist").once("value", snap => {
       const cloudW = snap.val();
       if(cloudW && Array.isArray(cloudW)) {
@@ -502,7 +498,6 @@ function saveCustomerAccount() {
   document.getElementById('accNameDisplay').innerText = name;
   document.getElementById('accPhoneDisplay').innerText = phone;
 
-  // Cloud sync
   db.ref("customers/" + phone + "/profile").set({ name, phone, address });
   alert("✅ Account synced and saved permanently to cloud!");
 }
