@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>S & A FAMILY RESTAURANT | K.D RABHA</title>
+  <title>S & A FAMILY RESTAURANT</title>
   
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#ff3e6c" />
@@ -102,7 +102,7 @@
     <div style="font-weight:700;">View Bag <i class="fa-solid fa-arrow-right"></i></div>
   </div>
 
-  <!-- Bottom Navigation -->
+  <!-- Bottom Navigation (4 Main Tabs) -->
   <nav class="bottom-nav">
     <div class="nav-tab active" id="tabHome" onclick="switchNavTab('home')"><i class="fa-solid fa-house"></i>Home</div>
     <div class="nav-tab" id="tabCakes" onclick="openCakeStudio()"><i class="fa-solid fa-cake-candles"></i>Cakes</div>
@@ -110,20 +110,13 @@
     <div class="nav-tab" id="tabAccount" onclick="switchNavTab('account')"><i class="fa-solid fa-circle-user"></i>Account</div>
   </nav>
 
-        <!-- Profile Header with Fixed Round Photo -->
-      <div style="background:#fff; border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:14px; box-shadow:0 4px 20px rgba(0,0,0,0.08); margin-bottom:14px;">
-        <div style="position:relative; width:65px; height:65px; min-width:65px; flex-shrink:0;">
-          <img id="userAvatarImg" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #ff3e6c; display:block;" />
-          <label for="avatarFileInput" style="position:absolute; bottom:0; right:0; background:#ff3e6c; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.2);"><i class="fa-solid fa-camera"></i></label>
-          <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="uploadCustomerAvatar(this)" />
-        </div>
-        <div style="flex:1;">
-          <h3 id="accNameDisplay" style="font-size:16px; margin-bottom:2px; font-weight:700;">KD RABHA</h3>
-          <p id="accPhoneDisplay" style="font-size:12px; color:#64748b; margin-bottom:4px;">+91 8453270362</p>
-          <span class="vip-pill"><i class="fa-solid fa-crown"></i> VIP Member</span>
-        </div>
-      </div>
-  
+  <!-- ==================== MODAL: PRODUCT DETAIL VIEW (PDP) ==================== -->
+  <div class="full-modal" id="productDetailModal" style="display:none;">
+    <div class="modal-header">
+      <i class="fa-solid fa-arrow-left close-btn" onclick="closeModal('productDetailModal')"></i>
+      <div style="font-weight:700; font-size:14px;">Item Details</div>
+      <i class="fa-solid fa-share-nodes" style="font-size:18px; cursor:pointer;" onclick="shareCurrentItem()"></i>
+    </div>
     <div class="pdp-container">
       <div class="pdp-img-box">
         <img id="pdpImg" src="" alt="Dish" />
@@ -184,22 +177,23 @@
   </div>
 
   <!-- ==================== MODAL: SHOPSY STYLE ACCOUNT / PROFILE ==================== -->
-  <div class="full-modal" id="accountModal">
+  <div class="full-modal" id="accountModal" style="display:none;">
     <div class="modal-header">
       <h3>My Account</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('accountModal')"></i>
     </div>
     
     <div class="account-container">
-      <div class="account-header">
-        <div class="avatar-wrapper">
-          <img id="userAvatarImg" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" />
-          <label for="avatarFileInput" class="avatar-edit-icon"><i class="fa-solid fa-camera"></i></label>
+      <!-- Profile Header with Compact Round Photo -->
+      <div style="background:#fff; border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:14px; box-shadow:0 4px 20px rgba(0,0,0,0.08); margin-bottom:14px;">
+        <div style="position:relative; width:65px; height:65px; min-width:65px; flex-shrink:0;">
+          <img id="userAvatarImg" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #ff3e6c; display:block;" />
+          <label for="avatarFileInput" style="position:absolute; bottom:0; right:0; background:#ff3e6c; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.2);"><i class="fa-solid fa-camera"></i></label>
           <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="uploadCustomerAvatar(this)" />
         </div>
-        <div class="account-info">
-          <h3 id="accNameDisplay">KD RABHA</h3>
-          <p id="accPhoneDisplay">+91 8453270362</p>
+        <div style="flex:1;">
+          <h3 id="accNameDisplay" style="font-size:16px; margin-bottom:2px; font-weight:700;">KD RABHA</h3>
+          <p id="accPhoneDisplay" style="font-size:12px; color:#64748b; margin-bottom:4px;">+91 8453270362</p>
           <span class="vip-pill"><i class="fa-solid fa-crown"></i> VIP Member</span>
         </div>
       </div>
@@ -256,8 +250,8 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: SHOPSY ORDERS HISTORY (WITH ETA & IMAGES) ==================== -->
-  <div class="full-modal" id="orderHistoryModal">
+  <!-- ==================== MODAL: SHOPSY ORDERS HISTORY ==================== -->
+  <div class="full-modal" id="orderHistoryModal" style="display:none;">
     <div class="modal-header">
       <h3>📦 My Orders & Live Tracking</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('orderHistoryModal')"></i>
@@ -268,7 +262,7 @@
   </div>
 
   <!-- ==================== MODAL: LIVE TRACKING POPUP ==================== -->
-  <div class="full-modal" id="trackingModal">
+  <div class="full-modal" id="trackingModal" style="display:none;">
     <div class="modal-header">
       <h3>Live Order Progress</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('trackingModal')"></i>
@@ -277,7 +271,7 @@
   </div>
 
   <!-- ==================== MODAL: SAVED ITEMS / WISHLIST ==================== -->
-  <div class="full-modal" id="wishlistModal">
+  <div class="full-modal" id="wishlistModal" style="display:none;">
     <div class="modal-header">
       <h3>❤️ Saved Dishes (Wishlist)</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('wishlistModal')"></i>
@@ -288,7 +282,7 @@
   </div>
 
   <!-- ==================== MODAL: CUSTOM CAKE STUDIO ==================== -->
-  <div class="full-modal" id="cakeStudioModal">
+  <div class="full-modal" id="cakeStudioModal" style="display:none;">
     <div class="modal-header">
       <h3>🎂 Custom Cake Studio</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('cakeStudioModal')"></i>
@@ -324,7 +318,7 @@
   </div>
 
   <!-- ==================== MODAL: CART & CHECKOUT ==================== -->
-  <div class="full-modal" id="cartModal">
+  <div class="full-modal" id="cartModal" style="display:none;">
     <div class="modal-header">
       <h3>Review Order & Checkout</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('cartModal')"></i>
@@ -376,13 +370,12 @@
   </div>
 
   <!-- ==================== MODAL: ADMIN CONTROL ROOM (SECURE PIN Kd@1234) ==================== -->
-  <div class="full-modal admin-modal" id="adminModal">
+  <div class="full-modal admin-modal" id="adminModal" style="display:none;">
     <div class="modal-header" style="background:#0f172a; border-color:#334155;">
       <h3 style="color:#f8fafc;"><i class="fa-solid fa-user-shield" style="color:var(--primary);"></i> S&A Manager Admin Room</h3>
       <i class="fa-solid fa-xmark close-btn" style="color:#f8fafc;" onclick="closeModal('adminModal')"></i>
     </div>
     
-    <!-- Ultra-Secure Lock Screen -->
     <div id="adminLockScreen" style="padding:30px 20px; text-align:center;">
       <div style="width:80px; height:80px; border-radius:50%; background:#1e293b; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border:2px solid var(--primary);">
         <i class="fa-solid fa-lock" style="font-size:32px; color:var(--primary);"></i>
@@ -394,10 +387,7 @@
       <button class="admin-btn btn-primary" onclick="unlockAdminWithPin()"><i class="fa-solid fa-key"></i> Unlock Admin Panel</button>
     </div>
 
-    <!-- Admin Dashboard (Unlocked) -->
     <div id="adminDashboard" style="display:none; padding:10px 0;">
-      
-      <!-- Live Stats -->
       <div class="admin-card">
         <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-chart-line"></i> Daily Sales & Analytics</h4>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:center;">
@@ -412,7 +402,6 @@
         </div>
       </div>
 
-      <!-- Live Orders List -->
       <div class="admin-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
           <h4 style="font-size:14px; color:#38bdf8;"><i class="fa-solid fa-bell"></i> Live Orders & KOT Control</h4>
@@ -421,7 +410,6 @@
         <div id="adminLiveOrdersList"></div>
       </div>
 
-      <!-- Add New Dish Section -->
       <div class="admin-card">
         <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-plus-circle"></i> Add New Dish</h4>
         <input type="text" id="newDishName" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Dish Name" />
@@ -444,13 +432,11 @@
         <button class="admin-btn btn-green" onclick="adminSaveNewDish()">SAVE DISH TO MENU</button>
       </div>
 
-      <!-- Live Menu Item Manager (Edit, Photo, Out of Stock per item) -->
       <div class="admin-card">
         <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-list-check"></i> Manage Existing Menu Items</h4>
         <div id="adminMenuItemsList"></div>
       </div>
 
-      <!-- Promo Code Creator -->
       <div class="admin-card">
         <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-tags"></i> Promo Code Creator</h4>
         <input type="text" id="newCouponCode" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Code (e.g. BIKASH50)" />
@@ -458,20 +444,17 @@
         <button class="admin-btn btn-blue" onclick="adminCreateCoupon()">SAVE PROMO CODE</button>
       </div>
 
-      <!-- Store Control -->
       <div class="admin-card">
         <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-store"></i> Store & Carousel Control</h4>
         <button class="admin-btn btn-green" onclick="toggleStoreStatus()" id="storeStatusBtn">Restaurant is: OPEN (8am - 10pm)</button>
         <button class="admin-btn btn-blue" onclick="editPromoBanner()">Edit Carousel Banner Headline</button>
       </div>
 
-      <!-- VIP Customer Badge -->
       <div class="admin-card">
         <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-crown"></i> Customer VIP Badge</h4>
         <input type="tel" id="vipCustPhone" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Customer Mobile Number" />
         <button class="admin-btn btn-primary" onclick="assignVipBadge()">ACTIVATE VIP GOLD BADGE</button>
       </div>
-
     </div>
   </div>
 
@@ -480,17 +463,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-  <!-- 1-Click Auto Install Banner Popup -->
-  <div id="pwaInstallBanner" style="display:none; position:fixed; bottom:70px; left:14px; right:14px; background:#1e293b; color:#fff; padding:12px 16px; border-radius:14px; z-index:9999; box-shadow:0 8px 25px rgba(0,0,0,0.3); align-items:center; justify-content:space-between; border:1px solid #334155; animation:slideUp 0.5s ease;">
-    <div style="display:flex; align-items:center; gap:10px;">
-      <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=100" style="width:40px; height:40px; border-radius:8px; object-fit:cover;" />
-      <div>
-        <div style="font-size:13px; font-weight:700;">Install S&A Food App</div>
-        <div style="font-size:11px; color:#94a3b8;">Fast ordering on your phone</div>
-      </div>
-    </div>
-    <div style="display:flex; gap:6px; align-items:center;">
-      <button onclick="triggerPwaInstall()" style="background:#ff3e6c; color:#fff; border:none; padding:7px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer;">INSTALL</button>
-      <i class="fa-solid fa-xmark" style="color:#94a3b8; font-size:16px; padding:4px; cursor:pointer;" onclick="document.getElementById('pwaInstallBanner').style.display='none'"></i>
-    </div>
-  </div>
