@@ -846,3 +846,35 @@ function filterCategory(cat, el) {
 function triggerVoiceSearch() {
   alert("Voice Search: Say dish name (e.g. 'Pork Momo' or 'Chocolate Cake')");
 }
+// Auto-Prompt App Installation (PWA)
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.getElementById('pwaInstallBanner');
+  if(banner) {
+    banner.style.display = 'flex';
+  }
+});
+
+function triggerPwaInstall() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        alert("🎉 S&A Restaurant App Installed Successfully on your Phone!");
+      }
+      deferredPrompt = null;
+      document.getElementById('pwaInstallBanner').style.display = 'none';
+    });
+  } else {
+    alert("To install: Open browser menu (3 dots at top right) and click 'Add to Home Screen' / 'Install App'");
+  }
+}
+
+// Register Service Worker for Offline & Fast App Install
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+  });
+}
