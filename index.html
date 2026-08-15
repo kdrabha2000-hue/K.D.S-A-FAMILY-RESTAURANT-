@@ -29,7 +29,7 @@
         <p><i class="fa-solid fa-location-dot"></i> Bengbari, Udalguri (784523)</p>
       </div>
       <div class="header-actions">
-        <div class="coin-pill" onclick="openProfileTab()"><i class="fa-solid fa-coins"></i> <span id="headerCoins">25</span></div>
+        <div class="coin-pill" onclick="switchNavTab('account')"><i class="fa-solid fa-coins"></i> <span id="headerCoins">25</span></div>
         <div class="admin-icon-btn" onclick="openAdminGateway()" title="Admin Control Room"><i class="fa-solid fa-shield-halved"></i></div>
       </div>
     </div>
@@ -197,7 +197,6 @@
         </div>
       </div>
 
-      <!-- 4 Action Cards -->
       <div class="account-grid-4">
         <div class="acc-tile" onclick="openOrderHistoryModal()">
           <i class="fa-solid fa-box-open" style="color:#ff3e6c;"></i>
@@ -250,18 +249,27 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: PERMANENT ORDERS HISTORY ==================== -->
+  <!-- ==================== MODAL: SHOPSY ORDERS HISTORY (WITH ETA & IMAGES) ==================== -->
   <div class="full-modal" id="orderHistoryModal">
     <div class="modal-header">
-      <h3>📦 My Orders & History</h3>
+      <h3>📦 My Orders & Live Tracking</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('orderHistoryModal')"></i>
     </div>
     <div style="padding:16px;" id="orderHistoryContainer">
-      <p style="text-align:center; color:var(--gray); margin-top:30px;">Loading your permanent orders history from cloud...</p>
+      <p style="text-align:center; color:var(--gray); margin-top:30px;">Loading your order history...</p>
     </div>
   </div>
 
-  <!-- ==================== MODAL: PERMANENT SAVED ITEMS / WISHLIST ==================== -->
+  <!-- ==================== MODAL: LIVE TRACKING POPUP ==================== -->
+  <div class="full-modal" id="trackingModal">
+    <div class="modal-header">
+      <h3>Live Order Progress</h3>
+      <i class="fa-solid fa-xmark close-btn" onclick="closeModal('trackingModal')"></i>
+    </div>
+    <div style="padding:20px 16px;" id="trackingContent"></div>
+  </div>
+
+  <!-- ==================== MODAL: SAVED ITEMS / WISHLIST ==================== -->
   <div class="full-modal" id="wishlistModal">
     <div class="modal-header">
       <h3>❤️ Saved Dishes (Wishlist)</h3>
@@ -360,41 +368,29 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: 4-STAGE LIVE TRACKING ==================== -->
-  <div class="full-modal" id="trackingModal">
-    <div class="modal-header">
-      <h3>Order Status & Tracking</h3>
-      <i class="fa-solid fa-xmark close-btn" onclick="closeModal('trackingModal')"></i>
-    </div>
-    <div style="padding:20px 16px;" id="trackingContent">
-      <div style="text-align:center; padding:30px 0; color:var(--gray);">
-        <i class="fa-solid fa-clock-rotate-left" style="font-size:40px; margin-bottom:10px;"></i>
-        <p>No active orders placed yet.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== MODAL: 35-FEATURE ADMIN ROOM ==================== -->
+  <!-- ==================== MODAL: ADMIN CONTROL ROOM (SECURE PIN Kd@1234) ==================== -->
   <div class="full-modal admin-modal" id="adminModal">
     <div class="modal-header" style="background:#0f172a; border-color:#334155;">
       <h3 style="color:#f8fafc;"><i class="fa-solid fa-user-shield" style="color:var(--primary);"></i> S&A Manager Admin Room</h3>
       <i class="fa-solid fa-xmark close-btn" style="color:#f8fafc;" onclick="closeModal('adminModal')"></i>
     </div>
     
+    <!-- Ultra-Secure Lock Screen -->
     <div id="adminLockScreen" style="padding:30px 20px; text-align:center;">
       <div style="width:80px; height:80px; border-radius:50%; background:#1e293b; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border:2px solid var(--primary);">
-        <i class="fa-solid fa-face-smile" style="font-size:36px; color:var(--primary);"></i>
+        <i class="fa-solid fa-lock" style="font-size:32px; color:var(--primary);"></i>
       </div>
-      <h3 style="margin-bottom:6px;">Biometric & Face Unlock</h3>
-      <p style="font-size:12px; color:#94a3b8; margin-bottom:20px;">Use Device Biometrics or Master PIN</p>
-      <button class="admin-btn btn-primary" onclick="unlockAdminBiometric()"><i class="fa-solid fa-expand"></i> Scan Face / Fingerprint</button>
-      <div style="margin:15px 0; color:#64748b; font-size:12px;">— OR ENTER MASTER PIN —</div>
-      <input type="password" id="adminPinInput" placeholder="Master PIN (0122 / 1220)" style="width:100%; padding:12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#fff; text-align:center; font-size:16px; margin-bottom:10px;" />
-      <button class="admin-btn btn-blue" onclick="unlockAdminWithPin()">Unlock with Master PIN</button>
+      <h3 style="margin-bottom:6px; color:#fff;">Restricted Manager Access</h3>
+      <p style="font-size:12px; color:#94a3b8; margin-bottom:20px;">Enter Private Master Password to Unlock</p>
+      
+      <input type="password" id="adminPinInput" placeholder="Enter Master Password" style="width:100%; padding:14px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#fff; text-align:center; font-size:16px; margin-bottom:12px;" />
+      <button class="admin-btn btn-primary" onclick="unlockAdminWithPin()"><i class="fa-solid fa-key"></i> Unlock Admin Panel</button>
     </div>
 
+    <!-- Admin Dashboard (Unlocked) -->
     <div id="adminDashboard" style="display:none; padding:10px 0;">
       
+      <!-- Live Stats -->
       <div class="admin-card">
         <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-chart-line"></i> Daily Sales & Analytics</h4>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:center;">
@@ -409,18 +405,18 @@
         </div>
       </div>
 
+      <!-- Live Orders List -->
       <div class="admin-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
           <h4 style="font-size:14px; color:#38bdf8;"><i class="fa-solid fa-bell"></i> Live Orders & KOT Control</h4>
           <span class="vip-pill" style="background:#10b981; color:#fff;">Live Ringer Active</span>
         </div>
-        <div id="adminLiveOrdersList">
-          <p style="font-size:12px; color:#94a3b8;">Listening for live orders in real-time...</p>
-        </div>
+        <div id="adminLiveOrdersList"></div>
       </div>
 
+      <!-- Add New Dish Section -->
       <div class="admin-card">
-        <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-utensils"></i> Add Dish (Camera / Gallery / URL)</h4>
+        <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-plus-circle"></i> Add New Dish</h4>
         <input type="text" id="newDishName" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Dish Name" />
         <input type="number" id="newDishPrice" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Price (₹)" />
         <select id="newDishCat" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;">
@@ -433,14 +429,21 @@
           <option value="drinks">Drinks</option>
         </select>
         
-        <label class="form-label" style="color:#94a3b8;">Select Photo from Phone Camera / Gallery</label>
+        <label class="form-label" style="color:#94a3b8;">Select Photo from Camera / Gallery</label>
         <input type="file" id="newDishPhotoFile" accept="image/*" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" onchange="previewAdminDishUpload(this)" />
         <input type="text" id="newDishImgUrl" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Or Paste Image URL Link" />
         <img id="adminDishPreview" style="display:none; width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:10px;" />
 
-        <button class="admin-btn btn-green" onclick="adminSaveNewDish()">SAVE DISH TO LIVE MENU</button>
+        <button class="admin-btn btn-green" onclick="adminSaveNewDish()">SAVE DISH TO MENU</button>
       </div>
 
+      <!-- Live Menu Item Manager (Edit, Photo, Out of Stock per item) -->
+      <div class="admin-card">
+        <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-list-check"></i> Manage Existing Menu Items</h4>
+        <div id="adminMenuItemsList"></div>
+      </div>
+
+      <!-- Promo Code Creator -->
       <div class="admin-card">
         <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-tags"></i> Promo Code Creator</h4>
         <input type="text" id="newCouponCode" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Code (e.g. BIKASH50)" />
@@ -448,12 +451,14 @@
         <button class="admin-btn btn-blue" onclick="adminCreateCoupon()">SAVE PROMO CODE</button>
       </div>
 
+      <!-- Store Control -->
       <div class="admin-card">
         <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-store"></i> Store & Carousel Control</h4>
         <button class="admin-btn btn-green" onclick="toggleStoreStatus()" id="storeStatusBtn">Restaurant is: OPEN (8am - 10pm)</button>
         <button class="admin-btn btn-blue" onclick="editPromoBanner()">Edit Carousel Banner Headline</button>
       </div>
 
+      <!-- VIP Customer Badge -->
       <div class="admin-card">
         <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-crown"></i> Customer VIP Badge</h4>
         <input type="tel" id="vipCustPhone" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Customer Mobile Number" />
@@ -468,4 +473,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-
