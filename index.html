@@ -110,13 +110,20 @@
     <div class="nav-tab" id="tabAccount" onclick="switchNavTab('account')"><i class="fa-solid fa-circle-user"></i>Account</div>
   </nav>
 
-  <!-- ==================== MODAL: PRODUCT DETAIL VIEW (PDP) ==================== -->
-  <div class="full-modal" id="productDetailModal">
-    <div class="modal-header">
-      <i class="fa-solid fa-arrow-left close-btn" onclick="closeModal('productDetailModal')"></i>
-      <div style="font-weight:700; font-size:14px;">Item Details</div>
-      <i class="fa-solid fa-share-nodes" style="font-size:18px; cursor:pointer;" onclick="shareCurrentItem()"></i>
-    </div>
+        <!-- Profile Header with Fixed Round Photo -->
+      <div style="background:#fff; border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:14px; box-shadow:0 4px 20px rgba(0,0,0,0.08); margin-bottom:14px;">
+        <div style="position:relative; width:65px; height:65px; min-width:65px; flex-shrink:0;">
+          <img id="userAvatarImg" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #ff3e6c; display:block;" />
+          <label for="avatarFileInput" style="position:absolute; bottom:0; right:0; background:#ff3e6c; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.2);"><i class="fa-solid fa-camera"></i></label>
+          <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="uploadCustomerAvatar(this)" />
+        </div>
+        <div style="flex:1;">
+          <h3 id="accNameDisplay" style="font-size:16px; margin-bottom:2px; font-weight:700;">KD RABHA</h3>
+          <p id="accPhoneDisplay" style="font-size:12px; color:#64748b; margin-bottom:4px;">+91 8453270362</p>
+          <span class="vip-pill"><i class="fa-solid fa-crown"></i> VIP Member</span>
+        </div>
+      </div>
+  
     <div class="pdp-container">
       <div class="pdp-img-box">
         <img id="pdpImg" src="" alt="Dish" />
