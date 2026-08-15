@@ -12,7 +12,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 2. Initial Menu Catalog (Can be edited, uploaded via Camera/Gallery)
+// 2. Initial Menu Catalog
 let menuCatalog = JSON.parse(localStorage.getItem("kd_live_menu")) || [
   { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, mrp: 160, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" },
   { id: "m2", name: "Chicken Fried Momo (10 Pcs)", price: 140, mrp: 180, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
@@ -292,7 +292,7 @@ function placeOrder() {
     paymentMode: activePayment,
     status: "1. Order Confirmed",
     stage: 1,
-    eta: 30, // 30 minutes initial ETA
+    eta: 30,
     timestamp: firebase.database.ServerValue.TIMESTAMP
   };
 
@@ -310,7 +310,7 @@ function placeOrder() {
   });
 }
 
-// 7. Shopsy Orders History with Images, Live ETA & 4-Step Tracker
+// 7. Orders History
 function openOrderHistoryModal() {
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   const phone = profile.phone;
@@ -346,7 +346,7 @@ function openOrderHistoryModal() {
         const primaryImg = (ord.items && ord.items[0] && ord.items[0].img) ? ord.items[0].img : "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500";
         const itemsList = ord.items ? ord.items.map(i => `${i.name} (x${i.qty})`).join(", ") : "Items";
         const dateStr = ord.timestamp ? new Date(ord.timestamp).toLocaleDateString("en-IN", { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Recent";
-        const isDelivered = ord.stage === 4 || ord.status.includes("Delivered");
+        const isDelivered = ord.stage === 4 || (ord.status && ord.status.includes("Delivered"));
 
         container.innerHTML += `
           <div class="order-history-card">
@@ -402,7 +402,7 @@ function openLiveTrackingPopup(key, phone) {
       <div style="background:#fff0f3; padding:14px; border-radius:var(--radius); margin-bottom:16px;">
         <div style="font-size:12px; color:var(--primary); font-weight:700;">ORDER ID: #${ord.orderId}</div>
         <div style="font-size:16px; font-weight:700; margin:4px 0;">₹${ord.grandTotal} (${ord.paymentMode})</div>
-        <p style="font-size:12px; color:var(--gray);">Estimated Delivery: <strong>${ord.eta || 25} Minutes (Bengbari/Udalguri)</strong></p>
+        <p style="font-size:12px; color:var(--gray);">Estimated Delivery: <strong>${ord.eta || 25} Minutes</strong></p>
       </div>
 
       <div class="tracker-box">
@@ -443,7 +443,7 @@ function openLiveTrackingPopup(key, phone) {
       </div>
 
       <a href="tel:8453270362" class="admin-btn btn-green" style="text-decoration:none; display:block; text-align:center; margin-top:16px;">
-        <i class="fa-solid fa-phone"></i> Call Delivery Partner / Store (8453270362)
+        <i class="fa-solid fa-phone"></i> Call Delivery Partner (8453270362)
       </a>
     `;
     document.getElementById('trackingModal').style.display = 'flex';
@@ -501,9 +501,14 @@ function addCustomCakeToCart() {
 // 9. Customer Profile & Cloud Sync
 function switchNavTab(tab) {
   document.querySelectorAll('.bottom-nav .nav-tab').forEach(t => t.classList.remove('active'));
+  closeModal('accountModal');
+  closeModal('orderHistoryModal');
+  closeModal('wishlistModal');
+  closeModal('cakeStudioModal');
+  closeModal('productDetailModal');
+
   if(tab === 'home') {
     document.getElementById('tabHome').classList.add('active');
-    closeModal('accountModal');
   } else if(tab === 'account') {
     document.getElementById('tabAccount').classList.add('active');
     openProfileTab();
@@ -601,7 +606,7 @@ function openAdminGateway() {
 
 function unlockAdminWithPin() {
   const pin = document.getElementById('adminPinInput').value.trim();
-  if(pin === "Kd@1234") { // PRIVATE MASTER PIN
+  if(pin === "Kd@1234") {
     document.getElementById('adminLockScreen').style.display = 'none';
     document.getElementById('adminDashboard').style.display = 'block';
     listenToLiveOrders();
@@ -611,11 +616,11 @@ function unlockAdminWithPin() {
   }
 }
 
-// 11. Admin Menu Item Manager (Edit Price, Change Photo, Out of Stock per item)
+// 11. Admin Menu Item Manager
 function renderAdminMenuManager() {
   const list = document.getElementById('adminMenuItemsList');
   list.innerHTML = '';
-  menuCatalog.forEach((dish, idx) => {
+  menuCatalog.forEach((dish) => {
     list.innerHTML += `
       <div class="admin-menu-item-row">
         <img src="${dish.img}" class="admin-menu-item-img" id="adminImg_${dish.id}" />
@@ -679,7 +684,7 @@ function adminToggleDishStock(dishId) {
   }
 }
 
-// 12. Admin Live Orders Listener with Status Stage Controls
+// 12. Admin Live Orders Listener
 function listenToLiveOrders() {
   db.ref("orders").limitToLast(20).on("value", snapshot => {
     const data = snapshot.val();
@@ -731,7 +736,6 @@ function listenToLiveOrders() {
 
 function updateOrderStatusFull(orderKey, phone, stageNum, statusText) {
   db.ref("orders/" + orderKey).update({ stage: stageNum, status: statusText });
-  // Also update customer's live history record
   db.ref("customer_history/" + phone).once("value", snap => {
     const userOrders = snap.val();
     if(userOrders) {
@@ -845,36 +849,4 @@ function filterCategory(cat, el) {
 }
 function triggerVoiceSearch() {
   alert("Voice Search: Say dish name (e.g. 'Pork Momo' or 'Chocolate Cake')");
-}
-// Auto-Prompt App Installation (PWA)
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const banner = document.getElementById('pwaInstallBanner');
-  if(banner) {
-    banner.style.display = 'flex';
-  }
-});
-
-function triggerPwaInstall() {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then((choiceResult) => {
-      if (choiceResult.outcome === 'accepted') {
-        alert("🎉 S&A Restaurant App Installed Successfully on your Phone!");
-      }
-      deferredPrompt = null;
-      document.getElementById('pwaInstallBanner').style.display = 'none';
-    });
-  } else {
-    alert("To install: Open browser menu (3 dots at top right) and click 'Add to Home Screen' / 'Install App'");
-  }
-}
-
-// Register Service Worker for Offline & Fast App Install
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
-  });
 }
