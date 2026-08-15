@@ -367,7 +367,36 @@ body {
 .nav-tab i { font-size: 18px; }
 .nav-tab.active { color: var(--primary); }
 
-/* ==================== SHOPSY PRODUCT DETAIL PAGE (PDP) ==================== */
+/* ==================== ALL MODALS & DIALOGS ==================== */
+.full-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--white);
+  z-index: 2000;
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-bottom: 40px;
+}
+
+.modal-header {
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background: var(--white);
+  z-index: 10;
+}
+
+.close-btn { font-size: 20px; cursor: pointer; }
+
+/* Product Detail Page (Only Inside Modal) */
 .pdp-container { padding-bottom: 70px; }
 .pdp-img-box { width: 100%; height: 280px; position: relative; background: #f1f5f9; }
 .pdp-img-box img { width: 100%; height: 100%; object-fit: cover; }
@@ -389,13 +418,24 @@ body {
 .review-item { font-size: 12px; margin-bottom: 8px; }
 .rev-header { display: flex; justify-content: space-between; font-weight: 600; }
 .review-item p { color: var(--gray); margin-top: 2px; }
- .pdp-bottom-bar { position: sticky; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--white); display: flex; border-top: 1px solid #e2e8f0; z-index: 10; margin-top: auto; }
+
+.pdp-bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: var(--white);
+  display: flex;
+  border-top: 1px solid #e2e8f0;
+  z-index: 2010;
+}
 
 .pdp-btn { flex: 1; border: none; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .btn-cart { background: #fff; color: var(--dark); }
 .btn-buy { background: #ff9f00; color: #fff; }
 
-/* ==================== SHOPSY ORDERS HISTORY & TRACKING ==================== */
+/* Orders History & 4-Step Tracker */
 .order-history-card {
   background: var(--white);
   border: 1px solid #e2e8f0;
@@ -438,7 +478,6 @@ body {
   object-fit: cover;
 }
 
-/* 4-Step Tracker UI */
 .tracker-box {
   background: #f8fafc;
   border-radius: 10px;
@@ -470,7 +509,7 @@ body {
 }
 
 .step-item.done .step-circle { background: var(--green); }
-.step-item.active .step-circle { background: var(--primary); animation: pulse 1s infinite; }
+.step-item.active .step-circle { background: var(--primary); }
 
 .step-line {
   position: absolute;
@@ -484,41 +523,29 @@ body {
 
 .step-item.done .step-line { background: var(--green); }
 
-/* Modals & Forms */
-.full-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--white);
-  z-index: 2000;
-  display: none;
-  flex-direction: column;
-  overflow-y: auto;
-  padding-bottom: 40px;
-}
+/* Account Page Details */
+.account-container { padding: 16px; }
+.account-grid-4 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.acc-tile { background: var(--white); padding: 14px; border-radius: var(--radius); box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.acc-tile i { font-size: 20px; }
+.account-reward-card { background: linear-gradient(135deg, #1e293b, #0f172a); color: #fff; padding: 14px 16px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.account-section { background: var(--white); padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; }
+.account-section h4 { font-size: 14px; margin-bottom: 10px; }
+.acc-menu-list { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.acc-menu-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f1f5f9; font-size: 13px; font-weight: 500; cursor: pointer; }
 
-.modal-header {
-  padding: 16px;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: sticky;
-  top: 0;
-  background: var(--white);
-  z-index: 10;
-}
-
-.close-btn { font-size: 20px; cursor: pointer; }
+/* Forms, Pills & Bill Box */
 .form-label { font-size: 12px; font-weight: 600; color: var(--dark); margin-bottom: 4px; display: block; }
 .form-input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 12px; font-size: 13px; outline: none; }
 .bill-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: var(--radius); margin: 14px 0; }
 .bill-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
 .upi-box { display: none; text-align: center; background: #f8fafc; padding: 14px; border-radius: var(--radius); margin-bottom: 14px; border: 1px solid #e2e8f0; }
 
-/* Admin Dashboard Styling */
+.weight-pills { display: flex; gap: 8px; margin-bottom: 12px; }
+.weight-pill { flex: 1; text-align: center; padding: 8px 4px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 11px; font-weight: 600; cursor: pointer; }
+.weight-pill.active { border-color: var(--primary); background: #fff0f3; color: var(--primary); }
+
+/* Admin Panel */
 .admin-modal { background: #0f172a; color: #f8fafc; }
 .admin-card { background: #1e293b; border: 1px solid #334155; padding: 16px; border-radius: var(--radius); margin: 12px 16px; }
 .admin-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 8px; }
@@ -526,79 +553,6 @@ body {
 .btn-primary { background: var(--primary); color: var(--white); }
 .btn-blue { background: #3b82f6; color: var(--white); }
 
-/* Admin Menu Item Row */
-.admin-menu-item-row {
-  background: #0f172a;
-  border: 1px solid #334155;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.admin-menu-item-img {
-  width: 50px;
-  height: 50px;
-  border-radius: 6px;
-  object-fit: cover;
-}
-
-.admin-menu-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: 6px;
-}
-/* Profile Avatar Fix - Compact Round DP */
-.account-header {
-  background: var(--white);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  gap: 14px;
-  box-shadow: var(--shadow);
-  margin-bottom: 14px;
-}
-
-.avatar-wrapper {
-  position: relative !important;
-  width: 65px !important;
-  height: 65px !important;
-  min-width: 65px !important;
-  border-radius: 50% !important;
-  overflow: visible !important;
-}
-
-.avatar-wrapper img,
-#userAvatarImg {
-  width: 65px !important;
-  height: 65px !important;
-  max-width: 65px !important;
-  max-height: 65px !important;
-  border-radius: 50% !important;
-  object-fit: cover !important;
-  border: 2px solid var(--primary) !important;
-  display: block !important;
-}
-
-.avatar-edit-icon {
-  position: absolute !important;
-  bottom: 0 !important;
-  right: 0 !important;
-  background: var(--primary) !important;
-  color: #fff !important;
-  width: 22px !important;
-  height: 22px !important;
-  border-radius: 50% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 11px !important;
-  cursor: pointer !important;
-  border: 2px solid #fff !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
-}
-#productDetailModal { display: none; flex-direction: column; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 2100; overflow-y: auto; }
+.admin-menu-item-row { background: #0f172a; border: 1px solid #334155; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; gap: 10px; align-items: center; }
+.admin-menu-item-img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; }
+.admin-menu-actions { display: flex; gap: 6px; margin-top: 6px; }
