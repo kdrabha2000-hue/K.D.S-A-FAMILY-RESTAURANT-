@@ -8,20 +8,17 @@
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#ff3e6c" />
 
-  <!-- FontAwesome & Google Fonts -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
-  <!-- Top App Header -->
   <header class="app-header">
     <div class="top-bar">
       <div class="brand-box">
@@ -34,7 +31,6 @@
       </div>
     </div>
     
-    <!-- Search Bar -->
     <div class="search-box">
       <i class="fa-solid fa-magnifying-glass search-icon"></i>
       <input type="text" id="searchInput" placeholder="Search momos, rolls, thukpa, cakes..." onkeyup="searchDishes()" />
@@ -42,14 +38,12 @@
     </div>
   </header>
 
-  <!-- Live Promo Banner -->
   <div class="promo-carousel">
     <span class="promo-badge">🎉 FESTIVAL DEAL</span>
     <h2 id="bannerTitle">K.D RABHA SPECIAL</h2>
     <p id="bannerSub">Flat ₹9 Fixed Delivery on All Orders in Bengbari!</p>
   </div>
 
-  <!-- Category Slider -->
   <div class="category-scroll" id="categoryContainer">
     <div class="cat-item active" onclick="filterCategory('all', this)">
       <div class="cat-circle"><i class="fa-solid fa-utensils"></i></div>
@@ -85,7 +79,6 @@
     </div>
   </div>
 
-  <!-- Dishes Section -->
   <div class="section-title">
     <span>Recommended Dishes</span>
     <span style="font-size:12px; color:var(--primary); font-weight:600;">8:00 AM - 10:00 PM</span>
@@ -93,7 +86,6 @@
 
   <div class="food-grid" id="foodGrid"></div>
 
-  <!-- Floating Cart Bar -->
   <div class="floating-cart-bar" id="floatingCart" onclick="openCartModal()">
     <div>
       <span id="cartCount" style="font-weight:700;">1 Item</span> | <span id="cartTotal">₹0</span>
@@ -102,7 +94,6 @@
     <div style="font-weight:700;">View Bag <i class="fa-solid fa-arrow-right"></i></div>
   </div>
 
-  <!-- Bottom Navigation (4 Main Tabs) -->
   <nav class="bottom-nav">
     <div class="nav-tab active" id="tabHome" onclick="switchNavTab('home')"><i class="fa-solid fa-house"></i>Home</div>
     <div class="nav-tab" id="tabCakes" onclick="openCakeStudio()"><i class="fa-solid fa-cake-candles"></i>Cakes</div>
@@ -110,8 +101,7 @@
     <div class="nav-tab" id="tabAccount" onclick="switchNavTab('account')"><i class="fa-solid fa-circle-user"></i>Account</div>
   </nav>
 
-  <!-- ==================== MODAL: PRODUCT DETAIL VIEW (PDP) ==================== -->
-  <div class="full-modal" id="productDetailModal" style="display:none;">
+  <div class="full-modal" id="productDetailModal" style="display:none !important;">
     <div class="modal-header">
       <i class="fa-solid fa-arrow-left close-btn" onclick="closeModal('productDetailModal')"></i>
       <div style="font-weight:700; font-size:14px;">Item Details</div>
@@ -176,15 +166,13 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: SHOPSY STYLE ACCOUNT / PROFILE ==================== -->
-  <div class="full-modal" id="accountModal" style="display:none;">
+  <div class="full-modal" id="accountModal" style="display:none !important;">
     <div class="modal-header">
       <h3>My Account</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('accountModal')"></i>
     </div>
     
     <div class="account-container">
-      <!-- Profile Header with Compact Round Photo -->
       <div style="background:#fff; border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:14px; box-shadow:0 4px 20px rgba(0,0,0,0.08); margin-bottom:14px;">
         <div style="position:relative; width:65px; height:65px; min-width:65px; flex-shrink:0;">
           <img id="userAvatarImg" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #ff3e6c; display:block;" />
@@ -250,8 +238,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: SHOPSY ORDERS HISTORY ==================== -->
-  <div class="full-modal" id="orderHistoryModal" style="display:none;">
+  <div class="full-modal" id="orderHistoryModal" style="display:none !important;">
     <div class="modal-header">
       <h3>📦 My Orders & Live Tracking</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('orderHistoryModal')"></i>
@@ -261,8 +248,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: LIVE TRACKING POPUP ==================== -->
-  <div class="full-modal" id="trackingModal" style="display:none;">
+  <div class="full-modal" id="trackingModal" style="display:none !important;">
     <div class="modal-header">
       <h3>Live Order Progress</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('trackingModal')"></i>
@@ -270,8 +256,7 @@
     <div style="padding:20px 16px;" id="trackingContent"></div>
   </div>
 
-  <!-- ==================== MODAL: SAVED ITEMS / WISHLIST ==================== -->
-  <div class="full-modal" id="wishlistModal" style="display:none;">
+  <div class="full-modal" id="wishlistModal" style="display:none !important;">
     <div class="modal-header">
       <h3>❤️ Saved Dishes (Wishlist)</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('wishlistModal')"></i>
@@ -281,8 +266,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: CUSTOM CAKE STUDIO ==================== -->
-  <div class="full-modal" id="cakeStudioModal" style="display:none;">
+  <div class="full-modal" id="cakeStudioModal" style="display:none !important;">
     <div class="modal-header">
       <h3>🎂 Custom Cake Studio</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('cakeStudioModal')"></i>
@@ -317,8 +301,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: CART & CHECKOUT ==================== -->
-  <div class="full-modal" id="cartModal" style="display:none;">
+  <div class="full-modal" id="cartModal" style="display:none !important;">
     <div class="modal-header">
       <h3>Review Order & Checkout</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('cartModal')"></i>
@@ -369,8 +352,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: ADMIN CONTROL ROOM (SECURE PIN Kd@1234) ==================== -->
-  <div class="full-modal admin-modal" id="adminModal" style="display:none;">
+  <div class="full-modal admin-modal" id="adminModal" style="display:none !important;">
     <div class="modal-header" style="background:#0f172a; border-color:#334155;">
       <h3 style="color:#f8fafc;"><i class="fa-solid fa-user-shield" style="color:var(--primary);"></i> S&A Manager Admin Room</h3>
       <i class="fa-solid fa-xmark close-btn" style="color:#f8fafc;" onclick="closeModal('adminModal')"></i>
