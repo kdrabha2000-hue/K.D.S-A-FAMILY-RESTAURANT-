@@ -12,38 +12,38 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 2. Full Menu Catalog (Momos, Pork, Chicken, Rolls, Cakes, Beverages)
-let menuCatalog = [
-  { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, mrp: 160, cat: "momos", img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" },
-  { id: "m2", name: "Chicken Fried Momo (10 Pcs)", price: 140, mrp: 180, cat: "momos", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
-  { id: "m3", name: "Chicken Schezwan Gravy Momo", price: 160, mrp: 200, cat: "momos", img: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=500" },
-  { id: "m4", name: "Pork Steamed Momo (10 Pcs)", price: 130, mrp: 170, cat: "momos", img: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=500" },
-  { id: "m5", name: "Pork Fried Momo (10 Pcs)", price: 150, mrp: 190, cat: "momos", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
-  { id: "m6", name: "Cheese & Veg Momo (10 Pcs)", price: 130, mrp: 160, cat: "momos", img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=500" },
+// 2. Initial Menu Catalog (Can be edited, uploaded via Camera/Gallery)
+let menuCatalog = JSON.parse(localStorage.getItem("kd_live_menu")) || [
+  { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, mrp: 160, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" },
+  { id: "m2", name: "Chicken Fried Momo (10 Pcs)", price: 140, mrp: 180, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
+  { id: "m3", name: "Chicken Schezwan Gravy Momo", price: 160, mrp: 200, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=500" },
+  { id: "m4", name: "Pork Steamed Momo (10 Pcs)", price: 130, mrp: 170, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=500" },
+  { id: "m5", name: "Pork Fried Momo (10 Pcs)", price: 150, mrp: 190, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
+  { id: "m6", name: "Cheese & Veg Momo (10 Pcs)", price: 130, mrp: 160, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=500" },
 
-  { id: "r1", name: "Single Egg Chicken Roll", price: 90, mrp: 120, cat: "rolls", img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500" },
-  { id: "r2", name: "Double Egg Double Chicken Roll", price: 120, mrp: 150, cat: "rolls", img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=500" },
-  { id: "r3", name: "Special Pork Roll", price: 130, mrp: 160, cat: "rolls", img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500" },
-  { id: "r4", name: "Crispy French Fries (Peri-Peri)", price: 80, mrp: 110, cat: "rolls", img: "https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500" },
+  { id: "r1", name: "Single Egg Chicken Roll", price: 90, mrp: 120, cat: "rolls", inStock: true, img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500" },
+  { id: "r2", name: "Double Egg Double Chicken Roll", price: 120, mrp: 150, cat: "rolls", inStock: true, img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=500" },
+  { id: "r3", name: "Special Pork Roll", price: 130, mrp: 160, cat: "rolls", inStock: true, img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500" },
+  { id: "r4", name: "Crispy French Fries (Peri-Peri)", price: 80, mrp: 110, cat: "rolls", inStock: true, img: "https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500" },
 
-  { id: "c1", name: "Chicken Butter Masala (Boneless)", price: 280, mrp: 350, cat: "chicken", img: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=500" },
-  { id: "c2", name: "Chicken Curry / Kadhai Chicken", price: 260, mrp: 320, cat: "chicken", img: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500" },
-  { id: "c3", name: "Crispy Chilli Chicken (Dry)", price: 220, mrp: 280, cat: "chicken", img: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=500" },
+  { id: "c1", name: "Chicken Butter Masala (Boneless)", price: 280, mrp: 350, cat: "chicken", inStock: true, img: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=500" },
+  { id: "c2", name: "Chicken Curry / Kadhai Chicken", price: 260, mrp: 320, cat: "chicken", inStock: true, img: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500" },
+  { id: "c3", name: "Crispy Chilli Chicken (Dry)", price: 220, mrp: 280, cat: "chicken", inStock: true, img: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=500" },
 
-  { id: "p1", name: "Pork Curry with Bamboo Shoot", price: 300, mrp: 380, cat: "pork", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500" },
-  { id: "p2", name: "Smoked Pork Dry Fry", price: 320, mrp: 400, cat: "pork", img: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=500" },
-  { id: "p3", name: "Pork Bhuna Masala", price: 310, mrp: 390, cat: "pork", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500" },
+  { id: "p1", name: "Pork Curry with Bamboo Shoot", price: 300, mrp: 380, cat: "pork", inStock: true, img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500" },
+  { id: "p2", name: "Smoked Pork Dry Fry", price: 320, mrp: 400, cat: "pork", inStock: true, img: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=500" },
+  { id: "p3", name: "Pork Bhuna Masala", price: 310, mrp: 390, cat: "pork", inStock: true, img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500" },
 
-  { id: "ct1", name: "Special Chicken Hakka Chowmein", price: 130, mrp: 170, cat: "chow_thukpa", img: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=500" },
-  { id: "ct2", name: "Special Pork Chowmein", price: 150, mrp: 190, cat: "chow_thukpa", img: "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=500" },
-  { id: "ct3", name: "Hot Chicken Thukpa Soup", price: 140, mrp: 180, cat: "chow_thukpa", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=500" },
+  { id: "ct1", name: "Special Chicken Hakka Chowmein", price: 130, mrp: 170, cat: "chow_thukpa", inStock: true, img: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=500" },
+  { id: "ct2", name: "Special Pork Chowmein", price: 150, mrp: 190, cat: "chow_thukpa", inStock: true, img: "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=500" },
+  { id: "ct3", name: "Hot Chicken Thukpa Soup", price: 140, mrp: 180, cat: "chow_thukpa", inStock: true, img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=500" },
 
-  { id: "ck1", name: "Chocolate Truffle Cake (1 Kg)", price: 850, mrp: 1100, cat: "cakes", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500" },
-  { id: "ck2", name: "Black Forest Cake (1 Kg)", price: 800, mrp: 1000, cat: "cakes", img: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=500" },
-  { id: "ck3", name: "Vanilla / Pineapple Cake (1 Kg)", price: 750, mrp: 950, cat: "cakes", img: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=500" },
+  { id: "ck1", name: "Chocolate Truffle Cake (1 Kg)", price: 850, mrp: 1100, cat: "cakes", inStock: true, img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500" },
+  { id: "ck2", name: "Black Forest Cake (1 Kg)", price: 800, mrp: 1000, cat: "cakes", inStock: true, img: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=500" },
+  { id: "ck3", name: "Vanilla / Pineapple Cake (1 Kg)", price: 750, mrp: 950, cat: "cakes", inStock: true, img: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=500" },
 
-  { id: "dr1", name: "Cold Drinks 750ml (Coke / Sprite)", price: 45, mrp: 50, cat: "drinks", img: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500" },
-  { id: "dr2", name: "Fresh Sweet Lassi / Cold Coffee", price: 70, mrp: 90, cat: "drinks", img: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=500" }
+  { id: "dr1", name: "Cold Drinks 750ml (Coke / Sprite)", price: 45, mrp: 50, cat: "drinks", inStock: true, img: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500" },
+  { id: "dr2", name: "Fresh Sweet Lassi / Cold Coffee", price: 70, mrp: 90, cat: "drinks", inStock: true, img: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=500" }
 ];
 
 let cart = [];
@@ -57,24 +57,30 @@ let coinsRedeemed = false;
 let currentPdpItem = null;
 let adminUploadBase64 = "";
 
-// 3. Render Food Catalog
+// 3. Render Food Catalog (Customer UI)
 function renderFoodItems(items) {
   const container = document.getElementById('foodGrid');
   if(!container) return;
   container.innerHTML = '';
   items.forEach(dish => {
     const isWished = wishlist.includes(dish.id);
+    const stockBadge = dish.inStock ? '' : '<span class="out-of-stock-badge">OUT OF STOCK</span>';
+    const addBtnHtml = dish.inStock 
+      ? `<button class="add-btn" onclick="event.stopPropagation(); addToCart('${dish.id}', '${dish.name}', ${dish.price}, '${dish.img}')">ADD +</button>`
+      : `<button class="add-btn" style="background:#f1f5f9; color:#94a3b8; border-color:#cbd5e1;" disabled>SOLD OUT</button>`;
+
     container.innerHTML += `
       <div class="food-card" onclick="openProductDetail('${dish.id}')">
         <div class="dish-img-wrap">
           <img src="${dish.img}" alt="${dish.name}" />
+          ${stockBadge}
           <button class="card-wish-btn ${isWished ? 'active' : ''}" onclick="event.stopPropagation(); toggleCardWish('${dish.id}', this)"><i class="fa-solid fa-heart"></i></button>
         </div>
         <div class="food-card-content">
           <div class="food-name">${dish.name}</div>
           <div class="food-price-row">
             <span class="food-price">₹${dish.price}</span>
-            <button class="add-btn" onclick="event.stopPropagation(); addToCart('${dish.id}', '${dish.name}', ${dish.price})">ADD +</button>
+            ${addBtnHtml}
           </div>
         </div>
       </div>
@@ -151,13 +157,13 @@ function selectDishVariant(type, extra, el) {
 
 function addPdpToCart() {
   if(!currentPdpItem) return;
-  addToCart(currentPdpItem.id, currentPdpItem.name, currentPdpItem.price);
+  addToCart(currentPdpItem.id, currentPdpItem.name, currentPdpItem.price, currentPdpItem.img);
   closeModal('productDetailModal');
 }
 
 function buyNowPdp() {
   if(!currentPdpItem) return;
-  addToCart(currentPdpItem.id, currentPdpItem.name, currentPdpItem.price);
+  addToCart(currentPdpItem.id, currentPdpItem.name, currentPdpItem.price, currentPdpItem.img);
   closeModal('productDetailModal');
   openCartModal();
 }
@@ -171,10 +177,13 @@ function shareCurrentItem() {
 }
 
 // 5. Cart Operations
-function addToCart(id, name, price) {
+function addToCart(id, name, price, img) {
   const existing = cart.find(i => i.id === id);
-  if(existing) existing.qty += 1;
-  else cart.push({ id, name, price, qty: 1 });
+  if(existing) {
+    existing.qty += 1;
+  } else {
+    cart.push({ id, name, price, qty: 1, img: img || "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" });
+  }
   updateCartBar();
 }
 
@@ -203,9 +212,12 @@ function openCartModal() {
     subtotal += (item.price * item.qty);
     list.innerHTML += `
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #f1f5f9; padding-bottom:6px;">
-        <div>
-          <div style="font-size:13px; font-weight:600;">${item.name}</div>
-          <div style="font-size:11px; color:var(--gray);">₹${item.price} x ${item.qty}</div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img src="${item.img}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;" />
+          <div>
+            <div style="font-size:13px; font-weight:600;">${item.name}</div>
+            <div style="font-size:11px; color:var(--gray);">₹${item.price} x ${item.qty}</div>
+          </div>
         </div>
         <div style="font-weight:700;">₹${item.price * item.qty}</div>
       </div>
@@ -278,7 +290,9 @@ function placeOrder() {
     items: cart,
     grandTotal: grandTotal,
     paymentMode: activePayment,
-    status: "Stage 1: Placed (Store will Call)",
+    status: "1. Order Confirmed",
+    stage: 1,
+    eta: 30, // 30 minutes initial ETA
     timestamp: firebase.database.ServerValue.TIMESTAMP
   };
 
@@ -292,23 +306,23 @@ function placeOrder() {
     coinsRedeemed = false;
     updateCartBar();
     closeModal('cartModal');
-    openTrackingModal(true);
+    openOrderHistoryModal();
   });
 }
 
-// 7. Permanent Orders History (Customer History View)
+// 7. Shopsy Orders History with Images, Live ETA & 4-Step Tracker
 function openOrderHistoryModal() {
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   const phone = profile.phone;
   const container = document.getElementById('orderHistoryContainer');
-  container.innerHTML = '<p style="text-align:center; color:var(--gray); margin-top:20px;">Fetching your permanent order records...</p>';
+  container.innerHTML = '<p style="text-align:center; color:var(--gray); margin-top:20px;">Fetching your orders history from cloud...</p>';
   document.getElementById('orderHistoryModal').style.display = 'flex';
 
   if(!phone) {
     container.innerHTML = `
       <div style="text-align:center; padding:30px 0;">
         <i class="fa-solid fa-user-lock" style="font-size:36px; color:#cbd5e1; margin-bottom:10px;"></i>
-        <p style="font-size:13px; color:var(--gray);">Please save your mobile number in Account tab to view your permanent order history.</p>
+        <p style="font-size:13px; color:var(--gray);">Please save your mobile number in Account tab to view your order history.</p>
         <button class="admin-btn btn-primary" style="margin-top:12px;" onclick="closeModal('orderHistoryModal'); switchNavTab('account');">Open Account</button>
       </div>
     `;
@@ -323,24 +337,51 @@ function openOrderHistoryModal() {
       container.innerHTML = `
         <div style="text-align:center; padding:30px 0;">
           <i class="fa-solid fa-box-open" style="font-size:36px; color:#cbd5e1; margin-bottom:8px;"></i>
-          <p style="font-size:13px; color:var(--gray);">No past orders found for +91 ${phone}</p>
+          <p style="font-size:13px; color:var(--gray);">No orders found for +91 ${phone}</p>
         </div>
       `;
     } else {
       Object.keys(data).reverse().forEach(key => {
         const ord = data[key];
+        const primaryImg = (ord.items && ord.items[0] && ord.items[0].img) ? ord.items[0].img : "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500";
         const itemsList = ord.items ? ord.items.map(i => `${i.name} (x${i.qty})`).join(", ") : "Items";
         const dateStr = ord.timestamp ? new Date(ord.timestamp).toLocaleDateString("en-IN", { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Recent";
+        const isDelivered = ord.stage === 4 || ord.status.includes("Delivered");
 
         container.innerHTML += `
-          <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:12px; box-shadow:var(--shadow);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-              <span style="font-size:12px; font-weight:700; color:var(--primary);">#${ord.orderId}</span>
-              <span style="font-size:11px; color:var(--gray);">${dateStr}</span>
+          <div class="order-history-card">
+            <div class="order-history-top">
+              <div>
+                <span style="font-size:12px; font-weight:700; color:var(--primary);">#${ord.orderId}</span>
+                <span style="font-size:11px; color:var(--gray); margin-left:6px;">${dateStr}</span>
+              </div>
+              <span class="order-status-badge ${isDelivered ? 'badge-green' : 'badge-orange'}">
+                ${isDelivered ? '✅ Delivered' : '🚚 ' + (ord.status || 'Preparing')}
+              </span>
             </div>
-            <div style="font-size:13px; font-weight:600; margin-bottom:4px;">${itemsList}</div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-              <span style="font-weight:700; font-size:14px;">₹${ord.grandTotal} (${ord.paymentMode})</span>
+
+            <div class="order-dish-row">
+              <img src="${primaryImg}" class="order-dish-img" />
+              <div style="flex:1;">
+                <div style="font-size:13px; font-weight:700; color:var(--dark);">${itemsList}</div>
+                <div style="font-size:13px; font-weight:700; color:var(--primary); margin-top:2px;">₹${ord.grandTotal} (${ord.paymentMode})</div>
+              </div>
+            </div>
+
+            ${!isDelivered ? `
+              <div style="background:#fef2f2; border:1px solid #fee2e2; padding:8px 12px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; font-weight:600; color:var(--primary);"><i class="fa-solid fa-stopwatch"></i> Estimated Arrival: ~${ord.eta || 25} Mins</span>
+                <button class="add-btn" onclick="openLiveTrackingPopup('${key}', '${phone}')">Live Track 📍</button>
+              </div>
+            ` : `
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:12px; color:var(--gray);">
+                <span>Rate Food: ⭐⭐⭐⭐⭐</span>
+                <span style="color:var(--green); font-weight:600;">Delivered at Bengbari</span>
+              </div>
+            `}
+
+            <div style="display:flex; gap:8px; justify-content:flex-end;">
+              <a href="tel:8453270362" class="add-btn" style="text-decoration:none; background:#f1f5f9; color:var(--dark); border-color:#cbd5e1;">📞 Call Help</a>
               <button class="add-btn" onclick="reorderItems('${key}', '${phone}')">🔄 Reorder</button>
             </div>
           </div>
@@ -350,12 +391,71 @@ function openOrderHistoryModal() {
   });
 }
 
+function openLiveTrackingPopup(key, phone) {
+  db.ref("customer_history/" + phone + "/" + key).on("value", snap => {
+    const ord = snap.val();
+    if(!ord) return;
+    const stage = ord.stage || 1;
+
+    const content = document.getElementById('trackingContent');
+    content.innerHTML = `
+      <div style="background:#fff0f3; padding:14px; border-radius:var(--radius); margin-bottom:16px;">
+        <div style="font-size:12px; color:var(--primary); font-weight:700;">ORDER ID: #${ord.orderId}</div>
+        <div style="font-size:16px; font-weight:700; margin:4px 0;">₹${ord.grandTotal} (${ord.paymentMode})</div>
+        <p style="font-size:12px; color:var(--gray);">Estimated Delivery: <strong>${ord.eta || 25} Minutes (Bengbari/Udalguri)</strong></p>
+      </div>
+
+      <div class="tracker-box">
+        <div class="step-item ${stage >= 1 ? (stage > 1 ? 'done' : 'active') : ''}">
+          <div class="step-circle">${stage > 1 ? '✓' : '1'}</div>
+          <div class="step-line"></div>
+          <div>
+            <div style="font-size:13px; font-weight:700;">Order Confirmed</div>
+            <div style="font-size:11px; color:var(--gray);">Restaurant received your order</div>
+          </div>
+        </div>
+
+        <div class="step-item ${stage >= 2 ? (stage > 2 ? 'done' : 'active') : ''}">
+          <div class="step-circle">${stage > 2 ? '✓' : '2'}</div>
+          <div class="step-line"></div>
+          <div>
+            <div style="font-size:13px; font-weight:700;">Kitchen Preparing</div>
+            <div style="font-size:11px; color:var(--gray);">Food is freshly cooking</div>
+          </div>
+        </div>
+
+        <div class="step-item ${stage >= 3 ? (stage > 3 ? 'done' : 'active') : ''}">
+          <div class="step-circle">${stage > 3 ? '✓' : '3'}</div>
+          <div class="step-line"></div>
+          <div>
+            <div style="font-size:13px; font-weight:700;">Out for Delivery</div>
+            <div style="font-size:11px; color:var(--gray);">Delivery partner on the way</div>
+          </div>
+        </div>
+
+        <div class="step-item ${stage >= 4 ? 'done' : ''}">
+          <div class="step-circle">${stage >= 4 ? '✓' : '4'}</div>
+          <div>
+            <div style="font-size:13px; font-weight:700;">Delivered</div>
+            <div style="font-size:11px; color:var(--gray);">Enjoy your hot & fresh meal!</div>
+          </div>
+        </div>
+      </div>
+
+      <a href="tel:8453270362" class="admin-btn btn-green" style="text-decoration:none; display:block; text-align:center; margin-top:16px;">
+        <i class="fa-solid fa-phone"></i> Call Delivery Partner / Store (8453270362)
+      </a>
+    `;
+    document.getElementById('trackingModal').style.display = 'flex';
+  });
+}
+
 function reorderItems(key, phone) {
   db.ref("customer_history/" + phone + "/" + key).once("value", snap => {
     const ord = snap.val();
     if(ord && ord.items) {
       ord.items.forEach(i => {
-        addToCart(i.id || "dish_" + Date.now(), i.name, i.price);
+        addToCart(i.id || "dish_" + Date.now(), i.name, i.price, i.img);
       });
       closeModal('orderHistoryModal');
       openCartModal();
@@ -364,41 +464,7 @@ function reorderItems(key, phone) {
   });
 }
 
-// 8. Order Tracking View
-function openTrackingModal(isNew = false) {
-  const content = document.getElementById('trackingContent');
-  if(!currentActiveOrder) {
-    content.innerHTML = `<div style="text-align:center; padding:30px 0;"><i class="fa-solid fa-box" style="font-size:36px; color:#cbd5e1; margin-bottom:8px;"></i><p>No active orders currently.</p></div>`;
-  } else {
-    content.innerHTML = `
-      ${isNew ? `
-        <div class="success-checkmark"><i class="fa-solid fa-check"></i></div>
-        <h3 style="text-align:center; font-size:16px; margin-bottom:4px;">Order Placed Successfully!</h3>
-        <p style="text-align:center; font-size:12px; color:var(--gray); margin-bottom:16px;">We have received your order and are preparing it fresh.</p>
-      ` : ''}
-
-      <div style="background:#fff0f3; padding:14px; border-radius:var(--radius); margin-bottom:16px;">
-        <div style="font-size:12px; color:var(--primary); font-weight:700;">ORDER ID: #${currentActiveOrder.orderId}</div>
-        <div style="font-size:16px; font-weight:700; margin:4px 0;">₹${currentActiveOrder.grandTotal} (${currentActiveOrder.paymentMode})</div>
-        <p style="font-size:12px; color:var(--gray);">Status: <strong>${currentActiveOrder.status}</strong></p>
-      </div>
-
-      <div style="padding:8px 0;">
-        <p style="font-size:13px; margin-bottom:8px;">📍 <strong>1. Order Placed</strong> — Store received alert.</p>
-        <p style="font-size:13px; margin-bottom:8px;">📞 <strong>2. Order Locked</strong> — Confirmed via phone.</p>
-        <p style="font-size:13px; margin-bottom:8px;">🍳 <strong>3. Kitchen Preparing</strong> — Fresh cooking.</p>
-        <p style="font-size:13px; margin-bottom:8px;">🛵 <strong>4. Out for Delivery</strong> — Arriving in Bengbari.</p>
-      </div>
-
-      <a href="tel:8453270362" class="admin-btn btn-green" style="text-decoration:none; display:block; text-align:center; margin-top:16px;">
-        <i class="fa-solid fa-phone"></i> Call Restaurant (8453270362)
-      </a>
-    `;
-  }
-  document.getElementById('trackingModal').style.display = 'flex';
-}
-
-// 9. Custom Cake Studio Logic
+// 8. Custom Cake Studio Logic
 function openCakeStudio() {
   document.getElementById('cakeStudioModal').style.display = 'flex';
 }
@@ -427,12 +493,12 @@ function addCustomCakeToCart() {
   const msg = document.getElementById('cakeCustomText').value.trim();
   const cakeName = `Custom ${flavor} (${selectedCakeWeight} Kg)` + (msg ? ` [Msg: ${msg}]` : "");
 
-  addToCart("cake_" + Date.now(), cakeName, selectedCakePrice);
+  addToCart("cake_" + Date.now(), cakeName, selectedCakePrice, "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500");
   closeModal('cakeStudioModal');
   alert("🎂 Custom Cake added to Bag!");
 }
 
-// 10. Customer Profile & Cloud Sync
+// 9. Customer Profile & Cloud Sync
 function switchNavTab(tab) {
   document.querySelectorAll('.bottom-nav .nav-tab').forEach(t => t.classList.remove('active'));
   if(tab === 'home') {
@@ -520,7 +586,7 @@ function openSavedItemsModal() {
               <div style="font-size:12px; color:var(--primary); font-weight:700;">₹${dish.price}</div>
             </div>
           </div>
-          <button class="add-btn" onclick="addToCart('${dish.id}', '${dish.name}', ${dish.price})">ADD</button>
+          <button class="add-btn" onclick="addToCart('${dish.id}', '${dish.name}', ${dish.price}, '${dish.img}')">ADD</button>
         </div>
       `;
     });
@@ -528,39 +594,92 @@ function openSavedItemsModal() {
   document.getElementById('wishlistModal').style.display = 'flex';
 }
 
-// 11. Admin Control Room Logic
+// 10. Admin Control Room Logic (Secret Master PIN: Kd@1234)
 function openAdminGateway() {
   document.getElementById('adminModal').style.display = 'flex';
 }
 
-async function unlockAdminBiometric() {
-  if (window.PublicKeyCredential) {
-    try {
-      alert("Face/Biometric Authenticated Successfully!");
-      showAdminDashboard();
-    } catch(e) {
-      alert("Fallback: Enter Master PIN.");
-    }
-  } else {
-    alert("Use Master PIN (0122 / 1220).");
-  }
-}
-
 function unlockAdminWithPin() {
-  const pin = document.getElementById('adminPinInput').value;
-  if(pin === "1220" || pin === "0122" || pin === "1234") {
-    showAdminDashboard();
+  const pin = document.getElementById('adminPinInput').value.trim();
+  if(pin === "Kd@1234") { // PRIVATE MASTER PIN
+    document.getElementById('adminLockScreen').style.display = 'none';
+    document.getElementById('adminDashboard').style.display = 'block';
+    listenToLiveOrders();
+    renderAdminMenuManager();
   } else {
-    alert("Incorrect Admin Master PIN!");
+    alert("❌ Access Denied: Incorrect Master Password!");
   }
 }
 
-function showAdminDashboard() {
-  document.getElementById('adminLockScreen').style.display = 'none';
-  document.getElementById('adminDashboard').style.display = 'block';
-  listenToLiveOrders();
+// 11. Admin Menu Item Manager (Edit Price, Change Photo, Out of Stock per item)
+function renderAdminMenuManager() {
+  const list = document.getElementById('adminMenuItemsList');
+  list.innerHTML = '';
+  menuCatalog.forEach((dish, idx) => {
+    list.innerHTML += `
+      <div class="admin-menu-item-row">
+        <img src="${dish.img}" class="admin-menu-item-img" id="adminImg_${dish.id}" />
+        <div style="flex:1;">
+          <div style="font-size:13px; font-weight:700; color:#fff;">${dish.name}</div>
+          <div style="font-size:12px; color:#38bdf8;">₹${dish.price} | Stock: <strong>${dish.inStock ? '🟢 Available' : '🔴 Sold Out'}</strong></div>
+          <div class="admin-menu-actions">
+            <button class="add-btn" style="padding:3px 8px; font-size:10px;" onclick="adminEditDishPrice('${dish.id}')">✏️ Edit Price</button>
+            <label class="add-btn" style="padding:3px 8px; font-size:10px; cursor:pointer;">
+              📷 Photo
+              <input type="file" accept="image/*" style="display:none;" onchange="adminUpdateDishPhoto('${dish.id}', this)" />
+            </label>
+            <button class="add-btn" style="padding:3px 8px; font-size:10px; background:${dish.inStock ? '#ef4444' : '#10b981'}; color:#fff; border:none;" onclick="adminToggleDishStock('${dish.id}')">
+              ${dish.inStock ? 'Mark Out' : 'Mark In'}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
 }
 
+function adminEditDishPrice(dishId) {
+  const dish = menuCatalog.find(d => d.id === dishId);
+  if(!dish) return;
+  const newPrice = prompt(`Enter New Price (₹) for "${dish.name}":`, dish.price);
+  if(newPrice && !isNaN(newPrice)) {
+    dish.price = Number(newPrice);
+    localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
+    renderFoodItems(menuCatalog);
+    renderAdminMenuManager();
+    alert("✅ Price Updated Successfully!");
+  }
+}
+
+function adminUpdateDishPhoto(dishId, input) {
+  if(input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const dish = menuCatalog.find(d => d.id === dishId);
+      if(dish) {
+        dish.img = e.target.result;
+        localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
+        renderFoodItems(menuCatalog);
+        renderAdminMenuManager();
+        alert("✅ Dish Photo Updated from Gallery/Camera!");
+      }
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function adminToggleDishStock(dishId) {
+  const dish = menuCatalog.find(d => d.id === dishId);
+  if(dish) {
+    dish.inStock = !dish.inStock;
+    localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
+    renderFoodItems(menuCatalog);
+    renderAdminMenuManager();
+    alert(`Item is now: ${dish.inStock ? '🟢 Available in Menu' : '🔴 Marked Out of Stock'}`);
+  }
+}
+
+// 12. Admin Live Orders Listener with Status Stage Controls
 function listenToLiveOrders() {
   db.ref("orders").limitToLast(20).on("value", snapshot => {
     const data = snapshot.val();
@@ -595,8 +714,10 @@ function listenToLiveOrders() {
             <p style="font-size:11px; color:#94a3b8; margin:2px 0;">📍 ${cAddress}</p>
             <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
               <a href="tel:${cPhone}" class="add-btn" style="text-decoration:none; background:#10b981; color:#fff; border:none; padding:5px 10px; font-size:11px; border-radius:6px;">📞 Call</a>
-              <button class="add-btn" style="padding:5px 10px; font-size:11px; border-radius:6px;" onclick="updateOrderStatus('${key}', 'Confirmed & In Kitchen')">Lock & Prepare</button>
-              <button class="add-btn" style="padding:5px 10px; font-size:11px; border-radius:6px; background:#3b82f6; color:#fff; border:none;" onclick="dispatchToRider('${cName}', '${cPhone}', '${cAddress}', '${itemsSummary}', '${cTotal}')">🚴 Dispatch</button>
+              <button class="add-btn" style="padding:5px 8px; font-size:11px; border-radius:6px;" onclick="updateOrderStatusFull('${key}', '${cPhone}', 2, '2. In Kitchen')">🍳 Kitchen</button>
+              <button class="add-btn" style="padding:5px 8px; font-size:11px; border-radius:6px; background:#f97316; color:#fff; border:none;" onclick="updateOrderStatusFull('${key}', '${cPhone}', 3, '3. Out for Delivery')">🛵 Out</button>
+              <button class="add-btn" style="padding:5px 8px; font-size:11px; border-radius:6px; background:#10b981; color:#fff; border:none;" onclick="updateOrderStatusFull('${key}', '${cPhone}', 4, '4. Delivered')">✅ Done</button>
+              <button class="add-btn" style="padding:5px 8px; font-size:11px; border-radius:6px; background:#3b82f6; color:#fff; border:none;" onclick="dispatchToRider('${cName}', '${cPhone}', '${cAddress}', '${itemsSummary}', '${cTotal}')">🚴 WhatsApp</button>
               <button class="add-btn" style="padding:5px 8px; font-size:11px; border-radius:6px; background:#ef4444; color:#fff; border:none;" onclick="adminDeleteOrder('${key}')" title="Delete Order"><i class="fa-solid fa-trash"></i></button>
             </div>
           </div>
@@ -608,17 +729,28 @@ function listenToLiveOrders() {
   });
 }
 
+function updateOrderStatusFull(orderKey, phone, stageNum, statusText) {
+  db.ref("orders/" + orderKey).update({ stage: stageNum, status: statusText });
+  // Also update customer's live history record
+  db.ref("customer_history/" + phone).once("value", snap => {
+    const userOrders = snap.val();
+    if(userOrders) {
+      Object.keys(userOrders).forEach(k => {
+        if(userOrders[k].orderId && userOrders[k].orderId.includes(orderKey.substring(1, 6))) {
+          db.ref("customer_history/" + phone + "/" + k).update({ stage: stageNum, status: statusText });
+        }
+      });
+    }
+  });
+  alert("Order progress updated to: " + statusText);
+}
+
 function adminDeleteOrder(key) {
-  if(confirm("Delete this order from live screen? (Note: Permanent customer history will stay safe)")) {
+  if(confirm("Delete this order from live screen? (Customer history will remain safe)")) {
     db.ref("orders/" + key).remove().then(() => {
       alert("Order cleared from live screen.");
     });
   }
-}
-
-function updateOrderStatus(key, status) {
-  db.ref("orders/" + key).update({ status: status });
-  alert("Order updated to: " + status);
 }
 
 function dispatchToRider(name, phone, address, items, total) {
@@ -651,8 +783,10 @@ function adminSaveNewDish() {
     return;
   }
 
-  menuCatalog.unshift({ id: "dish_" + Date.now(), name, price, mrp: price + 50, cat, img: finalImg });
+  menuCatalog.unshift({ id: "dish_" + Date.now(), name, price, mrp: price + 50, cat, inStock: true, img: finalImg });
+  localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
   renderFoodItems(menuCatalog);
+  renderAdminMenuManager();
   alert(`✅ Added "${name}" (₹${price}) to Menu!`);
 
   document.getElementById('newDishName').value = '';
