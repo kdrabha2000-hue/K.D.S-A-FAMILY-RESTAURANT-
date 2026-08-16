@@ -1,4 +1,4 @@
-// ==================== 1. FIREBASE INITIALIZATION ====================
+// ==================== 1. FIREBASE SETUP ====================
 const firebaseConfig = {
   apiKey: "AIzaSyDDTFzD8eaxS6hsQ_W5akOWRWixyZdjkSo",
   authDomain: "kd-ka-khana-ghar-tak.firebaseapp.com",
@@ -14,7 +14,7 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
 }
 const db = (typeof firebase !== 'undefined') ? firebase.database() : null;
 
-// ==================== 2. INITIAL MENU CATALOG ====================
+// ==================== 2. MENU DATA ====================
 let menuCatalog = JSON.parse(localStorage.getItem("kd_live_menu")) || [
   { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, mrp: 160, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" },
   { id: "m2", name: "Chicken Fried Momo (10 Pcs)", price: 140, mrp: 180, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
@@ -54,6 +54,9 @@ let activePayment = 'COD';
 let appliedDiscount = 0;
 let coinsRedeemed = false;
 let currentPdpItem = null;
+let selectedCakeWeight = 1.0;
+let selectedCakePrice = 850;
+let adminUploadBase64 = "";
 
 // ==================== 3. HARDWARE BACK BUTTON HANDLER ====================
 function pushModalState(modalId) {
@@ -63,10 +66,12 @@ function pushModalState(modalId) {
 window.addEventListener('popstate', function(event) {
   const allModals = [
     'productDetailModal',
-    'cartModal',
-    'orderHistoryModal',
-    'liveTrackingModal',
     'accountModal',
+    'orderHistoryModal',
+    'trackingModal',
+    'wishlistModal',
+    'cakeStudioModal',
+    'cartModal',
     'adminModal'
   ];
 
@@ -74,7 +79,7 @@ window.addEventListener('popstate', function(event) {
   allModals.forEach(id => {
     const el = document.getElementById(id);
     if (el && (el.style.display === 'flex' || el.style.display === 'block')) {
-      el.style.display = 'none';
+      el.style.setProperty('display', 'none', 'important');
       modalClosed = true;
     }
   });
@@ -84,21 +89,36 @@ window.addEventListener('popstate', function(event) {
   }
 });
 
-// ==================== 4. RENDER FOOD CATALOG ====================
+function openModal(id) {
+  const m = document.getElementById(id);
+  if (m) {
+    m.style.setProperty('display', 'flex', 'important');
+    pushModalState(id);
+  }
+}
+
+function closeModal(id) {
+  const m = document.getElementById(id);
+  if (m) {
+    m.style.setProperty('display', 'none', 'important');
+  }
+}
+
+// ==================== 4. RENDER MENU & SEARCH ====================
 function renderFoodItems(items) {
   const container = document.getElementById('foodGrid');
   if (!container) return;
   container.innerHTML = '';
   items.forEach(dish => {
     const isWished = wishlist.includes(dish.id);
-    const stockBadge = dish.inStock ? '' : '<span class="out-of-stock-badge">OUT OF STOCK</span>';
+    const stockBadge = dish.inStock ? '' : '<span class="out-of-stock-badge" style="position:absolute;top:8px;left:8px;background:#ef4444;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:bold;">SOLD OUT</span>';
     const addBtnHtml = dish.inStock 
       ? `<button class="add-btn" onclick="event.stopPropagation(); addToCart('${dish.id}', '${dish.name}', ${dish.price}, '${dish.img}')">ADD +</button>`
       : `<button class="add-btn" style="background:#f1f5f9; color:#94a3b8; border-color:#cbd5e1;" disabled>SOLD OUT</button>`;
 
     container.innerHTML += `
       <div class="food-card" onclick="openProductDetail('${dish.id}')">
-        <div class="dish-img-wrap">
+        <div class="dish-img-wrap" style="position:relative;">
           <img src="${dish.img}" alt="${dish.name}" />
           ${stockBadge}
           <button class="card-wish-btn ${isWished ? 'active' : ''}" onclick="event.stopPropagation(); toggleCardWish('${dish.id}', this)"><i class="fa-solid fa-heart"></i></button>
@@ -115,9 +135,27 @@ function renderFoodItems(items) {
   });
 }
 
-renderFoodItems(menuCatalog);
+function searchDishes() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const filtered = menuCatalog.filter(d => d.name.toLowerCase().includes(q));
+  renderFoodItems(filtered);
+}
 
-// ==================== 5. PRODUCT DETAIL MODAL (PDP) ====================
+function filterCategory(cat, el) {
+  document.querySelectorAll('.cat-item').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  if (cat === 'all') {
+    renderFoodItems(menuCatalog);
+  } else {
+    renderFoodItems(menuCatalog.filter(d => d.cat === cat));
+  }
+}
+
+function triggerVoiceSearch() {
+  alert("Voice Search: Say dish name (e.g. 'Pork Momo' or 'Chicken Roll')");
+}
+
+// ==================== 5. PRODUCT DETAIL PAGE (PDP) ====================
 function openProductDetail(dishId) {
   const dish = menuCatalog.find(d => d.id === dishId);
   if (!dish) return;
@@ -141,18 +179,14 @@ function openProductDetail(dishId) {
     menuCatalog.filter(d => d.cat === dish.cat && d.id !== dish.id).slice(0, 5).forEach(sim => {
       similarContainer.innerHTML += `
         <div class="cat-item" onclick="openProductDetail('${sim.id}')">
-          <div class="cat-circle"><img src="${sim.img}" style="width:100%;height:100%;object-fit:cover;" /></div>
+          <div class="cat-circle"><img src="${sim.img}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" /></div>
           <div class="cat-name">${sim.name.substring(0, 12)}..</div>
         </div>
       `;
     });
   }
 
-  const modal = document.getElementById('productDetailModal');
-  if (modal) {
-    modal.style.display = 'flex';
-    pushModalState('productDetailModal');
-  }
+  openModal('productDetailModal');
 }
 
 function toggleCurrentWish() {
@@ -172,14 +206,6 @@ function toggleCardWish(id, el) {
     if (el) el.classList.add('active');
   }
   localStorage.setItem("kd_wishlist", JSON.stringify(wishlist));
-  syncWishlistToCloud();
-}
-
-function syncWishlistToCloud() {
-  const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
-  if (profile.phone && db) {
-    db.ref("customers/" + profile.phone + "/wishlist").set(wishlist);
-  }
 }
 
 function selectDishVariant(type, extra, el) {
@@ -270,11 +296,7 @@ function openCartModal() {
   if (document.getElementById('billSubtotal')) document.getElementById('billSubtotal').innerText = `₹${subtotal}`;
   if (document.getElementById('billGrandTotal')) document.getElementById('billGrandTotal').innerText = `₹${Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount)}`;
   
-  const modal = document.getElementById('cartModal');
-  if (modal) {
-    modal.style.display = 'flex';
-    pushModalState('cartModal');
-  }
+  openModal('cartModal');
 }
 
 function setPaymentMethod(method) {
@@ -364,18 +386,14 @@ function placeOrder() {
   openOrderHistoryModal();
 }
 
-// ==================== 8. ORDERS HISTORY ====================
+// ==================== 8. ORDERS HISTORY & LIVE TRACKING ====================
 function openOrderHistoryModal() {
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   const phone = profile.phone;
   const container = document.getElementById('orderHistoryContainer');
-  const modal = document.getElementById('orderHistoryModal');
-  if (modal) {
-    modal.style.display = 'flex';
-    pushModalState('orderHistoryModal');
-  }
-  if (!container) return;
+  openModal('orderHistoryModal');
 
+  if (!container) return;
   container.innerHTML = '<p style="text-align:center; color:var(--gray); margin-top:20px;">Fetching orders...</p>';
 
   if (!phone || !db) {
@@ -403,18 +421,18 @@ function openOrderHistoryModal() {
         const isDelivered = ord.stage === 4 || (ord.status && ord.status.includes("Delivered"));
 
         container.innerHTML += `
-          <div class="order-history-card">
-            <div class="order-history-top">
+          <div class="order-history-card" style="background:#fff; border-radius:12px; padding:12px; margin-bottom:12px; border:1px solid #f1f5f9; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
               <span style="font-size:12px; font-weight:700; color:var(--primary);">#${ord.orderId}</span>
-              <span class="order-status-badge ${isDelivered ? 'badge-green' : 'badge-orange'}">
+              <span style="font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px; background:${isDelivered ? '#dcfce7; color:#15803d;' : '#fff7ed; color:#c2410c;'}">
                 ${isDelivered ? '✅ Delivered' : '🚚 ' + (ord.status || 'Preparing')}
               </span>
             </div>
-            <div class="order-dish-row">
-              <img src="${primaryImg}" class="order-dish-img" />
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
+              <img src="${primaryImg}" style="width:48px; height:48px; border-radius:8px; object-fit:cover;" />
               <div style="flex:1;">
-                <div style="font-size:13px; font-weight:700;">${itemsList}</div>
-                <div style="font-size:13px; font-weight:700; color:var(--primary); margin-top:2px;">₹${ord.grandTotal} (${ord.paymentMode})</div>
+                <div style="font-size:13px; font-weight:700; color:#1e293b;">${itemsList}</div>
+                <div style="font-size:12px; font-weight:700; color:var(--primary); margin-top:2px;">₹${ord.grandTotal} (${ord.paymentMode})</div>
               </div>
             </div>
             ${!isDelivered ? `
@@ -430,112 +448,96 @@ function openOrderHistoryModal() {
   });
 }
 
-// ==================== 9. LIVE DELIVERY STATUS POPUP ====================
 function openLiveTrackingPopup(key, phone) {
-  let modal = document.getElementById('liveTrackingModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'liveTrackingModal';
-    modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;";
-    document.body.appendChild(modal);
-  }
-
-  modal.style.display = 'flex';
-  pushModalState('liveTrackingModal');
+  openModal('trackingModal');
+  const content = document.getElementById('trackingContent');
+  if (!content) return;
 
   if (db && phone && key) {
     db.ref("customer_history/" + phone + "/" + key).on("value", snap => {
       const ord = snap.val();
       if (!ord) return;
-      renderLiveModalUI(modal, ord);
+      const stage = Number(ord.stage) || 1;
+
+      content.innerHTML = `
+        <div style="background:#fff0f3; padding:12px 14px; border-radius:12px; margin-bottom:16px;">
+          <div style="font-size:12px; color:var(--primary); font-weight:700;">ORDER ID: #${ord.orderId}</div>
+          <div style="font-size:16px; font-weight:800; margin:2px 0;">₹${ord.grandTotal} (${ord.paymentMode})</div>
+          <div style="font-size:12px; color:var(--gray);">Estimated Delivery: ~${ord.eta || 30} Mins</div>
+        </div>
+
+        <!-- 4-Steps Live Tracker -->
+        <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:20px; background:#f8fafc; padding:14px; border-radius:14px; border:1px solid #e2e8f0;">
+          <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 1 ? '1' : '0.35'};">
+            <div style="width:28px; height:28px; border-radius:50%; background:${stage >= 1 ? '#00c853' : '#cbd5e1'}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px;">1</div>
+            <div>
+              <div style="font-weight:700; font-size:13px; color:#0f172a;">Order Confirmed</div>
+              <div style="font-size:11px; color:#64748b;">Restaurant received your order</div>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 2 ? '1' : '0.35'};">
+            <div style="width:28px; height:28px; border-radius:50%; background:${stage >= 2 ? '#00c853' : '#cbd5e1'}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px;">2</div>
+            <div>
+              <div style="font-weight:700; font-size:13px; color:#0f172a;">Kitchen Preparing 🍳</div>
+              <div style="font-size:11px; color:#64748b;">Food is freshly cooking (No Cancellation)</div>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 3 ? '1' : '0.35'};">
+            <div style="width:28px; height:28px; border-radius:50%; background:${stage >= 3 ? '#00c853' : '#cbd5e1'}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px;">3</div>
+            <div>
+              <div style="font-weight:700; font-size:13px; color:#0f172a;">Out for Delivery 🛵</div>
+              <div style="font-size:11px; color:#64748b;">Delivery partner on the way</div>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 4 ? '1' : '0.35'};">
+            <div style="width:28px; height:28px; border-radius:50%; background:${stage >= 4 ? '#00c853' : '#cbd5e1'}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px;">4</div>
+            <div>
+              <div style="font-weight:700; font-size:13px; color:#0f172a;">Delivered 🎉</div>
+              <div style="font-size:11px; color:#64748b;">Enjoy your hot & fresh meal!</div>
+            </div>
+          </div>
+        </div>
+
+        <a href="tel:8453270362" style="display:flex; align-items:center; justify-content:center; gap:8px; background:#00c853; color:#fff; text-decoration:none; padding:12px; border-radius:10px; font-weight:700; font-size:13px;">
+          📞 Call Delivery Partner (8453270362)
+        </a>
+      `;
     });
   }
 }
 
-function renderLiveModalUI(modal, ord) {
-  const stage = Number(ord.stage) || 1;
-  modal.innerHTML = `
-    <div style="background:#ffffff; border-radius:20px; width:100%; max-width:360px; padding:22px; position:relative; box-shadow:0 12px 35px rgba(0,0,0,0.3); font-family:sans-serif; color:#1e293b; box-sizing:border-box;">
-      <button onclick="document.getElementById('liveTrackingModal').style.display='none'" style="position:absolute; right:14px; top:14px; background:#f1f5f9; border:none; width:32px; height:32px; border-radius:50%; font-size:16px; font-weight:bold; color:#475569; cursor:pointer;">✕</button>
-      <div style="font-size:11px; font-weight:800; color:#ff3e6c; text-transform:uppercase; letter-spacing:0.8px;">LIVE DELIVERY STATUS</div>
-      <h3 style="margin:4px 0 2px 0; font-size:18px; color:#0f172a; font-weight:800;">Order #${ord.orderId}</h3>
-      <div style="font-size:12px; color:#64748b; margin-bottom:16px;">Estimated Delivery: ~${ord.eta || 30} Mins (₹${ord.grandTotal})</div>
-
-      <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:18px; background:#f8fafc; padding:14px; border-radius:14px; border:1px solid #e2e8f0;">
-        <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 1 ? '1' : '0.35'};">
-          <div style="width:28px; height:28px; border-radius:50%; background:${stage >= 1 ? '#00c853' : '#cbd5e1'}; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">1</div>
-          <div><div style="font-weight:700; font-size:13px; color:#0f172a;">Order Confirmed</div><div style="font-size:11px; color:#64748b;">रेस्टोरेंट को ऑर्डर मिल गया है</div></div>
-        </div>
-        <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 2 ? '1' : '0.35'};">
-          <div style="width:28px; height:28px; border-radius:50%; background:${stage >= 2 ? '#00c853' : '#cbd5e1'}; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">2</div>
-          <div><div style="font-weight:700; font-size:13px; color:#0f172a;">Kitchen Preparing 🍳</div><div style="font-size:11px; color:#64748b;">ताज़ा खाना बन रहा है (No Cancel)</div></div>
-        </div>
-        <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 3 ? '1' : '0.35'};">
-          <div style="width:28px; height:28px; border-radius:50%; background:${stage >= 3 ? '#00c853' : '#cbd5e1'}; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">3</div>
-          <div><div style="font-weight:700; font-size:13px; color:#0f172a;">Out for Delivery 🛵</div><div style="font-size:11px; color:#64748b;">डिलीवरी पार्टनर रास्ते में है</div></div>
-        </div>
-        <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 4 ? '1' : '0.35'};">
-          <div style="width:28px; height:28px; border-radius:50%; background:${stage >= 4 ? '#00c853' : '#cbd5e1'}; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">4</div>
-          <div><div style="font-weight:700; font-size:13px; color:#0f172a;">Delivered 🎉</div><div style="font-size:11px; color:#64748b;">खाना डिलीवर हो गया, Enjoy!</div></div>
-        </div>
-      </div>
-
-      <a href="tel:8453270362" style="display:flex; align-items:center; justify-content:center; gap:8px; background:#00c853; color:#ffffff; text-decoration:none; padding:12px; border-radius:12px; font-weight:700; font-size:13px;">
-        📞 Call Delivery Partner (8453270362)
-      </a>
-    </div>
-  `;
-}
-
-// ==================== 10. ADMIN ROOM & UNLOCK FIX ====================
+// ==================== 9. ADMIN PANEL & PIN UNLOCK ====================
 function openAdminGateway() {
-  const modal = document.getElementById('adminModal');
-  if (modal) {
-    modal.style.display = 'flex';
-    pushModalState('adminModal');
-  }
+  openModal('adminModal');
+  const lock = document.getElementById('adminLockScreen');
+  const dash = document.getElementById('adminDashboard');
+  if (lock) lock.style.display = 'block';
+  if (dash) dash.style.display = 'none';
 }
 
-function closeAdminRoom() {
-  const modal = document.getElementById('adminModal');
-  if (modal) modal.style.display = 'none';
-}
-
-function unlockAdminAccess() {
-  const inputs = document.querySelectorAll('#adminModal input[type="password"], #adminModal input');
-  let pass = "";
-  inputs.forEach(i => {
-    if (i.value && !i.placeholder.includes('Name') && !i.placeholder.includes('Price')) {
-      pass = i.value.trim();
-    }
-  });
+function unlockAdminWithPin() {
+  const pinInput = document.getElementById('adminPinInput');
+  const pin = pinInput ? pinInput.value.trim() : '';
 
   const validPins = ["2000", "KD2000", "1234", "admin", "0000122"];
-  if (validPins.includes(pass) || pass === "") {
-    // 1. लॉक वाले बॉक्स को ढूंढकर पूरी तरह छुपाना
-    const allDivs = document.querySelectorAll('#adminModal div, #adminModal section');
-    allDivs.forEach(d => {
-      const text = d.innerText || '';
-      if (text.includes('Restricted Manager Access') || text.includes('Private Master Password')) {
-        d.style.setProperty('display', 'none', 'important');
-      }
-    });
 
-    // 2. एडमिन के मेन डैशबोर्ड और फॉर्म्स को दिखाना
-    allDivs.forEach(d => {
-      if (d.querySelector('.admin-order-card') || d.id === 'adminOrdersContainer' || d.innerText.includes('Daily Sales') || d.innerText.includes('Live Orders') || d.innerText.includes('Add New Dish')) {
-        d.style.setProperty('display', 'block', 'important');
-      }
-    });
+  if (validPins.includes(pin)) {
+    const lock = document.getElementById('adminLockScreen');
+    const dash = document.getElementById('adminDashboard');
+    if (lock) lock.style.display = 'none';
+    if (dash) dash.style.display = 'block';
 
-    loadAdminOrdersRealtime();
+    loadAdminOrdersList();
   } else {
-    alert("Incorrect Password! (PIN: 2000)");
+    alert("Incorrect Master Password! (Use PIN: 2000)");
   }
 }
 
-function loadAdminOrdersRealtime() {
-  const container = document.getElementById('adminOrdersContainer');
+function loadAdminOrdersList() {
+  const container = document.getElementById('adminLiveOrdersList');
   if (!container || !db) return;
 
   db.ref("orders").on("value", snapshot => {
@@ -545,7 +547,7 @@ function loadAdminOrdersRealtime() {
     let rev = 0;
 
     if (!data) {
-      container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding:20px;">No Active Orders.</p>';
+      container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding:15px;">No active orders.</p>';
       return;
     }
 
@@ -556,33 +558,32 @@ function loadAdminOrdersRealtime() {
       const itemsStr = ord.items ? ord.items.map(i => `${i.name} (x${i.qty})`).join(", ") : "Items";
       
       container.innerHTML += `
-        <div class="admin-order-card" style="background:#1e293b; border-radius:12px; padding:14px; margin-bottom:12px; border:1px solid #334155; color:#fff;">
+        <div style="background:#1e293b; border-radius:12px; padding:12px; margin-bottom:10px; border:1px solid #334155; color:#fff;">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div>
-              <strong style="font-size:15px;">${ord.customerName || 'Customer'} (₹${ord.grandTotal})</strong>
+              <strong style="font-size:14px;">${ord.customerName || 'Customer'} (₹${ord.grandTotal})</strong>
               <div style="font-size:11px; color:#94a3b8;">📍 ${ord.address || 'Bengbari'}</div>
             </div>
             <span style="color:#ff3e6c; font-weight:bold; font-size:12px;">#${ord.orderId}</span>
           </div>
-          <div style="font-size:12px; color:#cbd5e1; margin:8px 0;">🍲 ${itemsStr}</div>
-          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;">
-            <a href="tel:${ord.phone}" class="admin-btn" style="background:#0284c7; color:#fff; text-decoration:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold;">📞 Call</a>
-            <button onclick="updateOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 2, '2. In Kitchen')" style="background:#e11d48; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🍳 Kitchen</button>
-            <button onclick="updateOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 3, '3. Out for Delivery')" style="background:#f59e0b; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🛵 Out</button>
-            <button onclick="updateOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 4, '4. Delivered')" style="background:#10b981; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">✅ Done</button>
-            <a href="https://wa.me/91${ord.phone}?text=Hello%20${ord.customerName},%20your%20order%20%23${ord.orderId}%20is%20being%20processed." target="_blank" style="background:#22c55e; color:#fff; text-decoration:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold;">WhatsApp</a>
-            <button onclick="deleteOrder('${k}')" style="background:#475569; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️</button>
+          <div style="font-size:12px; color:#cbd5e1; margin:6px 0;">🍲 ${itemsStr}</div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+            <a href="tel:${ord.phone}" class="admin-btn" style="background:#0284c7; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold;">📞 Call</a>
+            <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 2, '2. In Kitchen')" style="background:#e11d48; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🍳 Kitchen</button>
+            <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 3, '3. Out for Delivery')" style="background:#f59e0b; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🛵 Out</button>
+            <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 4, '4. Delivered')" style="background:#10b981; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">✅ Done</button>
+            <button onclick="deleteAdminOrder('${k}')" style="background:#475569; color:#fff; border:none; padding:5px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️</button>
           </div>
         </div>
       `;
     });
 
-    if (document.getElementById('adminTodayRev')) document.getElementById('adminTodayRev').innerText = `₹${rev}`;
-    if (document.getElementById('adminTotalOrders')) document.getElementById('adminTotalOrders').innerText = count;
+    if (document.getElementById('statTotalSales')) document.getElementById('statTotalSales').innerText = `₹${rev}`;
+    if (document.getElementById('statOrderCount')) document.getElementById('statOrderCount').innerText = count;
   });
 }
 
-function updateOrderStatus(key, orderId, phone, stage, statusText) {
+function setAdminOrderStatus(key, orderId, phone, stage, statusText) {
   const updates = { stage: Number(stage), status: statusText };
   if (db) {
     db.ref("orders/" + key).update(updates);
@@ -599,75 +600,190 @@ function updateOrderStatus(key, orderId, phone, stage, statusText) {
   alert("Status Updated: " + statusText);
 }
 
-function deleteOrder(key) {
-  if (confirm("Are you sure you want to delete this order?") && db) {
+function deleteAdminOrder(key) {
+  if (confirm("Delete this order?") && db) {
     db.ref("orders/" + key).remove();
   }
 }
 
-// ==================== 11. GENERAL UTILITIES & CLICKS ====================
-function closeModal(id) {
-  const m = document.getElementById(id);
-  if (m) m.style.display = 'none';
+function adminSaveNewDish() {
+  const name = document.getElementById('newDishName').value.trim();
+  const price = Number(document.getElementById('newDishPrice').value);
+  const cat = document.getElementById('newDishCat').value;
+  const imgUrl = document.getElementById('newDishImgUrl').value.trim() || adminUploadBase64 || "https://images.unsplash.com/photo-1544025162-d76694265947?w=500";
+
+  if (!name || !price) {
+    alert("Please enter dish name and price.");
+    return;
+  }
+
+  const newDish = {
+    id: "d_" + Date.now(),
+    name: name,
+    price: price,
+    mrp: price + 40,
+    cat: cat,
+    inStock: true,
+    img: imgUrl
+  };
+
+  menuCatalog.unshift(newDish);
+  localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
+  renderFoodItems(menuCatalog);
+  alert("Dish added to menu!");
+  document.getElementById('newDishName').value = '';
+  document.getElementById('newDishPrice').value = '';
 }
 
-function switchNavTab(tab) {
-  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-  const current = document.getElementById('nav-' + tab);
-  if (current) current.classList.add('active');
+function previewAdminDishUpload(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      adminUploadBase64 = e.target.result;
+      const preview = document.getElementById('adminDishPreview');
+      if (preview) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      }
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
 
+// ==================== 10. CAKE STUDIO & ACCOUNT ====================
+function openCakeStudio() {
+  openModal('cakeStudioModal');
+}
+
+function selectCakeWeight(weight, price, el) {
+  selectedCakeWeight = weight;
+  selectedCakePrice = price;
+  document.querySelectorAll('#cakeStudioModal .weight-pill').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function addCustomCakeToCart() {
+  const flavor = document.getElementById('cakeFlavorSelect').value;
+  const msg = document.getElementById('cakeCustomText').value.trim();
+  const cakeTitle = `🎂 Custom Cake: ${flavor} (${selectedCakeWeight} Kg)` + (msg ? ` [Msg: ${msg}]` : '');
+
+  cart.push({
+    id: "cake_" + Date.now(),
+    name: cakeTitle,
+    price: selectedCakePrice,
+    qty: 1,
+    img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500"
+  });
+
+  updateCartBar();
+  closeModal('cakeStudioModal');
+  openCartModal();
+}
+
+function previewCakeUpload(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const p = document.getElementById('cakePhotoPreview');
+      if (p) {
+        p.src = e.target.result;
+        p.style.display = 'block';
+      }
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function openSavedItemsModal() {
+  openModal('wishlistModal');
+  const container = document.getElementById('wishlistItemsContainer');
+  if (!container) return;
+  
+  const wishedItems = menuCatalog.filter(d => wishlist.includes(d.id));
+  if (wishedItems.length === 0) {
+    container.innerHTML = '<p style="text-align:center; color:var(--gray); margin-top:30px;">No saved items in your wishlist.</p>';
+  } else {
+    container.innerHTML = wishedItems.map(d => `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid #f1f5f9;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img src="${d.img}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;" />
+          <div>
+            <div style="font-size:13px; font-weight:700;">${d.name}</div>
+            <div style="font-size:12px; color:var(--primary); font-weight:700;">₹${d.price}</div>
+          </div>
+        </div>
+        <button class="add-btn" onclick="addToCart('${d.id}', '${d.name}', ${d.price}, '${d.img}')">ADD +</button>
+      </div>
+    `).join('');
+  }
+}
+
+function saveCustomerAccount() {
+  const name = document.getElementById('accInputName')?.value.trim() || '';
+  const phone = document.getElementById('accInputPhone')?.value.trim() || '';
+  const address = document.getElementById('accInputAddress')?.value.trim() || '';
+
+  if (!phone) {
+    alert("Please enter mobile number for sync.");
+    return;
+  }
+
+  const profile = { name, phone, address };
+  localStorage.setItem("kd_cust_profile", JSON.stringify(profile));
+
+  if (document.getElementById('accNameDisplay') && name) document.getElementById('accNameDisplay').innerText = name;
+  if (document.getElementById('accPhoneDisplay') && phone) document.getElementById('accPhoneDisplay').innerText = "+91 " + phone;
+
+  if (db) {
+    db.ref("customers/" + phone + "/profile").set(profile);
+  }
+
+  alert("Account details saved successfully!");
+  closeModal('accountModal');
+}
+
+function uploadCustomerAvatar(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = document.getElementById('userAvatarImg');
+      if (img) img.src = e.target.result;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// ==================== 11. NAVIGATION TABS ====================
+function switchNavTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  
   if (tab === 'home') {
+    document.getElementById('tabHome')?.classList.add('active');
     closeModal('orderHistoryModal');
     closeModal('accountModal');
     renderFoodItems(menuCatalog);
   } else if (tab === 'cakes') {
-    filterCategory('cakes');
+    document.getElementById('tabCakes')?.classList.add('active');
+    openCakeStudio();
   } else if (tab === 'orders') {
+    document.getElementById('tabOrders')?.classList.add('active');
     openOrderHistoryModal();
   } else if (tab === 'account') {
-    openAccountModal();
+    document.getElementById('tabAccount')?.classList.add('active');
+    const saved = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
+    if (saved.name && document.getElementById('accInputName')) document.getElementById('accInputName').value = saved.name;
+    if (saved.phone && document.getElementById('accInputPhone')) document.getElementById('accInputPhone').value = saved.phone;
+    if (saved.address && document.getElementById('accInputAddress')) document.getElementById('accInputAddress').value = saved.address;
+    if (saved.name && document.getElementById('accNameDisplay')) document.getElementById('accNameDisplay').innerText = saved.name;
+    if (saved.phone && document.getElementById('accPhoneDisplay')) document.getElementById('accPhoneDisplay').innerText = "+91 " + saved.phone;
+    openModal('accountModal');
   }
 }
 
-function filterCategory(cat, el) {
-  document.querySelectorAll('.cat-item').forEach(c => c.classList.remove('active'));
-  if (el) el.classList.add('active');
-  if (cat === 'all') {
-    renderFoodItems(menuCatalog);
-  } else {
-    renderFoodItems(menuCatalog.filter(d => d.cat === cat));
-  }
-}
-
-function triggerVoiceSearch() {
-  alert("Voice Search: Say dish name (e.g. 'Pork Momo' or 'Chocolate Cake')");
-}
-
-function openAccountModal() {
-  const modal = document.getElementById('accountModal');
-  if (modal) {
-    modal.style.display = 'flex';
-    pushModalState('accountModal');
-  }
+// Initial Run
+window.addEventListener('DOMContentLoaded', () => {
+  renderFoodItems(menuCatalog);
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
-  if (profile.name && document.getElementById('accNameInput')) document.getElementById('accNameInput').value = profile.name;
-  if (profile.phone && document.getElementById('accPhoneInput')) document.getElementById('accPhoneInput').value = profile.phone;
-  if (profile.address && document.getElementById('accAddressInput')) document.getElementById('accAddressInput').value = profile.address;
-}
-
-// हर तरह के क्लिक्स (शील्ड आइकॉन, अनलॉक बटन) को पहचानना
-document.addEventListener('click', function(e) {
-  const target = e.target;
-  
-  // शील्ड (🛡️) आइकॉन क्लिक
-  if (target.closest('.fa-shield-halved, .fa-shield, [onclick*="Admin"], [class*="shield"]')) {
-    e.preventDefault();
-    openAdminGateway();
-  }
-
-  // Unlock Admin Panel बटन क्लिक
-  if (target.closest('button, .btn') && (target.innerText.includes('Unlock Admin') || target.textContent.includes('Unlock Admin'))) {
-    e.preventDefault();
-    unlockAdminAccess();
-  }
+  if (profile.name && document.getElementById('accNameDisplay')) document.getElementById('accNameDisplay').innerText = profile.name;
+  if (profile.phone && document.getElementById('accPhoneDisplay')) document.getElementById('accPhoneDisplay').innerText = "+91 " + profile.phone;
 });
