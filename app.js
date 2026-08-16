@@ -850,68 +850,94 @@ function filterCategory(cat, el) {
 function triggerVoiceSearch() {
   alert("Voice Search: Say dish name (e.g. 'Pork Momo' or 'Chocolate Cake')");
 }
-// ================= LIVE TRACKING SYNC =================
-// 1. Firebase से एडमिन स्टेटस बदलना
+// ==================== LIVE TRACKING SYNC (FIREBASE) ====================
+// 1. Firebase Config & Init
+const firebaseConfig = {
+  apiKey: "AIzaSyDDTfZD8eaxS6hsQ_M5akONRWixyZdjkSo",
+  authDomain: "kd-ka-khana-ghar-tak.firebaseapp.com",
+  databaseURL: "https://kd-ka-khana-ghar-tak-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "kd-ka-khana-ghar-tak",
+  storageBucket: "kd-ka-khana-ghar-tak.firebasestorage.app",
+  messagingSenderId: "69933070653",
+  appId: "1:69933070653:web:f9b93ba827d794bb376d54"
+};
+
+if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+// 2. एडमिन से स्टेटस बदलना (Kitchen / Out / Done)
 function setOrderProgress(orderId, stepNumber) {
-  const cleanId = String(orderId).replace('#', '').trim();
-  
-  // स्क्रीन पर पॉप-अप दिखाना
+  const cleanId = String(orderId).replace(/[^0-9]/g, '');
   const stepNames = {
     1: "1. Order Confirmed",
     2: "2. In Kitchen",
     3: "3. Out for Delivery",
     4: "4. Delivered"
   };
+  
   alert("Order progress updated to: " + (stepNames[stepNumber] || stepNumber));
 
-  // Firebase Realtime DB में लाइव अपडेट भेजना
   if (typeof firebase !== 'undefined' && firebase.database) {
+    firebase.database().ref('orders/KD' + cleanId).update({
+      step: Number(stepNumber),
+      statusTime: Date.now()
+    });
+    // बिना KD वाले पाथ के लिए भी बैकअप सिंक
     firebase.database().ref('orders/' + cleanId).update({
       step: Number(stepNumber)
     });
   }
 }
 
-// 2. कस्टमर के फोन पर लाइव गोल घेरे (1, 2, 3, 4) अपडेट होना
+// 3. कस्टमर के फ़ोन पर लाइव स्टेटस सुनना और 1, 2, 3, 4 का रंग बदलना
 function initLiveTrackingListener() {
   if (typeof firebase === 'undefined' || !firebase.database) return;
 
-  // स्क्रीन पर दिख रही Order ID निकालना
-  const idEl = document.querySelector('.live-order-id') || document.querySelector('#trackingOrderId');
-  let activeId = localStorage.getItem('active_order_id') || 'KD359887';
+  // स्क्रीन से Order ID निकालना
+  const pageText = document.body.innerText;
+  const match = pageText.match(/KD\d+/i);
+  const activeId = match ? match[0] : (localStorage.getItem('active_order_id') || 'KD359887');
+  const numId = activeId.replace(/[^0-9]/g, '');
 
-  if (idEl && idEl.innerText) {
-    const found = idEl.innerText.match(/KD\d+/i);
-    if (found) activeId = found[0];
-  }
+  const updateUI = (currentStep) => {
+    // स्क्रीन पर मौजूद सभी स्टेप्स और उनके गोल नंबर आइकॉन्स को ढूँढना
+    const allStepRows = document.querySelectorAll('[class*="step"], [class*="progress"], [class*="timeline"]');
+    
+    allStepRows.forEach((el) => {
+      const text = el.innerText || '';
+      let stepNum = 0;
+      if (text.includes('Confirmed') || text.includes('1')) stepNum = 1;
+      if (text.includes('Kitchen') || text.includes('2')) stepNum = 2;
+      if (text.includes('Out') || text.includes('3')) stepNum = 3;
+      if (text.includes('Delivered') || text.includes('4')) stepNum = 4;
 
-  // Firebase से लाइव सुनना
-  firebase.database().ref('orders/' + activeId).on('value', (snapshot) => {
-    const data = snapshot.val();
-    if (!data || !data.step) return;
-
-    const currentStep = Number(data.step);
-
-    // 1, 2, 3, 4 वाले स्टेप्स और टेक्स्ट को कलर करना
-    const steps = document.querySelectorAll('.tracking-step, .order-timeline-step, .live-progress-step');
-    steps.forEach((el, index) => {
-      const stepIdx = index + 1;
-      const circle = el.querySelector('.step-num, .step-circle, .circle') || el;
-      
-      if (stepIdx <= currentStep) {
-        el.style.opacity = "1";
-        el.style.color = "#00c853";
-        if (circle) circle.style.background = "#00c853";
-      } else {
-        el.style.opacity = "0.4";
-        el.style.color = "#64748b";
-        if (circle) circle.style.background = "#e2e8f0";
+      if (stepNum > 0) {
+        if (stepNum <= currentStep) {
+          el.style.opacity = '1';
+          el.style.color = '#00c853';
+          el.style.fontWeight = 'bold';
+        } else {
+          el.style.opacity = '0.35';
+          el.style.color = '#64748b';
+          el.style.fontWeight = 'normal';
+        }
       }
     });
+  };
+
+  // Firebase से लाइव लिसन करना
+  firebase.database().ref('orders/' + activeId).on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data && data.step) updateUI(Number(data.step));
+  });
+
+  firebase.database().ref('orders/' + numId).on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data && data.step) updateUI(Number(data.step));
   });
 }
 
-// पेज लोड होते ही लिसनर चालू
-window.addEventListener('DOMContentLoaded', () => {
-  initLiveTrackingListener();
-});
+// पेज लोड होते ही और मॉडल खुलते ही चालू करें
+window.addEventListener('DOMContentLoaded', initLiveTrackingListener);
+setInterval(initLiveTrackingListener, 2000);
