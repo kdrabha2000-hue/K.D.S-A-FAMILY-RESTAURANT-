@@ -997,58 +997,7 @@ document.addEventListener('click', function(e) {
 
   if (targetStep > 0) {
     const card = btn.closest('div, li') || document.body;
-  // ================= S&A LIVE TRACKING MODAL (FIXED UI) =================
-
-// 1. "Live Track" बटन क्लिक करने पर साफ़ पॉप-अप खोलना
-document.addEventListener('click', function(e) {
-  const trackBtn = e.target.closest('button, a, div, span');
-  if (!trackBtn) return;
-  const text = (trackBtn.innerText || trackBtn.textContent || '').trim();
-
-  if (text.includes('Live Track') || text.includes('Track')) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const parent = trackBtn.closest('div, li') || document.body;
-    const match = (parent.innerText || '').match(/KD\d+/i) || (document.body.innerText || '').match(/KD\d+/i);
-    const orderId = match ? match[0] : 'KD894979';
-
-    openCleanLiveModal(orderId);
-  }
-}, true);
-
-function openCleanLiveModal(orderId) {
-  let modal = document.getElementById('liveCustomerTrackingModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'liveCustomerTrackingModal';
-    modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;";
-    document.body.appendChild(modal);
-  }
-
-  const cleanId = orderId.replace('#', '');
-
-  modal.innerHTML = `
-    <div style="background:#ffffff; border-radius:18px; width:100%; max-width:360px; padding:20px; position:relative; box-shadow:0 12px 35px rgba(0,0,0,0.25); font-family:sans-serif; color:#1e293b; box-sizing:border-box;">
-      <button onclick="document.getElementById('liveCustomerTrackingModal').style.display='none'" style="position:absolute; right:14px; top:14px; background:#f1f5f9; border:none; width:30px; height:30px; border-radius:50%; font-size:16px; font-weight:bold; color:#475569; cursor:pointer;">✕</button>
-      
-      <div style="font-size:11px; font-weight:800; color:#ff3e6c; text-transform:uppercase; letter-spacing:0.8px;">LIVE ORDER STATUS</div>
-      <h3 style="margin:4px 0 2px 0; font-size:18px; color:#0f172a; font-weight:800;">Order #${cleanId}</h3>
-      <div style="font-size:12px; color:#64748b; margin-bottom:16px;">Estimated Prep & Delivery: ~30 Mins</div>
-
-      <!-- Steps Box -->
-      <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:18px; background:#f8fafc; padding:14px; border-radius:14px; border:1px solid #e2e8f0;">
-        
-        <!-- Step 1 -->
-        <div id="ui_step_1" style="display:flex; align-items:center; gap:12px;">
-          <div id="ui_dot_1" style="width:28px; height:28px; border-radius:50%; background:#00c853; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">1</div>
-          <div>
-            <div style="font-weight:700; font-size:13px; color:#0f172a;">Order Confirmed</div>
-            <div style="font-size:11px; color:#64748b;">रेस्टोरेंट को ऑर्डर मिल गया है</div>
-          </div>
-        </div>
-
-        <!-- Step 2 -->
+  
         <div id="ui_step_2" style="display:flex; align-items:center; gap:12px; opacity:0.4;">
           <div id="ui_dot_2" style="width:28px; height:28px; border-radius:50%; background:#cbd5e1; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">2</div>
           <div>
