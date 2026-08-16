@@ -997,17 +997,13 @@ document.addEventListener('click', function(e) {
 
   if (targetStep > 0) {
     const card = btn.closest('div, li') || document.body;
-    const match = (card.innerText || '').match(/KD\d+/i) || (document.body.innerText || '').match(/KD\d+/i);
-    const orderId = match ? match[0] : 'KD480710';
-    handleAdminStatusUpdate(orderId, targetStep);
-  }
-}, true);
+  // ================= S&A LIVE TRACKING MODAL (FIXED UI) =================
 
-// 2. कस्टमर साइड: "Live Track" पॉप-अप और लाइव स्टेप सिंक
+// 1. "Live Track" बटन क्लिक करने पर साफ़ पॉप-अप खोलना
 document.addEventListener('click', function(e) {
   const trackBtn = e.target.closest('button, a, div, span');
   if (!trackBtn) return;
-  const text = trackBtn.innerText || trackBtn.textContent || '';
+  const text = (trackBtn.innerText || trackBtn.textContent || '').trim();
 
   if (text.includes('Live Track') || text.includes('Track')) {
     e.preventDefault();
@@ -1015,116 +1011,112 @@ document.addEventListener('click', function(e) {
 
     const parent = trackBtn.closest('div, li') || document.body;
     const match = (parent.innerText || '').match(/KD\d+/i) || (document.body.innerText || '').match(/KD\d+/i);
-    const orderId = match ? match[0] : 'KD480710';
+    const orderId = match ? match[0] : 'KD894979';
 
-    openCustomerLiveModal(orderId);
+    openCleanLiveModal(orderId);
   }
 }, true);
 
-function openCustomerLiveModal(orderId) {
+function openCleanLiveModal(orderId) {
   let modal = document.getElementById('liveCustomerTrackingModal');
   if (!modal) {
     modal = document.createElement('div');
     modal.id = 'liveCustomerTrackingModal';
-    modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;";
+    modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;";
     document.body.appendChild(modal);
   }
 
   const cleanId = orderId.replace('#', '');
 
   modal.innerHTML = `
-    <div style="background:#fff; border-radius:20px; width:100%; max-width:380px; padding:22px; position:relative; box-shadow:0 12px 30px rgba(0,0,0,0.25); font-family:sans-serif;">
-      <button onclick="document.getElementById('liveCustomerTrackingModal').style.display='none'" style="position:absolute; right:15px; top:15px; background:#f1f5f9; border:none; width:32px; height:32px; border-radius:50%; font-size:16px; font-weight:bold; cursor:pointer;">✕</button>
+    <div style="background:#ffffff; border-radius:18px; width:100%; max-width:360px; padding:20px; position:relative; box-shadow:0 12px 35px rgba(0,0,0,0.25); font-family:sans-serif; color:#1e293b; box-sizing:border-box;">
+      <button onclick="document.getElementById('liveCustomerTrackingModal').style.display='none'" style="position:absolute; right:14px; top:14px; background:#f1f5f9; border:none; width:30px; height:30px; border-radius:50%; font-size:16px; font-weight:bold; color:#475569; cursor:pointer;">✕</button>
       
-      <div style="font-size:12px; font-weight:700; color:#ff3e6c; text-transform:uppercase; letter-spacing:0.5px;">Live Tracking</div>
+      <div style="font-size:11px; font-weight:800; color:#ff3e6c; text-transform:uppercase; letter-spacing:0.8px;">LIVE ORDER STATUS</div>
       <h3 style="margin:4px 0 2px 0; font-size:18px; color:#0f172a; font-weight:800;">Order #${cleanId}</h3>
-      <div id="cookTimerText" style="font-size:12px; color:#64748b; margin-bottom:18px;">Estimated Prep & Delivery: ~30 Mins</div>
+      <div style="font-size:12px; color:#64748b; margin-bottom:16px;">Estimated Prep & Delivery: ~30 Mins</div>
 
-      <!-- 4 Live Steps -->
-      <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:20px;">
+      <!-- Steps Box -->
+      <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:18px; background:#f8fafc; padding:14px; border-radius:14px; border:1px solid #e2e8f0;">
         
         <!-- Step 1 -->
-        <div id="track_step_1" style="display:flex; align-items:center; gap:12px; opacity:0.35; transition:0.3s;">
-          <div id="dot_1" style="width:30px; height:30px; border-radius:50%; background:#e2e8f0; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:13px;">1</div>
+        <div id="ui_step_1" style="display:flex; align-items:center; gap:12px;">
+          <div id="ui_dot_1" style="width:28px; height:28px; border-radius:50%; background:#00c853; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">1</div>
           <div>
-            <div style="font-weight:700; font-size:14px; color:#0f172a;">Order Confirmed</div>
+            <div style="font-weight:700; font-size:13px; color:#0f172a;">Order Confirmed</div>
             <div style="font-size:11px; color:#64748b;">रेस्टोरेंट को ऑर्डर मिल गया है</div>
           </div>
         </div>
 
         <!-- Step 2 -->
-        <div id="track_step_2" style="display:flex; align-items:center; gap:12px; opacity:0.35; transition:0.3s;">
-          <div id="dot_2" style="width:30px; height:30px; border-radius:50%; background:#e2e8f0; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:13px;">2</div>
+        <div id="ui_step_2" style="display:flex; align-items:center; gap:12px; opacity:0.4;">
+          <div id="ui_dot_2" style="width:28px; height:28px; border-radius:50%; background:#cbd5e1; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">2</div>
           <div>
-            <div style="font-weight:700; font-size:14px; color:#0f172a;">Kitchen Preparing 🍳</div>
-            <div style="font-size:11px; color:#64748b;">किचन में ताज़ा खाना बन रहा है (No Cancellation)</div>
+            <div style="font-weight:700; font-size:13px; color:#0f172a;">Kitchen Preparing 🍳</div>
+            <div style="font-size:11px; color:#64748b;">ताज़ा खाना बन रहा है (No Cancel)</div>
           </div>
         </div>
 
         <!-- Step 3 -->
-        <div id="track_step_3" style="display:flex; align-items:center; gap:12px; opacity:0.35; transition:0.3s;">
-          <div id="dot_3" style="width:30px; height:30px; border-radius:50%; background:#e2e8f0; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:13px;">3</div>
+        <div id="ui_step_3" style="display:flex; align-items:center; gap:12px; opacity:0.4;">
+          <div id="ui_dot_3" style="width:28px; height:28px; border-radius:50%; background:#cbd5e1; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">3</div>
           <div>
-            <div style="font-weight:700; font-size:14px; color:#0f172a;">Out for Delivery 🛵</div>
-            <div style="font-size:11px; color:#64748b;">डिलीवरी बॉय खाना लेकर निकल चुका है</div>
+            <div style="font-weight:700; font-size:13px; color:#0f172a;">Out for Delivery 🛵</div>
+            <div style="font-size:11px; color:#64748b;">डिलीवरी पार्टनर रास्ते में है</div>
           </div>
         </div>
 
         <!-- Step 4 -->
-        <div id="track_step_4" style="display:flex; align-items:center; gap:12px; opacity:0.35; transition:0.3s;">
-          <div id="dot_4" style="width:30px; height:30px; border-radius:50%; background:#e2e8f0; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:13px;">4</div>
+        <div id="ui_step_4" style="display:flex; align-items:center; gap:12px; opacity:0.4;">
+          <div id="ui_dot_4" style="width:28px; height:28px; border-radius:50%; background:#cbd5e1; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">4</div>
           <div>
-            <div style="font-weight:700; font-size:14px; color:#0f172a;">Delivered 🎉</div>
-            <div style="font-size:11px; color:#64748b;">खाना डिलीवर हो गया, Enjoy your meal!</div>
+            <div style="font-weight:700; font-size:13px; color:#0f172a;">Delivered 🎉</div>
+            <div style="font-size:11px; color:#64748b;">खाना डिलीवर हो गया, Enjoy!</div>
           </div>
         </div>
       </div>
 
-      <!-- Action Button: Call Partner -->
-      <a href="tel:8453270362" style="display:flex; align-items:center; justify-content:center; gap:8px; background:#00c853; color:#fff; text-decoration:none; padding:12px; border-radius:12px; font-weight:700; font-size:14px; box-shadow:0 4px 12px rgba(0,200,83,0.3);">
+      <!-- Call Button -->
+      <a href="tel:8453270362" style="display:flex; align-items:center; justify-content:center; gap:8px; background:#00c853; color:#ffffff; text-decoration:none; padding:11px; border-radius:10px; font-weight:700; font-size:13px;">
         📞 Call Delivery Partner (8453270362)
       </a>
-
-      <!-- Cancel Warning Text -->
-      <div id="cancelStatusNotice" style="margin-top:10px; font-size:11px; text-align:center; color:#e11d48; font-weight:600;"></div>
+      
+      <!-- Lock Notice -->
+      <div id="lockNoticeText" style="margin-top:8px; font-size:11px; text-align:center; color:#e11d48; font-weight:600;"></div>
     </div>
   `;
 
   modal.style.display = 'flex';
 
-  // Firebase Realtime Listener for Live UI updates
+  // Firebase Realtime Listener
   if (typeof firebase !== 'undefined' && firebase.database) {
     firebase.database().ref('orders/' + cleanId).on('value', snap => {
       const data = snap.val();
       const currentStep = data && data.step ? Number(data.step) : 1;
-      renderStepHighlight(currentStep);
+      updatePopupUI(currentStep);
     });
   } else {
-    renderStepHighlight(1);
+    updatePopupUI(1);
   }
 }
 
-function renderStepHighlight(activeStep) {
+function updatePopupUI(activeStep) {
   for (let i = 1; i <= 4; i++) {
-    const row = document.getElementById('track_step_' + i);
-    const dot = document.getElementById('dot_' + i);
+    const row = document.getElementById('ui_step_' + i);
+    const dot = document.getElementById('ui_dot_' + i);
     if (!row || !dot) continue;
 
     if (i <= activeStep) {
       row.style.opacity = '1';
       dot.style.background = '#00c853';
     } else {
-      row.style.opacity = '0.35';
-      dot.style.background = '#e2e8f0';
+      row.style.opacity = '0.4';
+      dot.style.background = '#cbd5e1';
     }
   }
 
-  const cancelNotice = document.getElementById('cancelStatusNotice');
-  if (cancelNotice) {
-    if (activeStep >= 2) {
-      cancelNotice.innerText = "⚠️ खाना बनना शुरू हो चुका है, अब यह ऑर्डर कैंसिल नहीं हो सकता।";
-    } else {
-      cancelNotice.innerText = "";
-    }
+  const notice = document.getElementById('lockNoticeText');
+  if (notice) {
+    notice.innerText = activeStep >= 2 ? "⚠️ खाना बनना शुरू हो गया है, अब ऑर्डर कैंसिल नहीं हो सकता।" : "";
   }
 }
