@@ -922,3 +922,74 @@ function updateProfilePhoto(event) {
         reader.readAsDataURL(file);
     }
 }
+// ================= FIREBASE LIVE SYNC SYSTEM =================
+const firebaseConfig = {
+  apiKey: "AIzaSyDDTfZD8eaxS6hsQ_M5akONRWixyZdjkSo",
+  authDomain: "kd-ka-khana-ghar-tak.firebaseapp.com",
+  databaseURL: "https://kd-ka-khana-ghar-tak-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "kd-ka-khana-ghar-tak",
+  storageBucket: "kd-ka-khana-ghar-tak.firebasestorage.app",
+  messagingSenderId: "69933070653",
+  appId: "1:69933070653:web:f9b93ba827d794bb376d54",
+  measurementId: "G-XJSPSYEJR5"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
+
+// 1. एडमिन पैनल से स्टेटस अपडेट करना (Kitchen / Out / Done)
+function updateOrderStatus(orderId, newStatus) {
+  const cleanId = orderId.replace('#', '');
+  db.ref('orders/' + cleanId).update({
+    status: newStatus
+  }).then(() => {
+    alert("Order " + cleanId + " status updated to: " + newStatus);
+  }).catch((err) => {
+    console.error("Firebase Error: ", err);
+  });
+}
+
+// 2. कस्टमर के फ़ोन पर लाइव स्टेटस ट्रैक करना
+function listenCustomerLiveTracking() {
+  // अगर स्क्रीन पर ऑर्डर आईडी मौजूद है
+  const orderIdElem = document.querySelector('.live-order-id') || document.getElementById('trackingOrderId');
+  let activeId = localStorage.getItem('active_order_id');
+
+  if (orderIdElem && orderIdElem.innerText) {
+    const text = orderIdElem.innerText.replace('#', '').trim();
+    if (text) activeId = text;
+  }
+
+  if (!activeId) return;
+
+  db.ref('orders/' + activeId).on('value', (snapshot) => {
+    const orderData = snapshot.val();
+    if (!orderData || !orderData.status) return;
+
+    const currentStatus = orderData.status.toLowerCase();
+    
+    // सभी प्रोग्रेस स्टेप्स को अपडेट करें
+    const steps = ['confirmed', 'kitchen', 'out', 'delivered', 'done'];
+    const currentIdx = steps.indexOf(currentStatus);
+
+    const stepElements = document.querySelectorAll('.tracking-step, .live-progress-item, .order-status-step');
+    stepElements.forEach((el, index) => {
+      if (index <= currentIdx) {
+        el.classList.add('active', 'completed');
+        el.style.opacity = "1";
+        el.style.color = "#00c853";
+      } else {
+        el.classList.remove('active', 'completed');
+        el.style.opacity = "0.4";
+      }
+    });
+  });
+}
+
+// पेज लोड होते ही लाइव लिसनर चालू करें
+window.addEventListener('DOMContentLoaded', () => {
+  listenCustomerLiveTracking();
+});
+// ==============================================================
