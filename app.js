@@ -927,12 +927,65 @@ const firebaseConfig = {
   apiKey: "AIzaSyDDTfZD8eaxS6hsQ_M5akONRWixyZdjkSo",
   authDomain: "kd-ka-khana-ghar-tak.firebaseapp.com",
   databaseURL: "https://kd-ka-khana-ghar-tak-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "kd-ka-khana-ghar-tak",
-  storageBucket: "kd-ka-khana-ghar-tak.firebasestorage.app",
-  messagingSenderId: "69933070653",
-  appId: "1:69933070653:web:f9b93ba827d794bb376d54",
-  measurementId: "G-XJSPSYEJR5"
-};
+  
+// Firebase Safe Init
+var db = null;
+try {
+  if (typeof firebase !== 'undefined') {
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDTfZD8eaxS6hsQ_M5akONRWixyZdjkSo",
+      authDomain: "kd-ka-khana-ghar-tak.firebaseapp.com",
+      databaseURL: "https://kd-ka-khana-ghar-tak-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "kd-ka-khana-ghar-tak",
+      storageBucket: "kd-ka-khana-ghar-tak.firebasestorage.app",
+      messagingSenderId: "69933070653",
+      appId: "1:69933070653:web:f9b93ba827d794bb376d54"
+    };
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.database();
+  }
+} catch (e) {
+  console.log("Firebase Load Error:", e);
+}
+
+// 1. एडमिन पैनल से स्टेटस अपडेट
+function updateOrderStatus(orderId, newStatus) {
+  if (!db) return;
+  const cleanId = String(orderId).replace('#', '').trim();
+  db.ref('orders/' + cleanId).update({ status: newStatus });
+}
+
+// 2. कस्टमर के फोन पर लाइव स्टेटस सिंक
+function listenCustomerLiveTracking() {
+  if (!db) return;
+  const activeId = localStorage.getItem('active_order_id') || 'KD908796';
+  
+  db.ref('orders/' + activeId).on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (!data || !data.status) return;
+
+    const currentStatus = data.status.toLowerCase();
+    const steps = ['confirmed', 'kitchen', 'out', 'delivered'];
+    const currentIdx = steps.indexOf(currentStatus);
+
+    const stepElements = document.querySelectorAll('.tracking-step, .order-status-step');
+    stepElements.forEach((el, index) => {
+      if (index <= currentIdx) {
+        el.style.opacity = "1";
+        el.style.color = "#00c853";
+      } else {
+        el.style.opacity = "0.4";
+      }
+    });
+  });
+}
+
+// ऑटो रन
+window.addEventListener('DOMContentLoaded', () => {
+  listenCustomerLiveTracking();
+});
 
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
