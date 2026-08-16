@@ -1,4 +1,4 @@
-// 1. Firebase Initialization
+// ==================== 1. FIREBASE INITIALIZATION ====================
 const firebaseConfig = {
   apiKey: "AIzaSyDDTFzD8eaxS6hsQ_W5akOWRWixyZdjkSo",
   authDomain: "kd-ka-khana-ghar-tak.firebaseapp.com",
@@ -14,7 +14,7 @@ if (!firebase.apps.length) {
 }
 const db = firebase.database();
 
-// 2. Initial Menu Catalog
+// ==================== 2. INITIAL MENU CATALOG ====================
 let menuCatalog = JSON.parse(localStorage.getItem("kd_live_menu")) || [
   { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, mrp: 160, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" },
   { id: "m2", name: "Chicken Fried Momo (10 Pcs)", price: 140, mrp: 180, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
@@ -59,10 +59,10 @@ let coinsRedeemed = false;
 let currentPdpItem = null;
 let adminUploadBase64 = "";
 
-// 3. Render Food Catalog (Customer UI)
+// ==================== 3. RENDER FOOD CATALOG ====================
 function renderFoodItems(items) {
   const container = document.getElementById('foodGrid');
-  if(!container) return;
+  if (!container) return;
   container.innerHTML = '';
   items.forEach(dish => {
     const isWished = wishlist.includes(dish.id);
@@ -92,10 +92,10 @@ function renderFoodItems(items) {
 
 renderFoodItems(menuCatalog);
 
-// 4. Product Detail Page (PDP)
+// ==================== 4. PRODUCT DETAIL PAGE (PDP) ====================
 function openProductDetail(dishId) {
   const dish = menuCatalog.find(d => d.id === dishId);
-  if(!dish) return;
+  if (!dish) return;
   currentPdpItem = dish;
 
   document.getElementById('pdpImg').src = dish.img;
@@ -105,38 +105,43 @@ function openProductDetail(dishId) {
   
   const isWished = wishlist.includes(dish.id);
   const wishBtn = document.getElementById('pdpWishBtn');
-  if(isWished) wishBtn.classList.add('active');
-  else wishBtn.classList.remove('active');
+  if (wishBtn) {
+    if (isWished) wishBtn.classList.add('active');
+    else wishBtn.classList.remove('active');
+  }
 
   const similarContainer = document.getElementById('similarDishesScroll');
-  similarContainer.innerHTML = '';
-  menuCatalog.filter(d => d.cat === dish.cat && d.id !== dish.id).slice(0, 5).forEach(sim => {
-    similarContainer.innerHTML += `
-      <div class="cat-item" onclick="openProductDetail('${sim.id}')">
-        <div class="cat-circle"><img src="${sim.img}" style="width:100%;height:100%;object-fit:cover;" /></div>
-        <div class="cat-name">${sim.name.substring(0, 12)}..</div>
-      </div>
-    `;
-  });
+  if (similarContainer) {
+    similarContainer.innerHTML = '';
+    menuCatalog.filter(d => d.cat === dish.cat && d.id !== dish.id).slice(0, 5).forEach(sim => {
+      similarContainer.innerHTML += `
+        <div class="cat-item" onclick="openProductDetail('${sim.id}')">
+          <div class="cat-circle"><img src="${sim.img}" style="width:100%;height:100%;object-fit:cover;" /></div>
+          <div class="cat-name">${sim.name.substring(0, 12)}..</div>
+        </div>
+      `;
+    });
+  }
 
-  document.getElementById('productDetailModal').style.display = 'flex';
+  const modal = document.getElementById('productDetailModal');
+  if (modal) modal.style.display = 'flex';
 }
 
 function toggleCurrentWish() {
-  if(!currentPdpItem) return;
+  if (!currentPdpItem) return;
   toggleCardWish(currentPdpItem.id);
   const btn = document.getElementById('pdpWishBtn');
-  btn.classList.toggle('active');
+  if (btn) btn.classList.toggle('active');
 }
 
 function toggleCardWish(id, el) {
   const idx = wishlist.indexOf(id);
-  if(idx > -1) {
+  if (idx > -1) {
     wishlist.splice(idx, 1);
-    if(el) el.classList.remove('active');
+    if (el) el.classList.remove('active');
   } else {
     wishlist.push(id);
-    if(el) el.classList.add('active');
+    if (el) el.classList.add('active');
   }
   localStorage.setItem("kd_wishlist", JSON.stringify(wishlist));
   syncWishlistToCloud();
@@ -144,44 +149,44 @@ function toggleCardWish(id, el) {
 
 function syncWishlistToCloud() {
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
-  if(profile.phone) {
+  if (profile.phone) {
     db.ref("customers/" + profile.phone + "/wishlist").set(wishlist);
   }
 }
 
 function selectDishVariant(type, extra, el) {
   document.querySelectorAll('#pdpVariantBox .weight-pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  if(currentPdpItem) {
+  if (el) el.classList.add('active');
+  if (currentPdpItem) {
     document.getElementById('pdpPrice').innerText = `₹${currentPdpItem.price + extra}`;
   }
 }
 
 function addPdpToCart() {
-  if(!currentPdpItem) return;
+  if (!currentPdpItem) return;
   addToCart(currentPdpItem.id, currentPdpItem.name, currentPdpItem.price, currentPdpItem.img);
   closeModal('productDetailModal');
 }
 
 function buyNowPdp() {
-  if(!currentPdpItem) return;
+  if (!currentPdpItem) return;
   addToCart(currentPdpItem.id, currentPdpItem.name, currentPdpItem.price, currentPdpItem.img);
   closeModal('productDetailModal');
   openCartModal();
 }
 
 function shareCurrentItem() {
-  if(navigator.share && currentPdpItem) {
+  if (navigator.share && currentPdpItem) {
     navigator.share({ title: currentPdpItem.name, text: `Check out ${currentPdpItem.name} at S&A Restaurant!`, url: window.location.href });
   } else {
     alert("Link copied to clipboard!");
   }
 }
 
-// 5. Cart Operations
+// ==================== 5. CART OPERATIONS ====================
 function addToCart(id, name, price, img) {
   const existing = cart.find(i => i.id === id);
-  if(existing) {
+  if (existing) {
     existing.qty += 1;
   } else {
     cart.push({ id, name, price, qty: 1, img: img || "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" });
@@ -191,7 +196,8 @@ function addToCart(id, name, price, img) {
 
 function updateCartBar() {
   const cartBar = document.getElementById('floatingCart');
-  if(cart.length === 0) {
+  if (!cartBar) return;
+  if (cart.length === 0) {
     cartBar.style.display = 'none';
     return;
   }
@@ -200,13 +206,16 @@ function updateCartBar() {
   const coinDiscount = coinsRedeemed ? 20 : 0;
   const grandTotal = Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount);
 
-  document.getElementById('cartCount').innerText = `${totalQty} Item${totalQty > 1 ? 's' : ''}`;
-  document.getElementById('cartTotal').innerText = `₹${grandTotal}`;
+  const countEl = document.getElementById('cartCount');
+  const totalEl = document.getElementById('cartTotal');
+  if (countEl) countEl.innerText = `${totalQty} Item${totalQty > 1 ? 's' : ''}`;
+  if (totalEl) totalEl.innerText = `₹${grandTotal}`;
   cartBar.style.display = 'flex';
 }
 
 function openCartModal() {
   const list = document.getElementById('cartItemsList');
+  if (!list) return;
   list.innerHTML = '';
   let subtotal = 0;
 
@@ -227,38 +236,54 @@ function openCartModal() {
   });
 
   const savedProfile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
-  if(savedProfile.name) document.getElementById('custName').value = savedProfile.name;
-  if(savedProfile.phone) document.getElementById('custPhone').value = savedProfile.phone;
-  if(savedProfile.address) document.getElementById('custAddress').value = savedProfile.address;
+  if (savedProfile.name && document.getElementById('custName')) document.getElementById('custName').value = savedProfile.name;
+  if (savedProfile.phone && document.getElementById('custPhone')) document.getElementById('custPhone').value = savedProfile.phone;
+  if (savedProfile.address && document.getElementById('custAddress')) document.getElementById('custAddress').value = savedProfile.address;
 
   const coinDiscount = coinsRedeemed ? 20 : 0;
-  document.getElementById('billSubtotal').innerText = `₹${subtotal}`;
-  document.getElementById('billGrandTotal').innerText = `₹${Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount)}`;
-  document.getElementById('cartModal').style.display = 'flex';
+  const subEl = document.getElementById('billSubtotal');
+  const grandEl = document.getElementById('billGrandTotal');
+  if (subEl) subEl.innerText = `₹${subtotal}`;
+  if (grandEl) grandEl.innerText = `₹${Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount)}`;
+  
+  const modal = document.getElementById('cartModal');
+  if (modal) modal.style.display = 'flex';
 }
 
 function setPaymentMethod(method) {
   activePayment = method;
-  document.getElementById('codBtn').style.background = (method === 'COD') ? 'var(--primary)' : '#f1f5f9';
-  document.getElementById('codBtn').style.color = (method === 'COD') ? '#fff' : 'var(--dark)';
-  document.getElementById('upiBtn').style.background = (method === 'UPI') ? 'var(--primary)' : '#f1f5f9';
-  document.getElementById('upiBtn').style.color = (method === 'UPI') ? '#fff' : 'var(--dark)';
-  document.getElementById('upiQrBox').style.display = (method === 'UPI') ? 'block' : 'none';
+  const cod = document.getElementById('codBtn');
+  const upi = document.getElementById('upiBtn');
+  const qr = document.getElementById('upiQrBox');
+  if (cod) {
+    cod.style.background = (method === 'COD') ? 'var(--primary)' : '#f1f5f9';
+    cod.style.color = (method === 'COD') ? '#fff' : 'var(--dark)';
+  }
+  if (upi) {
+    upi.style.background = (method === 'UPI') ? 'var(--primary)' : '#f1f5f9';
+    upi.style.color = (method === 'UPI') ? '#fff' : 'var(--dark)';
+  }
+  if (qr) qr.style.display = (method === 'UPI') ? 'block' : 'none';
 }
 
 function toggleCoinRedemption() {
-  coinsRedeemed = document.getElementById('redeemCoinsCheck').checked;
-  document.getElementById('coinsDiscountRow').style.display = coinsRedeemed ? 'flex' : 'none';
+  const chk = document.getElementById('redeemCoinsCheck');
+  coinsRedeemed = chk ? chk.checked : false;
+  const row = document.getElementById('coinsDiscountRow');
+  if (row) row.style.display = coinsRedeemed ? 'flex' : 'none';
   updateCartBar();
   openCartModal();
 }
 
 function applyDiscountCoupon() {
-  const code = document.getElementById('couponCodeInput').value.trim().toUpperCase();
-  if(code === "KD50" || code === "WELCOME") {
+  const codeEl = document.getElementById('couponCodeInput');
+  const code = codeEl ? codeEl.value.trim().toUpperCase() : '';
+  if (code === "KD50" || code === "WELCOME") {
     appliedDiscount = 50;
-    document.getElementById('discountRow').style.display = 'flex';
-    document.getElementById('billDiscount').innerText = `-₹50`;
+    const dRow = document.getElementById('discountRow');
+    const bDisc = document.getElementById('billDiscount');
+    if (dRow) dRow.style.display = 'flex';
+    if (bDisc) bDisc.innerText = `-₹50`;
     alert("🎉 Promo Code Applied: ₹50 Discount!");
     updateCartBar();
     openCartModal();
@@ -267,13 +292,17 @@ function applyDiscountCoupon() {
   }
 }
 
-// 6. Place Order & Permanent Cloud Sync
+// ==================== 6. PLACE ORDER & LIVE SYNC ====================
 function placeOrder() {
-  const name = document.getElementById('custName').value.trim();
-  const phone = document.getElementById('custPhone').value.trim();
-  const address = document.getElementById('custAddress').value.trim();
+  const nameEl = document.getElementById('custName');
+  const phoneEl = document.getElementById('custPhone');
+  const addrEl = document.getElementById('custAddress');
 
-  if(!name || !phone || !address) {
+  const name = nameEl ? nameEl.value.trim() : '';
+  const phone = phoneEl ? phoneEl.value.trim() : '';
+  const address = addrEl ? addrEl.value.trim() : '';
+
+  if (!name || !phone || !address) {
     alert("Please fill Name, Phone and Complete Delivery Address.");
     return;
   }
@@ -283,9 +312,10 @@ function placeOrder() {
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const coinDiscount = coinsRedeemed ? 20 : 0;
   const grandTotal = Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount);
+  const generatedId = "KD" + Math.floor(100000 + Math.random() * 900000);
 
   const orderPayload = {
-    orderId: "KD" + Math.floor(100000 + Math.random() * 900000),
+    orderId: generatedId,
     customerName: name,
     phone: phone,
     address: address,
@@ -299,9 +329,9 @@ function placeOrder() {
   };
 
   const newOrderRef = db.ref("orders").push(orderPayload);
-  db.ref("customer_history/" + phone).push(orderPayload);
+  const userOrderRef = db.ref("customer_history/" + phone).push(orderPayload);
 
-  newOrderRef.then(() => {
+  Promise.all([newOrderRef, userOrderRef]).then(([adminSnap, userSnap]) => {
     currentActiveOrder = orderPayload;
     cart = [];
     appliedDiscount = 0;
@@ -312,15 +342,18 @@ function placeOrder() {
   });
 }
 
-// 7. Orders History
+// ==================== 7. ORDERS HISTORY ====================
 function openOrderHistoryModal() {
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   const phone = profile.phone;
   const container = document.getElementById('orderHistoryContainer');
-  container.innerHTML = '<p style="text-align:center; color:var(--gray); margin-top:20px;">Fetching your orders history from cloud...</p>';
-  document.getElementById('orderHistoryModal').style.display = 'flex';
+  const modal = document.getElementById('orderHistoryModal');
+  if (modal) modal.style.display = 'flex';
+  if (!container) return;
 
-  if(!phone) {
+  container.innerHTML = '<p style="text-align:center; color:var(--gray); margin-top:20px;">Fetching your orders history from cloud...</p>';
+
+  if (!phone) {
     container.innerHTML = `
       <div style="text-align:center; padding:30px 0;">
         <i class="fa-solid fa-user-lock" style="font-size:36px; color:#cbd5e1; margin-bottom:10px;"></i>
@@ -335,7 +368,7 @@ function openOrderHistoryModal() {
     const data = snapshot.val();
     container.innerHTML = '';
 
-    if(!data) {
+    if (!data) {
       container.innerHTML = `
         <div style="text-align:center; padding:30px 0;">
           <i class="fa-solid fa-box-open" style="font-size:36px; color:#cbd5e1; margin-bottom:8px;"></i>
@@ -393,7 +426,7 @@ function openOrderHistoryModal() {
   });
 }
 
-// ==================== 8. LIVE DELIVERY STATUS POPUP (FIXED) ====================
+// ==================== 8. LIVE DELIVERY STATUS POPUP ====================
 function openLiveTrackingPopup(key, phone) {
   let modal = document.getElementById('liveTrackingModal');
   if (!modal) {
@@ -418,7 +451,6 @@ function openLiveTrackingPopup(key, phone) {
         <h3 style="margin:4px 0 2px 0; font-size:18px; color:#0f172a; font-weight:800;">Order #${ord.orderId}</h3>
         <div style="font-size:12px; color:#64748b; margin-bottom:16px;">Estimated Delivery: ~${ord.eta || 30} Mins (₹${ord.grandTotal})</div>
 
-        <!-- 4 Step Live Tracker -->
         <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:18px; background:#f8fafc; padding:14px; border-radius:14px; border:1px solid #e2e8f0;">
           
           <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 1 ? '1' : '0.35'};">
@@ -465,7 +497,7 @@ function openLiveTrackingPopup(key, phone) {
 function reorderItems(key, phone) {
   db.ref("customer_history/" + phone + "/" + key).once("value", snap => {
     const ord = snap.val();
-    if(ord && ord.items) {
+    if (ord && ord.items) {
       cart = [...ord.items];
       updateCartBar();
       closeModal('orderHistoryModal');
@@ -474,34 +506,135 @@ function reorderItems(key, phone) {
   });
 }
 
-// ==================== 9. GENERAL UTILITIES & NAVIGATION ====================
+// ==================== 9. ADMIN ROOM (LOGIN & MANAGEMENT) ====================
+function openAdminGateway() {
+  const pass = prompt("Enter S&A Manager Admin PIN:");
+  if (pass === "2000" || pass === "1234" || pass === "admin") {
+    openAdminRoom();
+  } else if (pass !== null) {
+    alert("Incorrect Admin PIN!");
+  }
+}
+
+function openAdminRoom() {
+  const modal = document.getElementById('adminModal');
+  if (modal) modal.style.display = 'flex';
+  loadAdminOrdersRealtime();
+}
+
+function closeAdminRoom() {
+  const modal = document.getElementById('adminModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function loadAdminOrdersRealtime() {
+  const container = document.getElementById('adminOrdersContainer');
+  if (!container) return;
+
+  db.ref("orders").on("value", snapshot => {
+    const data = snapshot.val();
+    container.innerHTML = '';
+    let count = 0;
+    let rev = 0;
+
+    if (!data) {
+      container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding:20px;">No Active Orders.</p>';
+      return;
+    }
+
+    Object.keys(data).reverse().forEach(k => {
+      const ord = data[k];
+      count++;
+      rev += Number(ord.grandTotal || 0);
+
+      const itemsStr = ord.items ? ord.items.map(i => `${i.name} (x${i.qty})`).join(", ") : "Items";
+      
+      container.innerHTML += `
+        <div class="admin-order-card" style="background:#1e293b; border-radius:12px; padding:14px; margin-bottom:12px; border:1px solid #334155; color:#fff;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong style="font-size:15px;">${ord.customerName || 'Customer'} (₹${ord.grandTotal})</strong>
+              <div style="font-size:11px; color:#94a3b8;">📍 ${ord.address || 'Bengbari'}</div>
+            </div>
+            <span style="color:#ff3e6c; font-weight:bold; font-size:12px;">#${ord.orderId}</span>
+          </div>
+          
+          <div style="font-size:12px; color:#cbd5e1; margin:8px 0;">🍲 ${itemsStr}</div>
+
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;">
+            <a href="tel:${ord.phone}" class="admin-btn" style="background:#0284c7; color:#fff; text-decoration:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold;">📞 Call</a>
+            <button onclick="updateOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 2, '2. In Kitchen')" style="background:#e11d48; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🍳 Kitchen</button>
+            <button onclick="updateOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 3, '3. Out for Delivery')" style="background:#f59e0b; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🛵 Out</button>
+            <button onclick="updateOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 4, '4. Delivered')" style="background:#10b981; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">✅ Done</button>
+            <a href="https://wa.me/91${ord.phone}?text=Hello%20${ord.customerName},%20your%20order%20%23${ord.orderId}%20is%20being%20processed." target="_blank" style="background:#22c55e; color:#fff; text-decoration:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold;">WhatsApp</a>
+            <button onclick="deleteOrder('${k}')" style="background:#475569; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️</button>
+          </div>
+        </div>
+      `;
+    });
+
+    const revEl = document.getElementById('adminTodayRev');
+    const countEl = document.getElementById('adminTotalOrders');
+    if (revEl) revEl.innerText = `₹${rev}`;
+    if (countEl) countEl.innerText = count;
+  });
+}
+
+function updateOrderStatus(key, orderId, phone, stage, statusText) {
+  const updates = {
+    stage: Number(stage),
+    status: statusText
+  };
+
+  db.ref("orders/" + key).update(updates);
+
+  if (phone) {
+    db.ref("customer_history/" + phone).once("value", snap => {
+      snap.forEach(child => {
+        if (child.val().orderId === orderId) {
+          child.ref.update(updates);
+        }
+      });
+    });
+  }
+
+  alert("Status Updated: " + statusText);
+}
+
+function deleteOrder(key) {
+  if (confirm("Are you sure you want to delete this order?")) {
+    db.ref("orders/" + key).remove();
+  }
+}
+
+// ==================== 10. GENERAL UTILITIES & NAVIGATION ====================
 function closeModal(id) {
   const m = document.getElementById(id);
-  if(m) m.style.display = 'none';
+  if (m) m.style.display = 'none';
 }
 
 function switchNavTab(tab) {
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
   const current = document.getElementById('nav-' + tab);
-  if(current) current.classList.add('active');
+  if (current) current.classList.add('active');
 
-  if(tab === 'home') {
+  if (tab === 'home') {
     closeModal('orderHistoryModal');
     closeModal('accountModal');
     renderFoodItems(menuCatalog);
-  } else if(tab === 'cakes') {
+  } else if (tab === 'cakes') {
     filterCategory('cakes');
-  } else if(tab === 'orders') {
+  } else if (tab === 'orders') {
     openOrderHistoryModal();
-  } else if(tab === 'account') {
+  } else if (tab === 'account') {
     openAccountModal();
   }
 }
 
 function filterCategory(cat, el) {
   document.querySelectorAll('.cat-item').forEach(c => c.classList.remove('active'));
-  if(el) el.classList.add('active');
-  if(cat === 'all') {
+  if (el) el.classList.add('active');
+  if (cat === 'all') {
     renderFoodItems(menuCatalog);
   } else {
     renderFoodItems(menuCatalog.filter(d => d.cat === cat));
@@ -514,58 +647,18 @@ function triggerVoiceSearch() {
 
 function openAccountModal() {
   const modal = document.getElementById('accountModal');
-  if(modal) modal.style.display = 'flex';
+  if (modal) modal.style.display = 'flex';
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
-  if(profile.name && document.getElementById('accNameInput')) document.getElementById('accNameInput').value = profile.name;
-  if(profile.phone && document.getElementById('accPhoneInput')) document.getElementById('accPhoneInput').value = profile.phone;
-  if(profile.address && document.getElementById('accAddressInput')) document.getElementById('accAddressInput').value = profile.address;
+  if (profile.name && document.getElementById('accNameInput')) document.getElementById('accNameInput').value = profile.name;
+  if (profile.phone && document.getElementById('accPhoneInput')) document.getElementById('accPhoneInput').value = profile.phone;
+  if (profile.address && document.getElementById('accAddressInput')) document.getElementById('accAddressInput').value = profile.address;
 }
 
-// ==================== 10. ADMIN STATUS CONTROLLER (FIREBASE) ====================
+// एडमिन गेटवे आइकॉन पर क्लिक को जोड़ना
 document.addEventListener('click', function(e) {
-  const btn = e.target.closest('button, .btn');
-  if (!btn) return;
-  const txt = (btn.innerText || '').trim();
-
-  let targetStage = 0;
-  let statusText = '';
-
-  if (txt.includes('Kitchen')) {
-    targetStage = 2;
-    statusText = "2. In Kitchen";
-  } else if (txt.includes('Out')) {
-    targetStage = 3;
-    statusText = "3. Out for Delivery";
-  } else if (txt.includes('Done')) {
-    targetStage = 4;
-    statusText = "4. Delivered";
+  const target = e.target.closest('.admin-gateway, [onclick*="openAdmin"], #adminGatewayBtn, .fa-shield-halved');
+  if (target) {
+    e.preventDefault();
+    openAdminGateway();
   }
-
-  if (targetStage > 0) {
-    const card = btn.closest('div, li') || document.body;
-    const match = (card.innerText || '').match(/KD\d+/i) || (document.body.innerText || '').match(/KD\d+/i);
-    const orderId = match ? match[0] : '';
-
-    if (orderId) {
-      // 1. All Orders Path
-      db.ref("orders").orderByChild("orderId").equalTo(orderId).once("value", snap => {
-        snap.forEach(child => {
-          child.ref.update({ stage: targetStage, status: statusText });
-        });
-      });
-
-      // 2. Customer History Path
-      db.ref("customer_history").once("value", snap => {
-        snap.forEach(userSnap => {
-          userSnap.forEach(ordSnap => {
-            if (ordSnap.val().orderId === orderId) {
-              ordSnap.ref.update({ stage: targetStage, status: statusText });
-            }
-          });
-        });
-      });
-
-      alert("Order " + orderId + " updated to: " + statusText);
-    }
-  }
-}, true);
+});
