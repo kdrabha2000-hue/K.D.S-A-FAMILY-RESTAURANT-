@@ -850,3 +850,68 @@ function filterCategory(cat, el) {
 function triggerVoiceSearch() {
   alert("Voice Search: Say dish name (e.g. 'Pork Momo' or 'Chocolate Cake')");
 }
+// ================= LIVE TRACKING SYNC =================
+// 1. Firebase से एडमिन स्टेटस बदलना
+function setOrderProgress(orderId, stepNumber) {
+  const cleanId = String(orderId).replace('#', '').trim();
+  
+  // स्क्रीन पर पॉप-अप दिखाना
+  const stepNames = {
+    1: "1. Order Confirmed",
+    2: "2. In Kitchen",
+    3: "3. Out for Delivery",
+    4: "4. Delivered"
+  };
+  alert("Order progress updated to: " + (stepNames[stepNumber] || stepNumber));
+
+  // Firebase Realtime DB में लाइव अपडेट भेजना
+  if (typeof firebase !== 'undefined' && firebase.database) {
+    firebase.database().ref('orders/' + cleanId).update({
+      step: Number(stepNumber)
+    });
+  }
+}
+
+// 2. कस्टमर के फोन पर लाइव गोल घेरे (1, 2, 3, 4) अपडेट होना
+function initLiveTrackingListener() {
+  if (typeof firebase === 'undefined' || !firebase.database) return;
+
+  // स्क्रीन पर दिख रही Order ID निकालना
+  const idEl = document.querySelector('.live-order-id') || document.querySelector('#trackingOrderId');
+  let activeId = localStorage.getItem('active_order_id') || 'KD359887';
+
+  if (idEl && idEl.innerText) {
+    const found = idEl.innerText.match(/KD\d+/i);
+    if (found) activeId = found[0];
+  }
+
+  // Firebase से लाइव सुनना
+  firebase.database().ref('orders/' + activeId).on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (!data || !data.step) return;
+
+    const currentStep = Number(data.step);
+
+    // 1, 2, 3, 4 वाले स्टेप्स और टेक्स्ट को कलर करना
+    const steps = document.querySelectorAll('.tracking-step, .order-timeline-step, .live-progress-step');
+    steps.forEach((el, index) => {
+      const stepIdx = index + 1;
+      const circle = el.querySelector('.step-num, .step-circle, .circle') || el;
+      
+      if (stepIdx <= currentStep) {
+        el.style.opacity = "1";
+        el.style.color = "#00c853";
+        if (circle) circle.style.background = "#00c853";
+      } else {
+        el.style.opacity = "0.4";
+        el.style.color = "#64748b";
+        if (circle) circle.style.background = "#e2e8f0";
+      }
+    });
+  });
+}
+
+// पेज लोड होते ही लिसनर चालू
+window.addEventListener('DOMContentLoaded', () => {
+  initLiveTrackingListener();
+});
