@@ -14,7 +14,7 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
 }
 const db = (typeof firebase !== 'undefined') ? firebase.database() : null;
 
-// ==================== 2. INITIAL MENU CATALOG ====================
+// ==================== 2. MENU CATALOG ====================
 let menuCatalog = JSON.parse(localStorage.getItem("kd_live_menu")) || [
   { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, mrp: 160, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" },
   { id: "m2", name: "Chicken Fried Momo (10 Pcs)", price: 140, mrp: 180, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
@@ -22,22 +22,28 @@ let menuCatalog = JSON.parse(localStorage.getItem("kd_live_menu")) || [
   { id: "m4", name: "Pork Steamed Momo (10 Pcs)", price: 130, mrp: 170, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=500" },
   { id: "m5", name: "Pork Fried Momo (10 Pcs)", price: 150, mrp: 190, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
   { id: "m6", name: "Cheese & Veg Momo (10 Pcs)", price: 130, mrp: 160, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=500" },
+
   { id: "r1", name: "Single Egg Chicken Roll", price: 90, mrp: 120, cat: "rolls", inStock: true, img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500" },
   { id: "r2", name: "Double Egg Double Chicken Roll", price: 120, mrp: 150, cat: "rolls", inStock: true, img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=500" },
   { id: "r3", name: "Special Pork Roll", price: 130, mrp: 160, cat: "rolls", inStock: true, img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500" },
   { id: "r4", name: "Crispy French Fries (Peri-Peri)", price: 80, mrp: 110, cat: "rolls", inStock: true, img: "https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500" },
+
   { id: "c1", name: "Chicken Butter Masala (Boneless)", price: 280, mrp: 350, cat: "chicken", inStock: true, img: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=500" },
   { id: "c2", name: "Chicken Curry / Kadhai Chicken", price: 260, mrp: 320, cat: "chicken", inStock: true, img: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500" },
   { id: "c3", name: "Crispy Chilli Chicken (Dry)", price: 220, mrp: 280, cat: "chicken", inStock: true, img: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=500" },
+
   { id: "p1", name: "Pork Curry with Bamboo Shoot", price: 300, mrp: 380, cat: "pork", inStock: true, img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500" },
   { id: "p2", name: "Smoked Pork Dry Fry", price: 320, mrp: 400, cat: "pork", inStock: true, img: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=500" },
   { id: "p3", name: "Pork Bhuna Masala", price: 310, mrp: 390, cat: "pork", inStock: true, img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500" },
+
   { id: "ct1", name: "Special Chicken Hakka Chowmein", price: 130, mrp: 170, cat: "chow_thukpa", inStock: true, img: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=500" },
   { id: "ct2", name: "Special Pork Chowmein", price: 150, mrp: 190, cat: "chow_thukpa", inStock: true, img: "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=500" },
   { id: "ct3", name: "Hot Chicken Thukpa Soup", price: 140, mrp: 180, cat: "chow_thukpa", inStock: true, img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=500" },
+
   { id: "ck1", name: "Chocolate Truffle Cake (1 Kg)", price: 850, mrp: 1100, cat: "cakes", inStock: true, img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500" },
   { id: "ck2", name: "Black Forest Cake (1 Kg)", price: 800, mrp: 1000, cat: "cakes", inStock: true, img: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=500" },
   { id: "ck3", name: "Vanilla / Pineapple Cake (1 Kg)", price: 750, mrp: 950, cat: "cakes", inStock: true, img: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=500" },
+
   { id: "dr1", name: "Cold Drinks 750ml (Coke / Sprite)", price: 45, mrp: 50, cat: "drinks", inStock: true, img: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500" },
   { id: "dr2", name: "Fresh Sweet Lassi / Cold Coffee", price: 70, mrp: 90, cat: "drinks", inStock: true, img: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=500" }
 ];
@@ -49,7 +55,36 @@ let appliedDiscount = 0;
 let coinsRedeemed = false;
 let currentPdpItem = null;
 
-// ==================== 3. RENDER FOOD CATALOG ====================
+// ==================== 3. HARDWARE BACK BUTTON HANDLER ====================
+function pushModalState(modalId) {
+  window.history.pushState({ openModal: modalId }, "");
+}
+
+window.addEventListener('popstate', function(event) {
+  const allModals = [
+    'productDetailModal',
+    'cartModal',
+    'orderHistoryModal',
+    'liveTrackingModal',
+    'accountModal',
+    'adminModal'
+  ];
+
+  let modalClosed = false;
+  allModals.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && (el.style.display === 'flex' || el.style.display === 'block')) {
+      el.style.display = 'none';
+      modalClosed = true;
+    }
+  });
+
+  if (modalClosed) {
+    event.preventDefault();
+  }
+});
+
+// ==================== 4. RENDER FOOD CATALOG ====================
 function renderFoodItems(items) {
   const container = document.getElementById('foodGrid');
   if (!container) return;
@@ -82,7 +117,7 @@ function renderFoodItems(items) {
 
 renderFoodItems(menuCatalog);
 
-// ==================== 4. PRODUCT DETAIL MODAL (PDP) ====================
+// ==================== 5. PRODUCT DETAIL MODAL (PDP) ====================
 function openProductDetail(dishId) {
   const dish = menuCatalog.find(d => d.id === dishId);
   if (!dish) return;
@@ -114,7 +149,10 @@ function openProductDetail(dishId) {
   }
 
   const modal = document.getElementById('productDetailModal');
-  if (modal) modal.style.display = 'flex';
+  if (modal) {
+    modal.style.display = 'flex';
+    pushModalState('productDetailModal');
+  }
 }
 
 function toggleCurrentWish() {
@@ -165,7 +203,15 @@ function buyNowPdp() {
   openCartModal();
 }
 
-// ==================== 5. CART OPERATIONS ====================
+function shareCurrentItem() {
+  if (navigator.share && currentPdpItem) {
+    navigator.share({ title: currentPdpItem.name, text: `Check out ${currentPdpItem.name} at S&A Restaurant!`, url: window.location.href });
+  } else {
+    alert("Link copied to clipboard!");
+  }
+}
+
+// ==================== 6. CART OPERATIONS ====================
 function addToCart(id, name, price, img) {
   const existing = cart.find(i => i.id === id);
   if (existing) {
@@ -225,7 +271,10 @@ function openCartModal() {
   if (document.getElementById('billGrandTotal')) document.getElementById('billGrandTotal').innerText = `₹${Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount)}`;
   
   const modal = document.getElementById('cartModal');
-  if (modal) modal.style.display = 'flex';
+  if (modal) {
+    modal.style.display = 'flex';
+    pushModalState('cartModal');
+  }
 }
 
 function setPaymentMethod(method) {
@@ -270,7 +319,7 @@ function applyDiscountCoupon() {
   }
 }
 
-// ==================== 6. PLACE ORDER & LIVE SYNC ====================
+// ==================== 7. PLACE ORDER & LIVE SYNC ====================
 function placeOrder() {
   const name = document.getElementById('custName')?.value.trim();
   const phone = document.getElementById('custPhone')?.value.trim();
@@ -315,13 +364,16 @@ function placeOrder() {
   openOrderHistoryModal();
 }
 
-// ==================== 7. ORDERS HISTORY ====================
+// ==================== 8. ORDERS HISTORY ====================
 function openOrderHistoryModal() {
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   const phone = profile.phone;
   const container = document.getElementById('orderHistoryContainer');
   const modal = document.getElementById('orderHistoryModal');
-  if (modal) modal.style.display = 'flex';
+  if (modal) {
+    modal.style.display = 'flex';
+    pushModalState('orderHistoryModal');
+  }
   if (!container) return;
 
   container.innerHTML = '<p style="text-align:center; color:var(--gray); margin-top:20px;">Fetching orders...</p>';
@@ -378,7 +430,7 @@ function openOrderHistoryModal() {
   });
 }
 
-// ==================== 8. LIVE DELIVERY STATUS POPUP ====================
+// ==================== 9. LIVE DELIVERY STATUS POPUP ====================
 function openLiveTrackingPopup(key, phone) {
   let modal = document.getElementById('liveTrackingModal');
   if (!modal) {
@@ -389,6 +441,7 @@ function openLiveTrackingPopup(key, phone) {
   }
 
   modal.style.display = 'flex';
+  pushModalState('liveTrackingModal');
 
   if (db && phone && key) {
     db.ref("customer_history/" + phone + "/" + key).on("value", snap => {
@@ -434,7 +487,7 @@ function renderLiveModalUI(modal, ord) {
   `;
 }
 
-// ==================== 9. ADMIN ROOM (LOGIN & REALTIME ORDERS) ====================
+// ==================== 10. ADMIN ROOM (LOGIN & MANAGEMENT) ====================
 function openAdminGateway() {
   const pass = prompt("Enter S&A Manager Admin PIN:");
   if (pass === "2000" || pass === "1234" || pass === "admin") {
@@ -448,6 +501,7 @@ function openAdminRoom() {
   const modal = document.getElementById('adminModal');
   if (modal) {
     modal.style.display = 'flex';
+    pushModalState('adminModal');
   }
   loadAdminOrdersRealtime();
 }
@@ -528,7 +582,7 @@ function deleteOrder(key) {
   }
 }
 
-// ==================== 10. GENERAL UTILITIES & CLICKS ====================
+// ==================== 11. GENERAL NAVIGATION ====================
 function closeModal(id) {
   const m = document.getElementById(id);
   if (m) m.style.display = 'none';
@@ -568,14 +622,17 @@ function triggerVoiceSearch() {
 
 function openAccountModal() {
   const modal = document.getElementById('accountModal');
-  if (modal) modal.style.display = 'flex';
+  if (modal) {
+    modal.style.display = 'flex';
+    pushModalState('accountModal');
+  }
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   if (profile.name && document.getElementById('accNameInput')) document.getElementById('accNameInput').value = profile.name;
   if (profile.phone && document.getElementById('accPhoneInput')) document.getElementById('accPhoneInput').value = profile.phone;
   if (profile.address && document.getElementById('accAddressInput')) document.getElementById('accAddressInput').value = profile.address;
 }
 
-// हर तरह के एडमिन क्लिक और शील्ड आइकॉन को सीधे पहचानना
+// शील्ड (🛡️) एडमिन आइकन क्लिक हैंडलर
 document.addEventListener('click', function(e) {
   const target = e.target;
   const isShield = target.closest('.fa-shield-halved, .fa-shield, [onclick*="Admin"], [class*="shield"], [class*="admin"]');
