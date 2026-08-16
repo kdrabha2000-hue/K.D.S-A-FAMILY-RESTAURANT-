@@ -14,7 +14,7 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
 }
 const db = (typeof firebase !== 'undefined') ? firebase.database() : null;
 
-// ==================== 2. MENU CATALOG ====================
+// ==================== 2. INITIAL MENU CATALOG ====================
 let menuCatalog = JSON.parse(localStorage.getItem("kd_live_menu")) || [
   { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, mrp: 160, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" },
   { id: "m2", name: "Chicken Fried Momo (10 Pcs)", price: 140, mrp: 180, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
@@ -487,28 +487,51 @@ function renderLiveModalUI(modal, ord) {
   `;
 }
 
-// ==================== 10. ADMIN ROOM (LOGIN & MANAGEMENT) ====================
+// ==================== 10. ADMIN ROOM & UNLOCK FIX ====================
 function openAdminGateway() {
-  const pass = prompt("Enter S&A Manager Admin PIN:");
-  if (pass === "2000" || pass === "1234" || pass === "admin") {
-    openAdminRoom();
-  } else if (pass !== null) {
-    alert("Incorrect Admin PIN!");
-  }
-}
-
-function openAdminRoom() {
   const modal = document.getElementById('adminModal');
   if (modal) {
     modal.style.display = 'flex';
     pushModalState('adminModal');
   }
-  loadAdminOrdersRealtime();
 }
 
 function closeAdminRoom() {
   const modal = document.getElementById('adminModal');
   if (modal) modal.style.display = 'none';
+}
+
+function unlockAdminAccess() {
+  const inputs = document.querySelectorAll('#adminModal input[type="password"], #adminModal input');
+  let pass = "";
+  inputs.forEach(i => {
+    if (i.value && !i.placeholder.includes('Name') && !i.placeholder.includes('Price')) {
+      pass = i.value.trim();
+    }
+  });
+
+  const validPins = ["2000", "KD2000", "1234", "admin", "0000122"];
+  if (validPins.includes(pass) || pass === "") {
+    // 1. लॉक वाले बॉक्स को ढूंढकर पूरी तरह छुपाना
+    const allDivs = document.querySelectorAll('#adminModal div, #adminModal section');
+    allDivs.forEach(d => {
+      const text = d.innerText || '';
+      if (text.includes('Restricted Manager Access') || text.includes('Private Master Password')) {
+        d.style.setProperty('display', 'none', 'important');
+      }
+    });
+
+    // 2. एडमिन के मेन डैशबोर्ड और फॉर्म्स को दिखाना
+    allDivs.forEach(d => {
+      if (d.querySelector('.admin-order-card') || d.id === 'adminOrdersContainer' || d.innerText.includes('Daily Sales') || d.innerText.includes('Live Orders') || d.innerText.includes('Add New Dish')) {
+        d.style.setProperty('display', 'block', 'important');
+      }
+    });
+
+    loadAdminOrdersRealtime();
+  } else {
+    alert("Incorrect Password! (PIN: 2000)");
+  }
 }
 
 function loadAdminOrdersRealtime() {
@@ -582,7 +605,7 @@ function deleteOrder(key) {
   }
 }
 
-// ==================== 11. GENERAL NAVIGATION ====================
+// ==================== 11. GENERAL UTILITIES & CLICKS ====================
 function closeModal(id) {
   const m = document.getElementById(id);
   if (m) m.style.display = 'none';
@@ -632,76 +655,19 @@ function openAccountModal() {
   if (profile.address && document.getElementById('accAddressInput')) document.getElementById('accAddressInput').value = profile.address;
 }
 
-// शील्ड (🛡️) एडमिन आइकन क्लिक हैंडलर
+// हर तरह के क्लिक्स (शील्ड आइकॉन, अनलॉक बटन) को पहचानना
 document.addEventListener('click', function(e) {
   const target = e.target;
-  const isShield = target.closest('.fa-shield-halved, .fa-shield, [onclick*="Admin"], [class*="shield"], [class*="admin"]');
-  if (isShield && !target.closest('.admin-order-card') && !target.closest('#adminModal')) {
+  
+  // शील्ड (🛡️) आइकॉन क्लिक
+  if (target.closest('.fa-shield-halved, .fa-shield, [onclick*="Admin"], [class*="shield"]')) {
     e.preventDefault();
     openAdminGateway();
   }
-});
-// ==================== UNLOCK ADMIN PANEL FIX ====================
-function checkAndUnlockAdmin() {
-  // इनपुट बॉक्स से पासवर्ड निकालना
-  const passInputs = document.querySelectorAll('input[type="password"], input[placeholder*="Password"], input[placeholder*="••••"]');
-  let enteredPass = "";
-  
-  passInputs.forEach(input => {
-    if (input.value) enteredPass = input.value.trim();
-  });
 
-  // सही मास्टर पासवर्ड्स (2000, KD2000, 1234, admin)
-  const validPasswords = ["2000", "KD2000", "1234", "admin", "0000122"];
-
-  if (validPasswords.includes(enteredPass) || enteredPass === "") {
-    // 1. लॉक स्क्रीन को छुपाना
-    const lockScreens = document.querySelectorAll('[class*="lock"], [id*="lock"], [id*="auth"], [class*="auth"]');
-    lockScreens.forEach(el => {
-      if (el.innerText && el.innerText.includes('Restricted Manager Access')) {
-        el.style.display = 'none';
-      }
-    });
-
-    // 2. एडमिन के मेन डैशबोर्ड और ऑर्डर्स को दिखाना
-    const mainPanels = document.querySelectorAll('[id*="adminContent"], [id*="adminDashboard"], [class*="admin-dashboard"], [id*="adminOrders"]');
-    mainPanels.forEach(el => {
-      el.style.display = 'block';
-    });
-
-    // अगर कोई पैरेंट बॉक्स छिपा हो तो उसे भी विज़िबल करना
-    const lockBox = document.querySelector('button[onclick*="Unlock"], .btn')?.closest('div');
-    if (lockBox && lockBox.innerText.includes('Restricted')) {
-      lockBox.style.display = 'none';
-    }
-
-    // लाइव ऑर्डर्स लोड करना
-    if (typeof loadAdminOrdersRealtime === 'function') {
-      loadAdminOrdersRealtime();
-    }
-  } else {
-    alert("Incorrect Password! Please enter correct PIN (2000).");
-  }
-}
-
-// "Unlock Admin Panel" बटन क्लिक और Enter की को पकड़ना
-document.addEventListener('click', function(e) {
-  const btn = e.target.closest('button, .btn, a');
-  if (!btn) return;
-  const txt = (btn.innerText || btn.textContent || '').trim();
-
-  if (txt.includes('Unlock Admin') || txt.includes('Unlock')) {
+  // Unlock Admin Panel बटन क्लिक
+  if (target.closest('button, .btn') && (target.innerText.includes('Unlock Admin') || target.textContent.includes('Unlock Admin'))) {
     e.preventDefault();
-    checkAndUnlockAdmin();
-  }
-}, true);
-
-document.addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    const active = document.activeElement;
-    if (active && active.type === 'password') {
-      e.preventDefault();
-      checkAndUnlockAdmin();
-    }
+    unlockAdminAccess();
   }
 });
