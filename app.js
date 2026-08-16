@@ -14,8 +14,8 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
 }
 const db = (typeof firebase !== 'undefined') ? firebase.database() : null;
 
-// ==================== 2. MENU DATA ====================
-let menuCatalog = JSON.parse(localStorage.getItem("kd_live_menu")) || [
+// ==================== 2. MENU DATA & STORAGE ====================
+const defaultMenu = [
   { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, mrp: 160, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" },
   { id: "m2", name: "Chicken Fried Momo (10 Pcs)", price: 140, mrp: 180, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
   { id: "m3", name: "Chicken Schezwan Gravy Momo", price: 160, mrp: 200, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=500" },
@@ -48,6 +48,7 @@ let menuCatalog = JSON.parse(localStorage.getItem("kd_live_menu")) || [
   { id: "dr2", name: "Fresh Sweet Lassi / Cold Coffee", price: 70, mrp: 90, cat: "drinks", inStock: true, img: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=500" }
 ];
 
+let menuCatalog = JSON.parse(localStorage.getItem("kd_live_menu")) || defaultMenu;
 let cart = [];
 let wishlist = JSON.parse(localStorage.getItem("kd_wishlist") || "[]");
 let activePayment = 'COD';
@@ -57,6 +58,31 @@ let currentPdpItem = null;
 let selectedCakeWeight = 1.0;
 let selectedCakePrice = 850;
 let adminUploadBase64 = "";
+let editUploadBase64 = "";
+
+// Firebase Cloud Sync
+if (db) {
+  db.ref("restaurant_menu").on("value", snapshot => {
+    const cloudMenu = snapshot.val();
+    if (cloudMenu && Array.isArray(cloudMenu)) {
+      menuCatalog = cloudMenu;
+      localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
+      renderFoodItems(menuCatalog);
+      if (document.getElementById('adminDashboard')?.style.display === 'block') {
+        renderAdminMenuItems();
+      }
+    }
+  });
+}
+
+function saveMenuToStorageAndCloud() {
+  localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
+  if (db) {
+    db.ref("restaurant_menu").set(menuCatalog);
+  }
+  renderFoodItems(menuCatalog);
+  renderAdminMenuItems();
+}
 
 // ==================== 3. HARDWARE BACK BUTTON HANDLER ====================
 function pushModalState(modalId) {
@@ -104,7 +130,7 @@ function closeModal(id) {
   }
 }
 
-// ==================== 4. RENDER MENU & SEARCH ====================
+// ==================== 4. RENDER FOOD CATALOG & SEARCH ====================
 function renderFoodItems(items) {
   const container = document.getElementById('foodGrid');
   if (!container) return;
@@ -466,7 +492,6 @@ function openLiveTrackingPopup(key, phone) {
           <div style="font-size:12px; color:var(--gray);">Estimated Delivery: ~${ord.eta || 30} Mins</div>
         </div>
 
-        <!-- 4-Steps Live Tracker -->
         <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:20px; background:#f8fafc; padding:14px; border-radius:14px; border:1px solid #e2e8f0;">
           <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 1 ? '1' : '0.35'};">
             <div style="width:28px; height:28px; border-radius:50%; background:${stage >= 1 ? '#00c853' : '#cbd5e1'}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px;">1</div>
@@ -509,11 +534,13 @@ function openLiveTrackingPopup(key, phone) {
   }
 }
 
-// ==================== 9. ADMIN PANEL & PIN UNLOCK ====================
+// ==================== 9. ADMIN PANEL & MASTER PIN UNLOCK ====================
 function openAdminGateway() {
   openModal('adminModal');
   const lock = document.getElementById('adminLockScreen');
   const dash = document.getElementById('adminDashboard');
+  const pinInput = document.getElementById('adminPinInput');
+  if (pinInput) pinInput.value = '';
   if (lock) lock.style.display = 'block';
   if (dash) dash.style.display = 'none';
 }
@@ -522,17 +549,21 @@ function unlockAdminWithPin() {
   const pinInput = document.getElementById('adminPinInput');
   const pin = pinInput ? pinInput.value.trim() : '';
 
-  const validPins = ["2000", "KD2000", "1234", "admin", "0000122"];
+  // Master Private Password
+  const MASTER_KEY = "KD@1234";
 
-  if (validPins.includes(pin)) {
+  if (pin === MASTER_KEY) {
     const lock = document.getElementById('adminLockScreen');
     const dash = document.getElementById('adminDashboard');
     if (lock) lock.style.display = 'none';
     if (dash) dash.style.display = 'block';
 
     loadAdminOrdersList();
+    renderAdminMenuItems();
   } else {
-    alert("Incorrect Master Password! (Use PIN: 2000)");
+    // Bilkul koi hint ya password show nahi hoga
+    alert("Access Denied! Incorrect Password.");
+    if (pinInput) pinInput.value = '';
   }
 }
 
@@ -606,6 +637,131 @@ function deleteAdminOrder(key) {
   }
 }
 
+// ==================== 10. MENU EDIT & GALLERY PHOTO UPLOAD ====================
+function renderAdminMenuItems() {
+  const container = document.getElementById('adminMenuItemsList');
+  if (!container) return;
+  container.innerHTML = '';
+
+  menuCatalog.forEach((item) => {
+    container.innerHTML += `
+      <div id="adminDishRow_${item.id}" style="background:#0f172a; border-radius:10px; padding:12px; margin-bottom:10px; border:1px solid #334155; color:#fff;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+          <img src="${item.img}" style="width:45px; height:45px; border-radius:8px; object-fit:cover; flex-shrink:0;" />
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:13px;">${item.name}</div>
+            <div style="font-size:12px; color:#38bdf8;">₹${item.price} <span style="font-size:10px; color:#94a3b8;">(${item.cat})</span></div>
+          </div>
+          <button onclick="openDishEditBox('${item.id}')" style="background:#38bdf8; color:#0f172a; border:none; padding:6px 12px; border-radius:6px; font-weight:700; font-size:11px; cursor:pointer;">✏️ Edit</button>
+          <button onclick="toggleDishStock('${item.id}')" style="background:${item.inStock ? '#10b981' : '#ef4444'}; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-weight:700; font-size:11px; cursor:pointer;">${item.inStock ? 'In Stock' : 'Sold Out'}</button>
+          <button onclick="deleteMenuItem('${item.id}')" style="background:#475569; color:#fff; border:none; padding:6px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️</button>
+        </div>
+
+        <div id="dishEditForm_${item.id}" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed #334155;">
+          <label style="font-size:11px; color:#94a3b8;">Dish Name:</label>
+          <input type="text" id="editName_${item.id}" value="${item.name}" class="form-input" style="background:#1e293b; color:#fff; border-color:#475569; margin-bottom:8px;" />
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+            <div>
+              <label style="font-size:11px; color:#94a3b8;">Price (₹):</label>
+              <input type="number" id="editPrice_${item.id}" value="${item.price}" class="form-input" style="background:#1e293b; color:#fff; border-color:#475569;" />
+            </div>
+            <div>
+              <label style="font-size:11px; color:#94a3b8;">Category:</label>
+              <select id="editCat_${item.id}" class="form-input" style="background:#1e293b; color:#fff; border-color:#475569;">
+                <option value="momos" ${item.cat === 'momos' ? 'selected' : ''}>Momos</option>
+                <option value="rolls" ${item.cat === 'rolls' ? 'selected' : ''}>Rolls</option>
+                <option value="chicken" ${item.cat === 'chicken' ? 'selected' : ''}>Chicken</option>
+                <option value="pork" ${item.cat === 'pork' ? 'selected' : ''}>Pork</option>
+                <option value="chow_thukpa" ${item.cat === 'chow_thukpa' ? 'selected' : ''}>Chow/Soup</option>
+                <option value="cakes" ${item.cat === 'cakes' ? 'selected' : ''}>Cakes</option>
+                <option value="drinks" ${item.cat === 'drinks' ? 'selected' : ''}>Drinks</option>
+              </select>
+            </div>
+          </div>
+
+          <label style="font-size:11px; color:#94a3b8;">Upload New Photo (Gallery / Camera):</label>
+          <input type="file" accept="image/*" class="form-input" style="background:#1e293b; color:#fff; border-color:#475569; margin-bottom:6px;" onchange="previewEditImage(this, '${item.id}')" />
+
+          <label style="font-size:11px; color:#94a3b8;">Or Image URL Link:</label>
+          <input type="text" id="editImgUrl_${item.id}" value="${item.img}" class="form-input" style="background:#1e293b; color:#fff; border-color:#475569; margin-bottom:10px;" />
+
+          <img id="editPreviewImg_${item.id}" src="${item.img}" style="width:100%; height:110px; object-fit:cover; border-radius:8px; margin-bottom:10px;" />
+
+          <div style="display:flex; gap:8px;">
+            <button onclick="saveDishEdits('${item.id}')" class="admin-btn btn-green" style="flex:1;">💾 Save Changes</button>
+            <button onclick="closeDishEditBox('${item.id}')" class="admin-btn btn-primary" style="background:#475569; flex:1;">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function openDishEditBox(id) {
+  const box = document.getElementById(`dishEditForm_${id}`);
+  if (box) box.style.display = 'block';
+}
+
+function closeDishEditBox(id) {
+  const box = document.getElementById(`dishEditForm_${id}`);
+  if (box) box.style.display = 'none';
+}
+
+function previewEditImage(input, id) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      editUploadBase64 = e.target.result;
+      const preview = document.getElementById(`editPreviewImg_${id}`);
+      if (preview) {
+        preview.src = e.target.result;
+      }
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function saveDishEdits(id) {
+  const item = menuCatalog.find(d => d.id === id);
+  if (!item) return;
+
+  const newName = document.getElementById(`editName_${id}`).value.trim();
+  const newPrice = Number(document.getElementById(`editPrice_${id}`).value);
+  const newCat = document.getElementById(`editCat_${id}`).value;
+  const newImgUrl = document.getElementById(`editImgUrl_${id}`).value.trim();
+
+  if (!newName || !newPrice) {
+    alert("Please enter valid name and price!");
+    return;
+  }
+
+  item.name = newName;
+  item.price = newPrice;
+  item.mrp = newPrice + 40;
+  item.cat = newCat;
+  item.img = editUploadBase64 || newImgUrl || item.img;
+
+  editUploadBase64 = "";
+  saveMenuToStorageAndCloud();
+  alert("Dish updated successfully!");
+}
+
+function toggleDishStock(id) {
+  const item = menuCatalog.find(d => d.id === id);
+  if (item) {
+    item.inStock = !item.inStock;
+    saveMenuToStorageAndCloud();
+  }
+}
+
+function deleteMenuItem(id) {
+  if (confirm("Delete this dish from menu permanently?")) {
+    menuCatalog = menuCatalog.filter(d => d.id !== id);
+    saveMenuToStorageAndCloud();
+  }
+}
+
 function adminSaveNewDish() {
   const name = document.getElementById('newDishName').value.trim();
   const price = Number(document.getElementById('newDishPrice').value);
@@ -628,11 +784,15 @@ function adminSaveNewDish() {
   };
 
   menuCatalog.unshift(newDish);
-  localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
-  renderFoodItems(menuCatalog);
-  alert("Dish added to menu!");
+  saveMenuToStorageAndCloud();
+  alert("New dish added to menu!");
+
   document.getElementById('newDishName').value = '';
   document.getElementById('newDishPrice').value = '';
+  document.getElementById('newDishImgUrl').value = '';
+  adminUploadBase64 = '';
+  const prev = document.getElementById('adminDishPreview');
+  if (prev) prev.style.display = 'none';
 }
 
 function previewAdminDishUpload(input) {
@@ -650,7 +810,47 @@ function previewAdminDishUpload(input) {
   }
 }
 
-// ==================== 10. CAKE STUDIO & ACCOUNT ====================
+function adminCreateCoupon() {
+  const code = document.getElementById('newCouponCode').value.trim().toUpperCase();
+  const disc = Number(document.getElementById('newCouponDiscount').value);
+  if (!code || !disc) {
+    alert("Enter promo code and discount!");
+    return;
+  }
+  localStorage.setItem("kd_promo_" + code, disc);
+  alert(`Promo code ${code} (₹${disc} OFF) created!`);
+  document.getElementById('newCouponCode').value = '';
+  document.getElementById('newCouponDiscount').value = '';
+}
+
+function toggleStoreStatus() {
+  const btn = document.getElementById('storeStatusBtn');
+  if (btn.innerText.includes('OPEN')) {
+    btn.innerText = "Restaurant is: CLOSED (Currently Offline)";
+    btn.style.background = "#ef4444";
+  } else {
+    btn.innerText = "Restaurant is: OPEN (8am - 10pm)";
+    btn.style.background = "#10b981";
+  }
+}
+
+function editPromoBanner() {
+  const newHeading = prompt("Enter new Promo Banner headline:");
+  if (newHeading) {
+    document.getElementById('bannerTitle').innerText = newHeading;
+    localStorage.setItem("kd_banner_title", newHeading);
+  }
+}
+
+function assignVipBadge() {
+  const ph = document.getElementById('vipCustPhone').value.trim();
+  if (ph) {
+    alert(`Customer +91 ${ph} is now upgraded to VIP Gold Member!`);
+    document.getElementById('vipCustPhone').value = '';
+  }
+}
+
+// ==================== 11. CAKE STUDIO & ACCOUNT ====================
 function openCakeStudio() {
   openModal('cakeStudioModal');
 }
@@ -753,7 +953,7 @@ function uploadCustomerAvatar(input) {
   }
 }
 
-// ==================== 11. NAVIGATION TABS ====================
+// ==================== 12. NAVIGATION TABS ====================
 function switchNavTab(tab) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   
@@ -786,4 +986,9 @@ window.addEventListener('DOMContentLoaded', () => {
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   if (profile.name && document.getElementById('accNameDisplay')) document.getElementById('accNameDisplay').innerText = profile.name;
   if (profile.phone && document.getElementById('accPhoneDisplay')) document.getElementById('accPhoneDisplay').innerText = "+91 " + profile.phone;
+  
+  const savedBanner = localStorage.getItem("kd_banner_title");
+  if (savedBanner && document.getElementById('bannerTitle')) {
+    document.getElementById('bannerTitle').innerText = savedBanner;
+  }
 });
