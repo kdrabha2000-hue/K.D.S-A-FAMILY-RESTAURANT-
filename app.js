@@ -1,4 +1,4 @@
-// 1. Firebase Initialization
+// ==================== 1. FIREBASE INITIALIZATION ====================
 const firebaseConfig = {
   apiKey: "AIzaSyDDTFzD8eaxS6hsQ_W5akOWRWixyZdjkSo",
   authDomain: "kd-ka-khana-ghar-tak.firebaseapp.com",
@@ -9,10 +9,12 @@ const firebaseConfig = {
   appId: "1:69933070653:web:f9b93ba827d794bb376d54"
 };
 
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.database();
 
-// 2. Initial Menu Catalog
+// ==================== 2. INITIAL MENU CATALOG ====================
 let menuCatalog = JSON.parse(localStorage.getItem("kd_live_menu")) || [
   { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, mrp: 160, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" },
   { id: "m2", name: "Chicken Fried Momo (10 Pcs)", price: 140, mrp: 180, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
@@ -57,10 +59,10 @@ let coinsRedeemed = false;
 let currentPdpItem = null;
 let adminUploadBase64 = "";
 
-// 3. Render Food Catalog (Customer UI)
+// ==================== 3. RENDER FOOD CATALOG (CUSTOMER UI) ====================
 function renderFoodItems(items) {
   const container = document.getElementById('foodGrid');
-  if(!container) return;
+  if (!container) return;
   container.innerHTML = '';
   items.forEach(dish => {
     const isWished = wishlist.includes(dish.id);
@@ -88,53 +90,64 @@ function renderFoodItems(items) {
   });
 }
 
+// Initial Call
 renderFoodItems(menuCatalog);
 
-// 4. Product Detail Page (PDP)
+// ==================== 4. PRODUCT DETAIL MODAL (PDP) ====================
 function openProductDetail(dishId) {
   const dish = menuCatalog.find(d => d.id === dishId);
-  if(!dish) return;
+  if (!dish) return;
   currentPdpItem = dish;
 
-  document.getElementById('pdpImg').src = dish.img;
-  document.getElementById('pdpTitle').innerText = dish.name;
-  document.getElementById('pdpPrice').innerText = `₹${dish.price}`;
-  document.getElementById('pdpMrp').innerText = `₹${dish.mrp || (dish.price + 50)}`;
+  const pdpImg = document.getElementById('pdpImg');
+  const pdpTitle = document.getElementById('pdpTitle');
+  const pdpPrice = document.getElementById('pdpPrice');
+  const pdpMrp = document.getElementById('pdpMrp');
+
+  if (pdpImg) pdpImg.src = dish.img;
+  if (pdpTitle) pdpTitle.innerText = dish.name;
+  if (pdpPrice) pdpPrice.innerText = `₹${dish.price}`;
+  if (pdpMrp) pdpMrp.innerText = `₹${dish.mrp || (dish.price + 50)}`;
   
   const isWished = wishlist.includes(dish.id);
   const wishBtn = document.getElementById('pdpWishBtn');
-  if(isWished) wishBtn.classList.add('active');
-  else wishBtn.classList.remove('active');
+  if (wishBtn) {
+    if (isWished) wishBtn.classList.add('active');
+    else wishBtn.classList.remove('active');
+  }
 
   const similarContainer = document.getElementById('similarDishesScroll');
-  similarContainer.innerHTML = '';
-  menuCatalog.filter(d => d.cat === dish.cat && d.id !== dish.id).slice(0, 5).forEach(sim => {
-    similarContainer.innerHTML += `
-      <div class="cat-item" onclick="openProductDetail('${sim.id}')">
-        <div class="cat-circle"><img src="${sim.img}" style="width:100%;height:100%;object-fit:cover;" /></div>
-        <div class="cat-name">${sim.name.substring(0, 12)}..</div>
-      </div>
-    `;
-  });
+  if (similarContainer) {
+    similarContainer.innerHTML = '';
+    menuCatalog.filter(d => d.cat === dish.cat && d.id !== dish.id).slice(0, 5).forEach(sim => {
+      similarContainer.innerHTML += `
+        <div class="cat-item" onclick="openProductDetail('${sim.id}')">
+          <div class="cat-circle"><img src="${sim.img}" style="width:100%;height:100%;object-fit:cover;" /></div>
+          <div class="cat-name">${sim.name.substring(0, 12)}..</div>
+        </div>
+      `;
+    });
+  }
 
-  document.getElementById('productDetailModal').style.display = 'flex';
+  const modal = document.getElementById('productDetailModal');
+  if (modal) modal.style.display = 'flex';
 }
 
 function toggleCurrentWish() {
-  if(!currentPdpItem) return;
+  if (!currentPdpItem) return;
   toggleCardWish(currentPdpItem.id);
   const btn = document.getElementById('pdpWishBtn');
-  btn.classList.toggle('active');
+  if (btn) btn.classList.toggle('active');
 }
 
 function toggleCardWish(id, el) {
   const idx = wishlist.indexOf(id);
-  if(idx > -1) {
+  if (idx > -1) {
     wishlist.splice(idx, 1);
-    if(el) el.classList.remove('active');
+    if (el) el.classList.remove('active');
   } else {
     wishlist.push(id);
-    if(el) el.classList.add('active');
+    if (el) el.classList.add('active');
   }
   localStorage.setItem("kd_wishlist", JSON.stringify(wishlist));
   syncWishlistToCloud();
@@ -142,44 +155,44 @@ function toggleCardWish(id, el) {
 
 function syncWishlistToCloud() {
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
-  if(profile.phone) {
+  if (profile.phone) {
     db.ref("customers/" + profile.phone + "/wishlist").set(wishlist);
   }
 }
 
 function selectDishVariant(type, extra, el) {
   document.querySelectorAll('#pdpVariantBox .weight-pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  if(currentPdpItem) {
+  if (el) el.classList.add('active');
+  if (currentPdpItem) {
     document.getElementById('pdpPrice').innerText = `₹${currentPdpItem.price + extra}`;
   }
 }
 
 function addPdpToCart() {
-  if(!currentPdpItem) return;
+  if (!currentPdpItem) return;
   addToCart(currentPdpItem.id, currentPdpItem.name, currentPdpItem.price, currentPdpItem.img);
   closeModal('productDetailModal');
 }
 
 function buyNowPdp() {
-  if(!currentPdpItem) return;
+  if (!currentPdpItem) return;
   addToCart(currentPdpItem.id, currentPdpItem.name, currentPdpItem.price, currentPdpItem.img);
   closeModal('productDetailModal');
   openCartModal();
 }
 
 function shareCurrentItem() {
-  if(navigator.share && currentPdpItem) {
+  if (navigator.share && currentPdpItem) {
     navigator.share({ title: currentPdpItem.name, text: `Check out ${currentPdpItem.name} at S&A Restaurant!`, url: window.location.href });
   } else {
     alert("Link copied to clipboard!");
   }
 }
 
-// 5. Cart Operations
+// ==================== 5. CART OPERATIONS ====================
 function addToCart(id, name, price, img) {
   const existing = cart.find(i => i.id === id);
-  if(existing) {
+  if (existing) {
     existing.qty += 1;
   } else {
     cart.push({ id, name, price, qty: 1, img: img || "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" });
@@ -189,7 +202,8 @@ function addToCart(id, name, price, img) {
 
 function updateCartBar() {
   const cartBar = document.getElementById('floatingCart');
-  if(cart.length === 0) {
+  if (!cartBar) return;
+  if (cart.length === 0) {
     cartBar.style.display = 'none';
     return;
   }
@@ -198,13 +212,16 @@ function updateCartBar() {
   const coinDiscount = coinsRedeemed ? 20 : 0;
   const grandTotal = Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount);
 
-  document.getElementById('cartCount').innerText = `${totalQty} Item${totalQty > 1 ? 's' : ''}`;
-  document.getElementById('cartTotal').innerText = `₹${grandTotal}`;
+  const countEl = document.getElementById('cartCount');
+  const totalEl = document.getElementById('cartTotal');
+  if (countEl) countEl.innerText = `${totalQty} Item${totalQty > 1 ? 's' : ''}`;
+  if (totalEl) totalEl.innerText = `₹${grandTotal}`;
   cartBar.style.display = 'flex';
 }
 
 function openCartModal() {
   const list = document.getElementById('cartItemsList');
+  if (!list) return;
   list.innerHTML = '';
   let subtotal = 0;
 
@@ -225,38 +242,54 @@ function openCartModal() {
   });
 
   const savedProfile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
-  if(savedProfile.name) document.getElementById('custName').value = savedProfile.name;
-  if(savedProfile.phone) document.getElementById('custPhone').value = savedProfile.phone;
-  if(savedProfile.address) document.getElementById('custAddress').value = savedProfile.address;
+  if (savedProfile.name && document.getElementById('custName')) document.getElementById('custName').value = savedProfile.name;
+  if (savedProfile.phone && document.getElementById('custPhone')) document.getElementById('custPhone').value = savedProfile.phone;
+  if (savedProfile.address && document.getElementById('custAddress')) document.getElementById('custAddress').value = savedProfile.address;
 
   const coinDiscount = coinsRedeemed ? 20 : 0;
-  document.getElementById('billSubtotal').innerText = `₹${subtotal}`;
-  document.getElementById('billGrandTotal').innerText = `₹${Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount)}`;
-  document.getElementById('cartModal').style.display = 'flex';
+  const subEl = document.getElementById('billSubtotal');
+  const grandEl = document.getElementById('billGrandTotal');
+  if (subEl) subEl.innerText = `₹${subtotal}`;
+  if (grandEl) grandEl.innerText = `₹${Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount)}`;
+  
+  const modal = document.getElementById('cartModal');
+  if (modal) modal.style.display = 'flex';
 }
 
 function setPaymentMethod(method) {
   activePayment = method;
-  document.getElementById('codBtn').style.background = (method === 'COD') ? 'var(--primary)' : '#f1f5f9';
-  document.getElementById('codBtn').style.color = (method === 'COD') ? '#fff' : 'var(--dark)';
-  document.getElementById('upiBtn').style.background = (method === 'UPI') ? 'var(--primary)' : '#f1f5f9';
-  document.getElementById('upiBtn').style.color = (method === 'UPI') ? '#fff' : 'var(--dark)';
-  document.getElementById('upiQrBox').style.display = (method === 'UPI') ? 'block' : 'none';
+  const cod = document.getElementById('codBtn');
+  const upi = document.getElementById('upiBtn');
+  const qr = document.getElementById('upiQrBox');
+  if (cod) {
+    cod.style.background = (method === 'COD') ? 'var(--primary)' : '#f1f5f9';
+    cod.style.color = (method === 'COD') ? '#fff' : 'var(--dark)';
+  }
+  if (upi) {
+    upi.style.background = (method === 'UPI') ? 'var(--primary)' : '#f1f5f9';
+    upi.style.color = (method === 'UPI') ? '#fff' : 'var(--dark)';
+  }
+  if (qr) qr.style.display = (method === 'UPI') ? 'block' : 'none';
 }
 
 function toggleCoinRedemption() {
-  coinsRedeemed = document.getElementById('redeemCoinsCheck').checked;
-  document.getElementById('coinsDiscountRow').style.display = coinsRedeemed ? 'flex' : 'none';
+  const chk = document.getElementById('redeemCoinsCheck');
+  coinsRedeemed = chk ? chk.checked : false;
+  const row = document.getElementById('coinsDiscountRow');
+  if (row) row.style.display = coinsRedeemed ? 'flex' : 'none';
   updateCartBar();
   openCartModal();
 }
 
 function applyDiscountCoupon() {
-  const code = document.getElementById('couponCodeInput').value.trim().toUpperCase();
-  if(code === "KD50" || code === "WELCOME") {
+  const codeEl = document.getElementById('couponCodeInput');
+  const code = codeEl ? codeEl.value.trim().toUpperCase() : '';
+  if (code === "KD50" || code === "WELCOME") {
     appliedDiscount = 50;
-    document.getElementById('discountRow').style.display = 'flex';
-    document.getElementById('billDiscount').innerText = `-₹50`;
+    const dRow = document.getElementById('discountRow');
+    const bDisc = document.getElementById('billDiscount');
+    if (dRow) dRow.style.display = 'flex';
+    if (bDisc) bDisc.innerText = `-₹50`;
     alert("🎉 Promo Code Applied: ₹50 Discount!");
     updateCartBar();
     openCartModal();
@@ -265,13 +298,17 @@ function applyDiscountCoupon() {
   }
 }
 
-// 6. Place Order & Permanent Cloud Sync
+// ==================== 6. PLACE ORDER & LIVE SYNC ====================
 function placeOrder() {
-  const name = document.getElementById('custName').value.trim();
-  const phone = document.getElementById('custPhone').value.trim();
-  const address = document.getElementById('custAddress').value.trim();
+  const nameEl = document.getElementById('custName');
+  const phoneEl = document.getElementById('custPhone');
+  const addrEl = document.getElementById('custAddress');
 
-  if(!name || !phone || !address) {
+  const name = nameEl ? nameEl.value.trim() : '';
+  const phone = phoneEl ? phoneEl.value.trim() : '';
+  const address = addrEl ? addrEl.value.trim() : '';
+
+  if (!name || !phone || !address) {
     alert("Please fill Name, Phone and Complete Delivery Address.");
     return;
   }
@@ -281,9 +318,10 @@ function placeOrder() {
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const coinDiscount = coinsRedeemed ? 20 : 0;
   const grandTotal = Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount);
+  const generatedId = "KD" + Math.floor(100000 + Math.random() * 900000);
 
   const orderPayload = {
-    orderId: "KD" + Math.floor(100000 + Math.random() * 900000),
+    orderId: generatedId,
     customerName: name,
     phone: phone,
     address: address,
@@ -297,9 +335,12 @@ function placeOrder() {
   };
 
   const newOrderRef = db.ref("orders").push(orderPayload);
-  db.ref("customer_history/" + phone).push(orderPayload);
+  const userOrderRef = db.ref("customer_history/" + phone).push(orderPayload);
 
-  newOrderRef.then(() => {
+  Promise.all([newOrderRef, userOrderRef]).then(([adminSnap, userSnap]) => {
+    localStorage.setItem("active_order_key", userSnap.key);
+    localStorage.setItem("active_order_phone", phone);
+
     currentActiveOrder = orderPayload;
     cart = [];
     appliedDiscount = 0;
@@ -310,15 +351,18 @@ function placeOrder() {
   });
 }
 
-// 7. Orders History
+// ==================== 7. ORDERS HISTORY & TRACKING ====================
 function openOrderHistoryModal() {
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   const phone = profile.phone;
   const container = document.getElementById('orderHistoryContainer');
-  container.innerHTML = '<p style="text-align:center; color:var(--gray); margin-top:20px;">Fetching your orders history from cloud...</p>';
-  document.getElementById('orderHistoryModal').style.display = 'flex';
+  const modal = document.getElementById('orderHistoryModal');
+  if (modal) modal.style.display = 'flex';
+  if (!container) return;
 
-  if(!phone) {
+  container.innerHTML = '<p style="text-align:center; color:var(--gray); margin-top:20px;">Fetching your orders history from cloud...</p>';
+
+  if (!phone) {
     container.innerHTML = `
       <div style="text-align:center; padding:30px 0;">
         <i class="fa-solid fa-user-lock" style="font-size:36px; color:#cbd5e1; margin-bottom:10px;"></i>
@@ -333,7 +377,7 @@ function openOrderHistoryModal() {
     const data = snapshot.val();
     container.innerHTML = '';
 
-    if(!data) {
+    if (!data) {
       container.innerHTML = `
         <div style="text-align:center; padding:30px 0;">
           <i class="fa-solid fa-box-open" style="font-size:36px; color:#cbd5e1; margin-bottom:8px;"></i>
@@ -392,962 +436,157 @@ function openOrderHistoryModal() {
 }
 
 function openLiveTrackingPopup(key, phone) {
+  const modal = document.getElementById('liveTrackingModal');
+  if (modal) modal.style.display = 'flex';
+
   db.ref("customer_history/" + phone + "/" + key).on("value", snap => {
     const ord = snap.val();
-    if(!ord) return;
-    const stage = ord.stage || 1;
+    if (!ord) return;
+    const stage = Number(ord.stage) || 1;
 
     const content = document.getElementById('trackingContent');
+    if (!content) return;
+
     content.innerHTML = `
-      <div style="background:#fff0f3; padding:14px; border-radius:var(--radius); margin-bottom:16px;">
-        <div style="font-size:12px; color:var(--primary); font-weight:700;">ORDER ID: #${ord.orderId}</div>
-        <div style="font-size:16px; font-weight:700; margin:4px 0;">₹${ord.grandTotal} (${ord.paymentMode})</div>
-        <p style="font-size:12px; color:var(--gray);">Estimated Delivery: <strong>${ord.eta || 25} Minutes</strong></p>
+      <div style="background:#ffffff; border-radius:18px; width:100%; max-width:360px; padding:20px; position:relative; box-shadow:0 12px 35px rgba(0,0,0,0.25); font-family:sans-serif; color:#1e293b; box-sizing:border-box;">
+        <button onclick="closeModal('liveTrackingModal')" style="position:absolute; right:14px; top:14px; background:#f1f5f9; border:none; width:30px; height:30px; border-radius:50%; font-size:16px; font-weight:bold; color:#475569; cursor:pointer;">✕</button>
+        
+        <div style="font-size:11px; font-weight:800; color:#ff3e6c; text-transform:uppercase; letter-spacing:0.8px;">LIVE ORDER STATUS</div>
+        <h3 style="margin:4px 0 2px 0; font-size:18px; color:#0f172a; font-weight:800;">Order #${ord.orderId}</h3>
+        <div style="font-size:12px; color:#64748b; margin-bottom:16px;">Estimated Delivery: ~${ord.eta || 30} Mins (₹${ord.grandTotal})</div>
+
+        <!-- 4 Step Tracker -->
+        <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:18px; background:#f8fafc; padding:14px; border-radius:14px; border:1px solid #e2e8f0;">
+          
+          <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 1 ? '1' : '0.35'};">
+            <div style="width:28px; height:28px; border-radius:50%; background:${stage >= 1 ? '#00c853' : '#cbd5e1'}; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">1</div>
+            <div>
+              <div style="font-weight:700; font-size:13px; color:#0f172a;">Order Confirmed</div>
+              <div style="font-size:11px; color:#64748b;">Restaurant received your order</div>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 2 ? '1' : '0.35'};">
+            <div style="width:28px; height:28px; border-radius:50%; background:${stage >= 2 ? '#00c853' : '#cbd5e1'}; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">2</div>
+            <div>
+              <div style="font-weight:700; font-size:13px; color:#0f172a;">Kitchen Preparing 🍳</div>
+              <div style="font-size:11px; color:#64748b;">Food is freshly cooking (No Cancellation)</div>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 3 ? '1' : '0.35'};">
+            <div style="width:28px; height:28px; border-radius:50%; background:${stage >= 3 ? '#00c853' : '#cbd5e1'}; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">3</div>
+            <div>
+              <div style="font-weight:700; font-size:13px; color:#0f172a;">Out for Delivery 🛵</div>
+              <div style="font-size:11px; color:#64748b;">Delivery partner on the way</div>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:12px; opacity:${stage >= 4 ? '1' : '0.35'};">
+            <div style="width:28px; height:28px; border-radius:50%; background:${stage >= 4 ? '#00c853' : '#cbd5e1'}; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">4</div>
+            <div>
+              <div style="font-weight:700; font-size:13px; color:#0f172a;">Delivered 🎉</div>
+              <div style="font-size:11px; color:#64748b;">Enjoy your hot & fresh meal!</div>
+            </div>
+          </div>
+        </div>
+
+        <a href="tel:8453270362" style="display:flex; align-items:center; justify-content:center; gap:8px; background:#00c853; color:#ffffff; text-decoration:none; padding:11px; border-radius:10px; font-weight:700; font-size:13px;">
+          📞 Call Delivery Partner (8453270362)
+        </a>
       </div>
-
-      <div class="tracker-box">
-        <div class="step-item ${stage >= 1 ? (stage > 1 ? 'done' : 'active') : ''}">
-          <div class="step-circle">${stage > 1 ? '✓' : '1'}</div>
-          <div class="step-line"></div>
-          <div>
-            <div style="font-size:13px; font-weight:700;">Order Confirmed</div>
-            <div style="font-size:11px; color:var(--gray);">Restaurant received your order</div>
-          </div>
-        </div>
-
-        <div class="step-item ${stage >= 2 ? (stage > 2 ? 'done' : 'active') : ''}">
-          <div class="step-circle">${stage > 2 ? '✓' : '2'}</div>
-          <div class="step-line"></div>
-          <div>
-            <div style="font-size:13px; font-weight:700;">Kitchen Preparing</div>
-            <div style="font-size:11px; color:var(--gray);">Food is freshly cooking</div>
-          </div>
-        </div>
-
-        <div class="step-item ${stage >= 3 ? (stage > 3 ? 'done' : 'active') : ''}">
-          <div class="step-circle">${stage > 3 ? '✓' : '3'}</div>
-          <div class="step-line"></div>
-          <div>
-            <div style="font-size:13px; font-weight:700;">Out for Delivery</div>
-            <div style="font-size:11px; color:var(--gray);">Delivery partner on the way</div>
-          </div>
-        </div>
-
-        <div class="step-item ${stage >= 4 ? 'done' : ''}">
-          <div class="step-circle">${stage >= 4 ? '✓' : '4'}</div>
-          <div>
-            <div style="font-size:13px; font-weight:700;">Delivered</div>
-            <div style="font-size:11px; color:var(--gray);">Enjoy your hot & fresh meal!</div>
-          </div>
-        </div>
-      </div>
-
-      <a href="tel:8453270362" class="admin-btn btn-green" style="text-decoration:none; display:block; text-align:center; margin-top:16px;">
-        <i class="fa-solid fa-phone"></i> Call Delivery Partner (8453270362)
-      </a>
     `;
-    document.getElementById('trackingModal').style.display = 'flex';
   });
 }
 
 function reorderItems(key, phone) {
   db.ref("customer_history/" + phone + "/" + key).once("value", snap => {
     const ord = snap.val();
-    if(ord && ord.items) {
-      ord.items.forEach(i => {
-        addToCart(i.id || "dish_" + Date.now(), i.name, i.price, i.img);
-      });
+    if (ord && ord.items) {
+      cart = [...ord.items];
+      updateCartBar();
       closeModal('orderHistoryModal');
       openCartModal();
-      alert("✅ Added previous order items to Bag!");
     }
   });
 }
 
-// 8. Custom Cake Studio Logic
-function openCakeStudio() {
-  document.getElementById('cakeStudioModal').style.display = 'flex';
+// ==================== 8. GENERAL UTILITIES & NAVIGATION ====================
+function closeModal(id) {
+  const m = document.getElementById(id);
+  if (m) m.style.display = 'none';
 }
 
-function selectCakeWeight(wt, price, el) {
-  selectedCakeWeight = wt;
-  selectedCakePrice = price;
-  document.querySelectorAll('.weight-pills .weight-pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-}
-
-function previewCakeUpload(input) {
-  if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const preview = document.getElementById('cakePhotoPreview');
-      preview.src = e.target.result;
-      preview.style.display = 'block';
-    }
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-
-function addCustomCakeToCart() {
-  const flavor = document.getElementById('cakeFlavorSelect').value;
-  const msg = document.getElementById('cakeCustomText').value.trim();
-  const cakeName = `Custom ${flavor} (${selectedCakeWeight} Kg)` + (msg ? ` [Msg: ${msg}]` : "");
-
-  addToCart("cake_" + Date.now(), cakeName, selectedCakePrice, "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500");
-  closeModal('cakeStudioModal');
-  alert("🎂 Custom Cake added to Bag!");
-}
-
-// 9. Customer Profile & Cloud Sync
 function switchNavTab(tab) {
-  document.querySelectorAll('.bottom-nav .nav-tab').forEach(t => t.classList.remove('active'));
-  closeModal('accountModal');
-  closeModal('orderHistoryModal');
-  closeModal('wishlistModal');
-  closeModal('cakeStudioModal');
-  closeModal('productDetailModal');
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  const current = document.getElementById('nav-' + tab);
+  if (current) current.classList.add('active');
 
-  if(tab === 'home') {
-    document.getElementById('tabHome').classList.add('active');
-  } else if(tab === 'account') {
-    document.getElementById('tabAccount').classList.add('active');
-    openProfileTab();
-  }
-}
-
-function openProfileTab() {
-  const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
-  if(profile.name) {
-    document.getElementById('accNameDisplay').innerText = profile.name;
-    document.getElementById('accInputName').value = profile.name;
-  }
-  if(profile.phone) {
-    document.getElementById('accPhoneDisplay').innerText = profile.phone;
-    document.getElementById('accInputPhone').value = profile.phone;
-    
-    db.ref("customers/" + profile.phone + "/wishlist").once("value", snap => {
-      const cloudW = snap.val();
-      if(cloudW && Array.isArray(cloudW)) {
-        wishlist = cloudW;
-        localStorage.setItem("kd_wishlist", JSON.stringify(wishlist));
-        renderFoodItems(menuCatalog);
-      }
-    });
-  }
-  if(profile.address) {
-    document.getElementById('accInputAddress').value = profile.address;
-  }
-  const savedAvatar = localStorage.getItem("kd_cust_avatar");
-  if(savedAvatar) {
-    document.getElementById('userAvatarImg').src = savedAvatar;
-  }
-  document.getElementById('accountModal').style.display = 'flex';
-}
-
-function uploadCustomerAvatar(input) {
-  if(input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      document.getElementById('userAvatarImg').src = e.target.result;
-      localStorage.setItem("kd_cust_avatar", e.target.result);
-      alert("✅ Profile Photo Updated!");
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-
-function saveCustomerAccount() {
-  const name = document.getElementById('accInputName').value.trim();
-  const phone = document.getElementById('accInputPhone').value.trim();
-  const address = document.getElementById('accInputAddress').value.trim();
-
-  if(!name || !phone) {
-    alert("Please enter Name and Mobile number.");
-    return;
-  }
-  localStorage.setItem("kd_cust_profile", JSON.stringify({ name, phone, address }));
-  document.getElementById('accNameDisplay').innerText = name;
-  document.getElementById('accPhoneDisplay').innerText = phone;
-
-  db.ref("customers/" + phone + "/profile").set({ name, phone, address });
-  alert("✅ Account synced and saved permanently to cloud!");
-}
-
-function openSavedItemsModal() {
-  const container = document.getElementById('wishlistItemsContainer');
-  container.innerHTML = '';
-  const savedDishes = menuCatalog.filter(d => wishlist.includes(d.id));
-
-  if(savedDishes.length === 0) {
-    container.innerHTML = '<p style="text-align:center; color:var(--gray); margin-top:30px;">No saved items in your wishlist.</p>';
-  } else {
-    savedDishes.forEach(dish => {
-      container.innerHTML += `
-        <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid #e2e8f0;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <img src="${dish.img}" style="width:50px; height:50px; border-radius:6px; object-fit:cover;" />
-            <div>
-              <div style="font-size:13px; font-weight:600;">${dish.name}</div>
-              <div style="font-size:12px; color:var(--primary); font-weight:700;">₹${dish.price}</div>
-            </div>
-          </div>
-          <button class="add-btn" onclick="addToCart('${dish.id}', '${dish.name}', ${dish.price}, '${dish.img}')">ADD</button>
-        </div>
-      `;
-    });
-  }
-  document.getElementById('wishlistModal').style.display = 'flex';
-}
-
-// 10. Admin Control Room Logic (Secret Master PIN: Kd@1234)
-function openAdminGateway() {
-  document.getElementById('adminModal').style.display = 'flex';
-}
-
-function unlockAdminWithPin() {
-  const pin = document.getElementById('adminPinInput').value.trim();
-  if(pin === "Kd@1234") {
-    document.getElementById('adminLockScreen').style.display = 'none';
-    document.getElementById('adminDashboard').style.display = 'block';
-    listenToLiveOrders();
-    renderAdminMenuManager();
-  } else {
-    alert("❌ Access Denied: Incorrect Master Password!");
-  }
-}
-
-// 11. Admin Menu Item Manager
-function renderAdminMenuManager() {
-  const list = document.getElementById('adminMenuItemsList');
-  list.innerHTML = '';
-  menuCatalog.forEach((dish) => {
-    list.innerHTML += `
-      <div class="admin-menu-item-row">
-        <img src="${dish.img}" class="admin-menu-item-img" id="adminImg_${dish.id}" />
-        <div style="flex:1;">
-          <div style="font-size:13px; font-weight:700; color:#fff;">${dish.name}</div>
-          <div style="font-size:12px; color:#38bdf8;">₹${dish.price} | Stock: <strong>${dish.inStock ? '🟢 Available' : '🔴 Sold Out'}</strong></div>
-          <div class="admin-menu-actions">
-            <button class="add-btn" style="padding:3px 8px; font-size:10px;" onclick="adminEditDishPrice('${dish.id}')">✏️ Edit Price</button>
-            <label class="add-btn" style="padding:3px 8px; font-size:10px; cursor:pointer;">
-              📷 Photo
-              <input type="file" accept="image/*" style="display:none;" onchange="adminUpdateDishPhoto('${dish.id}', this)" />
-            </label>
-            <button class="add-btn" style="padding:3px 8px; font-size:10px; background:${dish.inStock ? '#ef4444' : '#10b981'}; color:#fff; border:none;" onclick="adminToggleDishStock('${dish.id}')">
-              ${dish.inStock ? 'Mark Out' : 'Mark In'}
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-  });
-}
-
-function adminEditDishPrice(dishId) {
-  const dish = menuCatalog.find(d => d.id === dishId);
-  if(!dish) return;
-  const newPrice = prompt(`Enter New Price (₹) for "${dish.name}":`, dish.price);
-  if(newPrice && !isNaN(newPrice)) {
-    dish.price = Number(newPrice);
-    localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
+  if (tab === 'home') {
+    closeModal('orderHistoryModal');
+    closeModal('accountModal');
     renderFoodItems(menuCatalog);
-    renderAdminMenuManager();
-    alert("✅ Price Updated Successfully!");
+  } else if (tab === 'cakes') {
+    filterCategory('cakes');
+  } else if (tab === 'orders') {
+    openOrderHistoryModal();
+  } else if (tab === 'account') {
+    openAccountModal();
   }
 }
 
-function adminUpdateDishPhoto(dishId, input) {
-  if(input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const dish = menuCatalog.find(d => d.id === dishId);
-      if(dish) {
-        dish.img = e.target.result;
-        localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
-        renderFoodItems(menuCatalog);
-        renderAdminMenuManager();
-        alert("✅ Dish Photo Updated from Gallery/Camera!");
-      }
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-
-function adminToggleDishStock(dishId) {
-  const dish = menuCatalog.find(d => d.id === dishId);
-  if(dish) {
-    dish.inStock = !dish.inStock;
-    localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
-    renderFoodItems(menuCatalog);
-    renderAdminMenuManager();
-    alert(`Item is now: ${dish.inStock ? '🟢 Available in Menu' : '🔴 Marked Out of Stock'}`);
-  }
-}
-
-// 12. Admin Live Orders Listener
-function listenToLiveOrders() {
-  db.ref("orders").limitToLast(20).on("value", snapshot => {
-    const data = snapshot.val();
-    const list = document.getElementById('adminLiveOrdersList');
-    list.innerHTML = '';
-    let totalSales = 0;
-    let orderCount = 0;
-
-    if(data) {
-      document.getElementById('orderAudioAlert').play().catch(()=>{});
-      Object.keys(data).reverse().forEach(key => {
-        const order = data[key];
-        orderCount++;
-        const cName = order.customerName || order.name || "Customer";
-        const cPhone = order.phone || "8453270362";
-        const cAddress = order.address || "Bengbari / Udalguri";
-        const cTotal = Number(order.grandTotal || order.total || 0);
-        const cId = order.orderId || key.substring(1, 7).toUpperCase();
-        totalSales += cTotal;
-
-        const itemsSummary = (order.items && Array.isArray(order.items)) 
-          ? order.items.map(i => `${i.name} (x${i.qty})`).join(", ") 
-          : "Food Items";
-
-        list.innerHTML += `
-          <div style="background:#0f172a; padding:12px; border-radius:8px; margin-bottom:10px; border:1px solid #334155;">
-            <div style="display:flex; justify-content:space-between; font-weight:700;">
-              <span>${cName} (₹${cTotal})</span>
-              <span style="color:var(--primary); font-size:12px;">#${cId}</span>
-            </div>
-            <p style="font-size:11px; color:#38bdf8; margin:3px 0;">📦 ${itemsSummary}</p>
-            <p style="font-size:11px; color:#94a3b8; margin:2px 0;">📍 ${cAddress}</p>
-            <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
-              <a href="tel:${cPhone}" class="add-btn" style="text-decoration:none; background:#10b981; color:#fff; border:none; padding:5px 10px; font-size:11px; border-radius:6px;">📞 Call</a>
-              <button class="add-btn" style="padding:5px 8px; font-size:11px; border-radius:6px;" onclick="updateOrderStatusFull('${key}', '${cPhone}', 2, '2. In Kitchen')">🍳 Kitchen</button>
-              <button class="add-btn" style="padding:5px 8px; font-size:11px; border-radius:6px; background:#f97316; color:#fff; border:none;" onclick="updateOrderStatusFull('${key}', '${cPhone}', 3, '3. Out for Delivery')">🛵 Out</button>
-              <button class="add-btn" style="padding:5px 8px; font-size:11px; border-radius:6px; background:#10b981; color:#fff; border:none;" onclick="updateOrderStatusFull('${key}', '${cPhone}', 4, '4. Delivered')">✅ Done</button>
-              <button class="add-btn" style="padding:5px 8px; font-size:11px; border-radius:6px; background:#3b82f6; color:#fff; border:none;" onclick="dispatchToRider('${cName}', '${cPhone}', '${cAddress}', '${itemsSummary}', '${cTotal}')">🚴 WhatsApp</button>
-              <button class="add-btn" style="padding:5px 8px; font-size:11px; border-radius:6px; background:#ef4444; color:#fff; border:none;" onclick="adminDeleteOrder('${key}')" title="Delete Order"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>
-        `;
-      });
-    }
-    document.getElementById('statTotalSales').innerText = `₹${totalSales}`;
-    document.getElementById('statOrderCount').innerText = `${orderCount}`;
-  });
-}
-
-function updateOrderStatusFull(orderKey, phone, stageNum, statusText) {
-  db.ref("orders/" + orderKey).update({ stage: stageNum, status: statusText });
-  db.ref("customer_history/" + phone).once("value", snap => {
-    const userOrders = snap.val();
-    if(userOrders) {
-      Object.keys(userOrders).forEach(k => {
-        if(userOrders[k].orderId && userOrders[k].orderId.includes(orderKey.substring(1, 6))) {
-          db.ref("customer_history/" + phone + "/" + k).update({ stage: stageNum, status: statusText });
-        }
-      });
-    }
-  });
-  alert("Order progress updated to: " + statusText);
-}
-
-function adminDeleteOrder(key) {
-  if(confirm("Delete this order from live screen? (Customer history will remain safe)")) {
-    db.ref("orders/" + key).remove().then(() => {
-      alert("Order cleared from live screen.");
-    });
-  }
-}
-
-function dispatchToRider(name, phone, address, items, total) {
-  const msg = encodeURIComponent(`🚨 *NEW RESTAURANT DELIVERY DISPATCH*\nCustomer: ${name}\nPhone: ${phone}\nAddress: ${address}\nItems: ${items}\nTotal: ₹${total}`);
-  window.open(`https://wa.me/918453270362?text=${msg}`, '_blank');
-}
-
-function previewAdminDishUpload(input) {
-  if(input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      adminUploadBase64 = e.target.result;
-      const preview = document.getElementById('adminDishPreview');
-      preview.src = e.target.result;
-      preview.style.display = 'block';
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-
-function adminSaveNewDish() {
-  const name = document.getElementById('newDishName').value.trim();
-  const price = Number(document.getElementById('newDishPrice').value);
-  const cat = document.getElementById('newDishCat').value;
-  const urlLink = document.getElementById('newDishImgUrl').value.trim();
-  const finalImg = adminUploadBase64 || urlLink || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500";
-
-  if(!name || !price) {
-    alert("Please enter Dish Name and Price.");
-    return;
-  }
-
-  menuCatalog.unshift({ id: "dish_" + Date.now(), name, price, mrp: price + 50, cat, inStock: true, img: finalImg });
-  localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
-  renderFoodItems(menuCatalog);
-  renderAdminMenuManager();
-  alert(`✅ Added "${name}" (₹${price}) to Menu!`);
-
-  document.getElementById('newDishName').value = '';
-  document.getElementById('newDishPrice').value = '';
-  document.getElementById('newDishImgUrl').value = '';
-  document.getElementById('adminDishPreview').style.display = 'none';
-  adminUploadBase64 = "";
-}
-
-function adminCreateCoupon() {
-  const code = document.getElementById('newCouponCode').value.trim();
-  const discount = document.getElementById('newCouponDiscount').value;
-  if(code && discount) {
-    alert(`Promo Code "${code}" created with ₹${discount} discount!`);
-    document.getElementById('newCouponCode').value = '';
-    document.getElementById('newCouponDiscount').value = '';
-  }
-}
-
-function toggleStoreStatus() {
-  const btn = document.getElementById('storeStatusBtn');
-  if(btn.innerText.includes("OPEN")) {
-    btn.innerText = "Restaurant is: CLOSED";
-    btn.className = "admin-btn btn-primary";
-  } else {
-    btn.innerText = "Restaurant is: OPEN (8am - 10pm)";
-    btn.className = "admin-btn btn-green";
-  }
-}
-
-function editPromoBanner() {
-  const newTitle = prompt("Enter New Carousel Headline:", "K.D RABHA SPECIAL");
-  if(newTitle) document.getElementById('bannerTitle').innerText = newTitle;
-}
-
-function assignVipBadge() {
-  const phone = document.getElementById('vipCustPhone').value.trim();
-  if(phone) {
-    alert(`👑 VIP Gold Badge permanently activated for: ${phone}`);
-    document.getElementById('vipCustPhone').value = '';
-  }
-}
-
-// Helpers
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-function searchDishes() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  const filtered = menuCatalog.filter(d => d.name.toLowerCase().includes(q));
-  renderFoodItems(filtered);
-}
 function filterCategory(cat, el) {
   document.querySelectorAll('.cat-item').forEach(c => c.classList.remove('active'));
-  if(el) el.classList.add('active');
-  if(cat === 'all') renderFoodItems(menuCatalog);
-  else renderFoodItems(menuCatalog.filter(d => d.cat === cat));
+  if (el) el.classList.add('active');
+  if (cat === 'all') {
+    renderFoodItems(menuCatalog);
+  } else {
+    renderFoodItems(menuCatalog.filter(d => d.cat === cat));
+  }
 }
+
 function triggerVoiceSearch() {
   alert("Voice Search: Say dish name (e.g. 'Pork Momo' or 'Chocolate Cake')");
 }
-// ==================== 100% REALTIME TRACKING SYNC ====================
-// 1. Firebase Config & Init
-const fbConfig = {
-  apiKey: "AIzaSyDDTfZD8eaxS6hsQ_M5akONRWixyZdjkSo",
-  authDomain: "kd-ka-khana-ghar-tak.firebaseapp.com",
-  databaseURL: "https://kd-ka-khana-ghar-tak-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "kd-ka-khana-ghar-tak"
-};
 
-if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-  firebase.initializeApp(fbConfig);
+function openAccountModal() {
+  const modal = document.getElementById('accountModal');
+  if (modal) modal.style.display = 'flex';
+  const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
+  if (profile.name && document.getElementById('accNameInput')) document.getElementById('accNameInput').value = profile.name;
+  if (profile.phone && document.getElementById('accPhoneInput')) document.getElementById('accPhoneInput').value = profile.phone;
+  if (profile.address && document.getElementById('accAddressInput')) document.getElementById('accAddressInput').value = profile.address;
 }
 
-// 2. एडमिन बटन्स को सीधे कैप्चर करके Firebase में भेजना
-document.addEventListener('click', function(e) {
-  const target = e.target;
-  const btnText = target.innerText || target.textContent || '';
-  
-  let step = 0;
-  if (btnText.includes('Kitchen')) step = 2;
-  else if (btnText.includes('Out')) step = 3;
-  else if (btnText.includes('Done')) step = 4;
+function saveAccountProfile() {
+  const name = document.getElementById('accNameInput')?.value.trim() || '';
+  const phone = document.getElementById('accPhoneInput')?.value.trim() || '';
+  const address = document.getElementById('accAddressInput')?.value.trim() || '';
 
-  if (step > 0) {
-    // कार्ड से Order ID ढूँढना
-    const card = target.closest('.order-card, div, li') || document.body;
-    const cardText = card.innerText || '';
-    const match = cardText.match(/KD\d+/i) || document.body.innerText.match(/KD\d+/i);
-    const orderId = match ? match[0] : 'KD359887';
-    const numId = orderId.replace(/[^0-9]/g, '');
-
-    // Firebase Realtime DB में सीधा अपडेट
-    if (typeof firebase !== 'undefined' && firebase.database) {
-      firebase.database().ref('live_status/' + orderId).set({ step: step, time: Date.now() });
-      firebase.database().ref('live_status/' + numId).set({ step: step, time: Date.now() });
-      firebase.database().ref('orders/' + orderId).update({ step: step });
-      firebase.database().ref('orders/' + numId).update({ step: step });
-    }
+  if (!phone) {
+    alert("Please enter mobile number.");
+    return;
   }
-}, true);
 
-// 3. कस्टमर स्क्रीन पर 1, 2, 3, 4 को लाइव कलर करना
-function runCustomerSync() {
-  if (typeof firebase === 'undefined' || !firebase.database) return;
+  const profile = { name, phone, address };
+  localStorage.setItem("kd_cust_profile", JSON.stringify(profile));
+  db.ref("customers/" + phone + "/profile").set(profile);
+  alert("Profile saved successfully!");
+  closeModal('accountModal');
+}
 
-  const bodyText = document.body.innerText || '';
-  const match = bodyText.match(/KD\d+/i);
-  const activeId = match ? match[0] : 'KD359887';
-  const numId = activeId.replace(/[^0-9]/g, '');
-
-  const updateUI = (step) => {
-    // कस्टमर मॉडल के अंदर मौजूद हर स्टेप को खोजना
-    const allDivs = document.querySelectorAll('div, li, p, span');
-    allDivs.forEach(el => {
-      const txt = (el.innerText || '').trim();
-      
-      // Step 1: Confirmed
-      if (txt.includes('Order Confirmed') || txt.includes('Restaurant received')) {
-        highlightStep(el, step >= 1);
-      }
-      // Step 2: Kitchen
-      if (txt.includes('Kitchen Preparing') || txt.includes('Food is freshly')) {
-        highlightStep(el, step >= 2);
-      }
-      // Step 3: Out for Delivery
-      if (txt.includes('Out for Delivery') || txt.includes('partner on the way')) {
-        highlightStep(el, step >= 3);
-      }
-      // Step 4: Delivered
-      if (txt.includes('Delivered') || txt.includes('hot & fresh meal')) {
-        highlightStep(el, step >= 4);
-      }
-    });
+// ==================== 9. ADMIN STATUS CONTROLS (FIREBASE) ====================
+function updateOrderStatusFromAdmin(orderKey, phone, newStage, statusText) {
+  if (!db) return;
+  const updates = {
+    stage: Number(newStage),
+    status: statusText,
+    updatedAt: firebase.database.ServerValue.TIMESTAMP
   };
 
-  function highlightStep(parentEl, isActive) {
-    const row = parentEl.closest('div') || parentEl;
-    if (isActive) {
-      row.style.opacity = "1";
-      row.style.color = "#00c853";
-      // गोल नंबर या बुलेट का बैकग्राउंड हरा करना
-      const dots = row.querySelectorAll('span, div, i, b');
-      dots.forEach(d => {
-        if (['1','2','3','4'].includes(d.innerText.trim())) {
-          d.style.background = "#00c853";
-          d.style.color = "#ffffff";
-          d.style.borderColor = "#00c853";
-        }
-      });
-    } else {
-      row.style.opacity = "0.35";
-      row.style.color = "#64748b";
-    }
+  if (phone && orderKey) {
+    db.ref("customer_history/" + phone + "/" + orderKey).update(updates);
   }
-
-  // Firebase Live Listeners
-  firebase.database().ref('live_status/' + activeId).on('value', snap => {
-    if (snap.val() && snap.val().step) updateUI(Number(snap.val().step));
-  });
-  firebase.database().ref('live_status/' + numId).on('value', snap => {
-    if (snap.val() && snap.val().step) updateUI(Number(snap.val().step));
-  });
+  db.ref("orders/" + orderKey).update(updates);
+  alert("Order progress updated to: " + statusText);
 }
-
-// ऑटो लूप में चालू रखना
-setInterval(runCustomerSync, 1500);
-// ================= S&A ORDER LIFECYCLE & LIVE TRACKING =================
-
-// 1. एडमिन कंट्रोलर: किचन, आउट और डन बटन हैंडलर
-function handleAdminStatusUpdate(orderId, nextStep) {
-  const cleanId = String(orderId).replace(/[^0-9]/g, '');
-  const stepMap = {
-    2: { name: "Kitchen Preparing", msg: "खाना बनना शुरू हो गया है। कस्टमर अब कैंसिल नहीं कर सकता।" },
-    3: { name: "Out for Delivery", msg: "ऑर्डर डिलीवरी बॉय को सौंप दिया गया है।" },
-    4: { name: "Delivered", msg: "ऑर्डर सफलतापूर्वक डिलीवर हो गया।" }
-  };
-
-  const current = stepMap[nextStep] || { name: "Updated", msg: "Status changed" };
-  alert(current.name + "\n" + current.msg);
-
-  // Firebase Realtime DB में लाइव सिंक
-  if (typeof firebase !== 'undefined' && firebase.database) {
-    firebase.database().ref('orders/KD' + cleanId).update({
-      step: Number(nextStep),
-      canCancel: nextStep === 1, // स्टेप 2 (किचन) होते ही कैंसिलेशन बंद
-      updatedAt: Date.now()
-    });
-    firebase.database().ref('orders/' + cleanId).update({
-      step: Number(nextStep),
-      canCancel: nextStep === 1
-    });
-  }
-}
-
-// एडमिन के क्लिक्स को सीधे जोड़ना
-document.addEventListener('click', function(e) {
-  const btn = e.target.closest('button, .btn');
-  if (!btn) return;
-  const txt = (btn.innerText || '').trim();
-
-  let targetStep = 0;
-  if (txt.includes('Kitchen')) targetStep = 2;
-  else if (txt.includes('Out')) targetStep = 3;
-  else if (txt.includes('Done')) targetStep = 4;
-
-  if (targetStep > 0) {
-    const card = btn.closest('div, li') || document.body;
-  
-        <div id="ui_step_2" style="display:flex; align-items:center; gap:12px; opacity:0.4;">
-          <div id="ui_dot_2" style="width:28px; height:28px; border-radius:50%; background:#cbd5e1; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">2</div>
-          <div>
-            <div style="font-weight:700; font-size:13px; color:#0f172a;">Kitchen Preparing 🍳</div>
-            <div style="font-size:11px; color:#64748b;">ताज़ा खाना बन रहा है (No Cancel)</div>
-          </div>
-        </div>
-
-        <!-- Step 3 -->
-        <div id="ui_step_3" style="display:flex; align-items:center; gap:12px; opacity:0.4;">
-          <div id="ui_dot_3" style="width:28px; height:28px; border-radius:50%; background:#cbd5e1; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">3</div>
-          <div>
-            <div style="font-weight:700; font-size:13px; color:#0f172a;">Out for Delivery 🛵</div>
-            <div style="font-size:11px; color:#64748b;">डिलीवरी पार्टनर रास्ते में है</div>
-          </div>
-        </div>
-
-        <!-- Step 4 -->
-        <div id="ui_step_4" style="display:flex; align-items:center; gap:12px; opacity:0.4;">
-          <div id="ui_dot_4" style="width:28px; height:28px; border-radius:50%; background:#cbd5e1; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">4</div>
-          <div>
-            <div style="font-weight:700; font-size:13px; color:#0f172a;">Delivered 🎉</div>
-            <div style="font-size:11px; color:#64748b;">खाना डिलीवर हो गया, Enjoy!</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Call Button -->
-      <a href="tel:8453270362" style="display:flex; align-items:center; justify-content:center; gap:8px; background:#00c853; color:#ffffff; text-decoration:none; padding:11px; border-radius:10px; font-weight:700; font-size:13px;">
-        📞 Call Delivery Partner (8453270362)
-      </a>
-      
-      <!-- Lock Notice -->
-      <div id="lockNoticeText" style="margin-top:8px; font-size:11px; text-align:center; color:#e11d48; font-weight:600;"></div>
-    </div>
-  `;
-
-  modal.style.display = 'flex';
-
-  // Firebase Realtime Listener
-  if (typeof firebase !== 'undefined' && firebase.database) {
-    firebase.database().ref('orders/' + cleanId).on('value', snap => {
-      const data = snap.val();
-      const currentStep = data && data.step ? Number(data.step) : 1;
-      updatePopupUI(currentStep);
-    });
-  } else {
-    updatePopupUI(1);
-  }
-}
-
-function updatePopupUI(activeStep) {
-  for (let i = 1; i <= 4; i++) {
-    const row = document.getElementById('ui_step_' + i);
-    const dot = document.getElementById('ui_dot_' + i);
-    if (!row || !dot) continue;
-
-    if (i <= activeStep) {
-      row.style.opacity = '1';
-      dot.style.background = '#00c853';
-    } else {
-      row.style.opacity = '0.4';
-      dot.style.background = '#cbd5e1';
-    }
-  }
-
-  const notice = document.getElementById('lockNoticeText');
-  if (notice) {
-    notice.innerText = activeStep >= 2 ? "⚠️ खाना बनना शुरू हो गया है, अब ऑर्डर कैंसिल नहीं हो सकता।" : "";
-  }
-}
-// ==================== 1. FIREBASE SETUP ====================
-let db = null;
-try {
-  if (typeof firebase !== 'undefined') {
-    const firebaseConfig = {
-      apiKey: "AIzaSyDDTfZD8eaxS6hsQ_M5akONRWixyZdjkSo",
-      authDomain: "kd-ka-khana-ghar-tak.firebaseapp.com",
-      databaseURL: "https://kd-ka-khana-ghar-tak-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "kd-ka-khana-ghar-tak"
-    };
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    db = firebase.database();
-  }
-} catch (e) {
-  console.log("Firebase Init error:", e);
-}
-
-// ==================== 2. MENU DATA ====================
-const menuCatalog = [
-  {
-    id: 101,
-    name: "Chicken Steamed Momo (10 Pcs)",
-    cat: "momos",
-    price: 129,
-    mrp: 160,
-    img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500"
-  },
-  {
-    id: 102,
-    name: "Chicken Fried Momo (10 Pcs)",
-    cat: "momos",
-    price: 140,
-    mrp: 170,
-    img: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=500"
-  },
-  {
-    id: 103,
-    name: "Single Egg Chicken Roll",
-    cat: "rolls",
-    price: 90,
-    mrp: 110,
-    img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500"
-  },
-  {
-    id: 104,
-    name: "Special Pork Roll",
-    cat: "rolls",
-    price: 130,
-    mrp: 150,
-    img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500"
-  },
-  {
-    id: 105,
-    name: "Crispy Pork Dry Fry",
-    cat: "pork",
-    price: 320,
-    mrp: 380,
-    img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500"
-  },
-  {
-    id: 106,
-    name: "Chicken Butter Masala (Boneless)",
-    cat: "chicken",
-    price: 280,
-    mrp: 320,
-    img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=500"
-  }
-];
-
-// ==================== 3. RENDER DISHES ====================
-function renderDishesList(items) {
-  let grid = document.querySelector('.recommended-grid') || document.getElementById('recommendedContainer');
-  
-  if (!grid) {
-    const sec = document.querySelector('.category-scroll') || document.querySelector('header');
-    if (sec) {
-      grid = document.getElementById('mainDishGrid');
-      if (!grid) {
-        grid = document.createElement('div');
-        grid.id = 'mainDishGrid';
-        grid.style.cssText = "display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:15px;";
-        sec.parentNode.insertBefore(grid, sec.nextSibling);
-      }
-    }
-  }
-
-  if (!grid) return;
-
-  grid.innerHTML = items.map(dish => `
-    <div style="background:#ffffff; border-radius:14px; padding:10px; box-shadow:0 3px 10px rgba(0,0,0,0.06); text-align:left; border:1px solid #f1f5f9;">
-      <img src="${dish.img}" style="width:100%; height:115px; object-fit:cover; border-radius:10px; margin-bottom:8px;" />
-      <h4 style="font-size:13px; font-weight:700; margin:2px 0 6px; color:#1e293b; height:34px; overflow:hidden;">${dish.name}</h4>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-        <span style="font-size:15px; font-weight:800; color:#0f172a;">₹${dish.price}</span>
-        <button onclick="placeQuickOrder('${dish.name}', ${dish.price})" style="background:#ff3e6c; color:#fff; border:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">ADD +</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-// ==================== 4. ORDER & TRACKING ====================
-function placeQuickOrder(name, price) {
-  const orderId = 'KD' + Math.floor(100000 + Math.random() * 900000);
-  const orderData = {
-    id: orderId,
-    dish: name,
-    price: price,
-    step: 1,
-    time: new Date().toLocaleTimeString()
-  };
-
-  localStorage.setItem('active_order_id', orderId);
-
-  if (db) {
-    db.ref('orders/' + orderId).set(orderData);
-  }
-
-  alert("ऑर्डर प्लेस हो गया! Order ID: #" + orderId);
-  openCleanLiveModal(orderId);
-}
-
-// "Live Track" बटन हैंडलर
-document.addEventListener('click', function(e) {
-  const btn = e.target.closest('button, a, div, span');
-  if (!btn) return;
-  const txt = (btn.innerText || '').trim();
-
-  if (txt.includes('Live Track') || txt.includes('Track')) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const parent = btn.closest('div, li') || document.body;
-    const match = (parent.innerText || '').match(/KD\d+/i) || (document.body.innerText || '').match(/KD\d+/i);
-    const orderId = match ? match[0] : (localStorage.getItem('active_order_id') || 'KD894979');
-
-    openCleanLiveModal(orderId);
-  }
-}, true);
-
-// 4-स्टेप्स लाइव पॉप-अप
-function openCleanLiveModal(orderId) {
-  let modal = document.getElementById('liveCustomerTrackingModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'liveCustomerTrackingModal';
-    modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;";
-    document.body.appendChild(modal);
-  }
-
-  const cleanId = orderId.replace('#', '');
-
-  modal.innerHTML = `
-    <div style="background:#ffffff; border-radius:20px; width:100%; max-width:360px; padding:22px; position:relative; box-shadow:0 12px 35px rgba(0,0,0,0.3); font-family:sans-serif; color:#1e293b; box-sizing:border-box;">
-      <button onclick="document.getElementById('liveCustomerTrackingModal').style.display='none'" style="position:absolute; right:14px; top:14px; background:#f1f5f9; border:none; width:32px; height:32px; border-radius:50%; font-size:16px; font-weight:bold; color:#475569; cursor:pointer;">✕</button>
-      
-      <div style="font-size:11px; font-weight:800; color:#ff3e6c; text-transform:uppercase; letter-spacing:0.8px;">LIVE ORDER STATUS</div>
-      <h3 style="margin:4px 0 2px 0; font-size:18px; color:#0f172a; font-weight:800;">Order #${cleanId}</h3>
-      <div style="font-size:12px; color:#64748b; margin-bottom:16px;">Estimated Prep & Delivery: ~30 Mins</div>
-
-      <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:18px; background:#f8fafc; padding:14px; border-radius:14px; border:1px solid #e2e8f0;">
-        
-        <div id="ui_step_1" style="display:flex; align-items:center; gap:12px;">
-          <div id="ui_dot_1" style="width:28px; height:28px; border-radius:50%; background:#00c853; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">1</div>
-          <div>
-            <div style="font-weight:700; font-size:13px; color:#0f172a;">Order Confirmed</div>
-            <div style="font-size:11px; color:#64748b;">रेस्टोरेंट को ऑर्डर मिल गया है</div>
-          </div>
-        </div>
-
-        <div id="ui_step_2" style="display:flex; align-items:center; gap:12px; opacity:0.35;">
-          <div id="ui_dot_2" style="width:28px; height:28px; border-radius:50%; background:#cbd5e1; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">2</div>
-          <div>
-            <div style="font-weight:700; font-size:13px; color:#0f172a;">Kitchen Preparing 🍳</div>
-            <div style="font-size:11px; color:#64748b;">ताज़ा खाना बन रहा है (No Cancel)</div>
-          </div>
-        </div>
-
-        <div id="ui_step_3" style="display:flex; align-items:center; gap:12px; opacity:0.35;">
-          <div id="ui_dot_3" style="width:28px; height:28px; border-radius:50%; background:#cbd5e1; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">3</div>
-          <div>
-            <div style="font-weight:700; font-size:13px; color:#0f172a;">Out for Delivery 🛵</div>
-            <div style="font-size:11px; color:#64748b;">डिलीवरी पार्टनर रास्ते में है</div>
-          </div>
-        </div>
-
-        <div id="ui_step_4" style="display:flex; align-items:center; gap:12px; opacity:0.35;">
-          <div id="ui_dot_4" style="width:28px; height:28px; border-radius:50%; background:#cbd5e1; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">4</div>
-          <div>
-            <div style="font-weight:700; font-size:13px; color:#0f172a;">Delivered 🎉</div>
-            <div style="font-size:11px; color:#64748b;">खाना डिलीवर हो गया, Enjoy!</div>
-          </div>
-        </div>
-      </div>
-
-      <a href="tel:8453270362" style="display:flex; align-items:center; justify-content:center; gap:8px; background:#00c853; color:#ffffff; text-decoration:none; padding:12px; border-radius:12px; font-weight:700; font-size:13px;">
-        📞 Call Delivery Partner (8453270362)
-      </a>
-      
-      <div id="lockNoticeText" style="margin-top:8px; font-size:11px; text-align:center; color:#e11d48; font-weight:600;"></div>
-    </div>
-  `;
-
-  modal.style.display = 'flex';
-
-  if (db) {
-    db.ref('orders/' + cleanId).on('value', snap => {
-      const data = snap.val();
-      const currentStep = data && data.step ? Number(data.step) : 1;
-      updatePopupUI(currentStep);
-    });
-  }
-}
-
-function updatePopupUI(activeStep) {
-  for (let i = 1; i <= 4; i++) {
-    const row = document.getElementById('ui_step_' + i);
-    const dot = document.getElementById('ui_dot_' + i);
-    if (!row || !dot) continue;
-
-    if (i <= activeStep) {
-      row.style.opacity = '1';
-      dot.style.background = '#00c853';
-    } else {
-      row.style.opacity = '0.35';
-      dot.style.background = '#cbd5e1';
-    }
-  }
-
-  const notice = document.getElementById('lockNoticeText');
-  if (notice) {
-    notice.innerText = activeStep >= 2 ? "⚠️ खाना बनना शुरू हो गया है, अब यह ऑर्डर कैंसिल नहीं हो सकता।" : "";
-  }
-}
-
-// ==================== 5. ADMIN CLICK LISTENER ====================
-document.addEventListener('click', function(e) {
-  const btn = e.target.closest('button, .btn');
-  if (!btn) return;
-  const txt = (btn.innerText || '').trim();
-
-  let targetStep = 0;
-  if (txt.includes('Kitchen')) targetStep = 2;
-  else if (txt.includes('Out')) targetStep = 3;
-  else if (txt.includes('Done')) targetStep = 4;
-
-  if (targetStep > 0) {
-    const card = btn.closest('div, li') || document.body;
-    const match = (card.innerText || '').match(/KD\d+/i) || (document.body.innerText || '').match(/KD\d+/i);
-    const orderId = match ? match[0] : 'KD894979';
-    const cleanId = orderId.replace(/[^0-9]/g, '');
-
-    alert("Status Updated: Step " + targetStep);
-
-    if (db) {
-      db.ref('orders/KD' + cleanId).update({ step: targetStep });
-      db.ref('orders/' + cleanId).update({ step: targetStep });
-    }
-  }
-}, true);
-
-// ==================== 6. START ====================
-window.addEventListener('DOMContentLoaded', () => {
-  renderDishesList(menuCatalog);
-
-  // Category Tab clicks
-  const catItems = document.querySelectorAll('.cat-item');
-  catItems.forEach(item => {
-    item.addEventListener('click', function() {
-      catItems.forEach(c => c.classList.remove('active'));
-      this.classList.add('active');
-      const catText = (this.querySelector('.cat-name')?.innerText || 'all').toLowerCase();
-      
-      const filtered = catText.includes('all') 
-        ? menuCatalog 
-        : menuCatalog.filter(d => d.cat.toLowerCase().includes(catText));
-      
-      renderDishesList(filtered);
-    });
-  });
-});
