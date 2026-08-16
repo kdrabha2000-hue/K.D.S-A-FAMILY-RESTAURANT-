@@ -1069,3 +1069,285 @@ function updatePopupUI(activeStep) {
     notice.innerText = activeStep >= 2 ? "⚠️ खाना बनना शुरू हो गया है, अब ऑर्डर कैंसिल नहीं हो सकता।" : "";
   }
 }
+// ==================== 1. FIREBASE SETUP ====================
+let db = null;
+try {
+  if (typeof firebase !== 'undefined') {
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDTfZD8eaxS6hsQ_M5akONRWixyZdjkSo",
+      authDomain: "kd-ka-khana-ghar-tak.firebaseapp.com",
+      databaseURL: "https://kd-ka-khana-ghar-tak-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "kd-ka-khana-ghar-tak"
+    };
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.database();
+  }
+} catch (e) {
+  console.log("Firebase Init error:", e);
+}
+
+// ==================== 2. MENU DATA ====================
+const menuCatalog = [
+  {
+    id: 101,
+    name: "Chicken Steamed Momo (10 Pcs)",
+    cat: "momos",
+    price: 129,
+    mrp: 160,
+    img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500"
+  },
+  {
+    id: 102,
+    name: "Chicken Fried Momo (10 Pcs)",
+    cat: "momos",
+    price: 140,
+    mrp: 170,
+    img: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=500"
+  },
+  {
+    id: 103,
+    name: "Single Egg Chicken Roll",
+    cat: "rolls",
+    price: 90,
+    mrp: 110,
+    img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500"
+  },
+  {
+    id: 104,
+    name: "Special Pork Roll",
+    cat: "rolls",
+    price: 130,
+    mrp: 150,
+    img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500"
+  },
+  {
+    id: 105,
+    name: "Crispy Pork Dry Fry",
+    cat: "pork",
+    price: 320,
+    mrp: 380,
+    img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500"
+  },
+  {
+    id: 106,
+    name: "Chicken Butter Masala (Boneless)",
+    cat: "chicken",
+    price: 280,
+    mrp: 320,
+    img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=500"
+  }
+];
+
+// ==================== 3. RENDER DISHES ====================
+function renderDishesList(items) {
+  let grid = document.querySelector('.recommended-grid') || document.getElementById('recommendedContainer');
+  
+  if (!grid) {
+    const sec = document.querySelector('.category-scroll') || document.querySelector('header');
+    if (sec) {
+      grid = document.getElementById('mainDishGrid');
+      if (!grid) {
+        grid = document.createElement('div');
+        grid.id = 'mainDishGrid';
+        grid.style.cssText = "display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:15px;";
+        sec.parentNode.insertBefore(grid, sec.nextSibling);
+      }
+    }
+  }
+
+  if (!grid) return;
+
+  grid.innerHTML = items.map(dish => `
+    <div style="background:#ffffff; border-radius:14px; padding:10px; box-shadow:0 3px 10px rgba(0,0,0,0.06); text-align:left; border:1px solid #f1f5f9;">
+      <img src="${dish.img}" style="width:100%; height:115px; object-fit:cover; border-radius:10px; margin-bottom:8px;" />
+      <h4 style="font-size:13px; font-weight:700; margin:2px 0 6px; color:#1e293b; height:34px; overflow:hidden;">${dish.name}</h4>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+        <span style="font-size:15px; font-weight:800; color:#0f172a;">₹${dish.price}</span>
+        <button onclick="placeQuickOrder('${dish.name}', ${dish.price})" style="background:#ff3e6c; color:#fff; border:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">ADD +</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ==================== 4. ORDER & TRACKING ====================
+function placeQuickOrder(name, price) {
+  const orderId = 'KD' + Math.floor(100000 + Math.random() * 900000);
+  const orderData = {
+    id: orderId,
+    dish: name,
+    price: price,
+    step: 1,
+    time: new Date().toLocaleTimeString()
+  };
+
+  localStorage.setItem('active_order_id', orderId);
+
+  if (db) {
+    db.ref('orders/' + orderId).set(orderData);
+  }
+
+  alert("ऑर्डर प्लेस हो गया! Order ID: #" + orderId);
+  openCleanLiveModal(orderId);
+}
+
+// "Live Track" बटन हैंडलर
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('button, a, div, span');
+  if (!btn) return;
+  const txt = (btn.innerText || '').trim();
+
+  if (txt.includes('Live Track') || txt.includes('Track')) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const parent = btn.closest('div, li') || document.body;
+    const match = (parent.innerText || '').match(/KD\d+/i) || (document.body.innerText || '').match(/KD\d+/i);
+    const orderId = match ? match[0] : (localStorage.getItem('active_order_id') || 'KD894979');
+
+    openCleanLiveModal(orderId);
+  }
+}, true);
+
+// 4-स्टेप्स लाइव पॉप-अप
+function openCleanLiveModal(orderId) {
+  let modal = document.getElementById('liveCustomerTrackingModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'liveCustomerTrackingModal';
+    modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;";
+    document.body.appendChild(modal);
+  }
+
+  const cleanId = orderId.replace('#', '');
+
+  modal.innerHTML = `
+    <div style="background:#ffffff; border-radius:20px; width:100%; max-width:360px; padding:22px; position:relative; box-shadow:0 12px 35px rgba(0,0,0,0.3); font-family:sans-serif; color:#1e293b; box-sizing:border-box;">
+      <button onclick="document.getElementById('liveCustomerTrackingModal').style.display='none'" style="position:absolute; right:14px; top:14px; background:#f1f5f9; border:none; width:32px; height:32px; border-radius:50%; font-size:16px; font-weight:bold; color:#475569; cursor:pointer;">✕</button>
+      
+      <div style="font-size:11px; font-weight:800; color:#ff3e6c; text-transform:uppercase; letter-spacing:0.8px;">LIVE ORDER STATUS</div>
+      <h3 style="margin:4px 0 2px 0; font-size:18px; color:#0f172a; font-weight:800;">Order #${cleanId}</h3>
+      <div style="font-size:12px; color:#64748b; margin-bottom:16px;">Estimated Prep & Delivery: ~30 Mins</div>
+
+      <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:18px; background:#f8fafc; padding:14px; border-radius:14px; border:1px solid #e2e8f0;">
+        
+        <div id="ui_step_1" style="display:flex; align-items:center; gap:12px;">
+          <div id="ui_dot_1" style="width:28px; height:28px; border-radius:50%; background:#00c853; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">1</div>
+          <div>
+            <div style="font-weight:700; font-size:13px; color:#0f172a;">Order Confirmed</div>
+            <div style="font-size:11px; color:#64748b;">रेस्टोरेंट को ऑर्डर मिल गया है</div>
+          </div>
+        </div>
+
+        <div id="ui_step_2" style="display:flex; align-items:center; gap:12px; opacity:0.35;">
+          <div id="ui_dot_2" style="width:28px; height:28px; border-radius:50%; background:#cbd5e1; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">2</div>
+          <div>
+            <div style="font-weight:700; font-size:13px; color:#0f172a;">Kitchen Preparing 🍳</div>
+            <div style="font-size:11px; color:#64748b;">ताज़ा खाना बन रहा है (No Cancel)</div>
+          </div>
+        </div>
+
+        <div id="ui_step_3" style="display:flex; align-items:center; gap:12px; opacity:0.35;">
+          <div id="ui_dot_3" style="width:28px; height:28px; border-radius:50%; background:#cbd5e1; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">3</div>
+          <div>
+            <div style="font-weight:700; font-size:13px; color:#0f172a;">Out for Delivery 🛵</div>
+            <div style="font-size:11px; color:#64748b;">डिलीवरी पार्टनर रास्ते में है</div>
+          </div>
+        </div>
+
+        <div id="ui_step_4" style="display:flex; align-items:center; gap:12px; opacity:0.35;">
+          <div id="ui_dot_4" style="width:28px; height:28px; border-radius:50%; background:#cbd5e1; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; flex-shrink:0;">4</div>
+          <div>
+            <div style="font-weight:700; font-size:13px; color:#0f172a;">Delivered 🎉</div>
+            <div style="font-size:11px; color:#64748b;">खाना डिलीवर हो गया, Enjoy!</div>
+          </div>
+        </div>
+      </div>
+
+      <a href="tel:8453270362" style="display:flex; align-items:center; justify-content:center; gap:8px; background:#00c853; color:#ffffff; text-decoration:none; padding:12px; border-radius:12px; font-weight:700; font-size:13px;">
+        📞 Call Delivery Partner (8453270362)
+      </a>
+      
+      <div id="lockNoticeText" style="margin-top:8px; font-size:11px; text-align:center; color:#e11d48; font-weight:600;"></div>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+
+  if (db) {
+    db.ref('orders/' + cleanId).on('value', snap => {
+      const data = snap.val();
+      const currentStep = data && data.step ? Number(data.step) : 1;
+      updatePopupUI(currentStep);
+    });
+  }
+}
+
+function updatePopupUI(activeStep) {
+  for (let i = 1; i <= 4; i++) {
+    const row = document.getElementById('ui_step_' + i);
+    const dot = document.getElementById('ui_dot_' + i);
+    if (!row || !dot) continue;
+
+    if (i <= activeStep) {
+      row.style.opacity = '1';
+      dot.style.background = '#00c853';
+    } else {
+      row.style.opacity = '0.35';
+      dot.style.background = '#cbd5e1';
+    }
+  }
+
+  const notice = document.getElementById('lockNoticeText');
+  if (notice) {
+    notice.innerText = activeStep >= 2 ? "⚠️ खाना बनना शुरू हो गया है, अब यह ऑर्डर कैंसिल नहीं हो सकता।" : "";
+  }
+}
+
+// ==================== 5. ADMIN CLICK LISTENER ====================
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('button, .btn');
+  if (!btn) return;
+  const txt = (btn.innerText || '').trim();
+
+  let targetStep = 0;
+  if (txt.includes('Kitchen')) targetStep = 2;
+  else if (txt.includes('Out')) targetStep = 3;
+  else if (txt.includes('Done')) targetStep = 4;
+
+  if (targetStep > 0) {
+    const card = btn.closest('div, li') || document.body;
+    const match = (card.innerText || '').match(/KD\d+/i) || (document.body.innerText || '').match(/KD\d+/i);
+    const orderId = match ? match[0] : 'KD894979';
+    const cleanId = orderId.replace(/[^0-9]/g, '');
+
+    alert("Status Updated: Step " + targetStep);
+
+    if (db) {
+      db.ref('orders/KD' + cleanId).update({ step: targetStep });
+      db.ref('orders/' + cleanId).update({ step: targetStep });
+    }
+  }
+}, true);
+
+// ==================== 6. START ====================
+window.addEventListener('DOMContentLoaded', () => {
+  renderDishesList(menuCatalog);
+
+  // Category Tab clicks
+  const catItems = document.querySelectorAll('.cat-item');
+  catItems.forEach(item => {
+    item.addEventListener('click', function() {
+      catItems.forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      const catText = (this.querySelector('.cat-name')?.innerText || 'all').toLowerCase();
+      
+      const filtered = catText.includes('all') 
+        ? menuCatalog 
+        : menuCatalog.filter(d => d.cat.toLowerCase().includes(catText));
+      
+      renderDishesList(filtered);
+    });
+  });
+});
