@@ -19,7 +19,6 @@ const adminRingerAudio = new Audio('https://actions.google.com/sounds/v1/alarms/
 adminRingerAudio.loop = true;
 let isAudioUnlocked = false;
 
-// Screen par touch hote hi audio unlock
 document.addEventListener('click', () => {
   if (!isAudioUnlocked) {
     adminRingerAudio.play().then(() => {
@@ -38,28 +37,22 @@ const defaultMenu = [
   { id: "m4", name: "Pork Steamed Momo (10 Pcs)", price: 130, mrp: 170, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=500" },
   { id: "m5", name: "Pork Fried Momo (10 Pcs)", price: 150, mrp: 190, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500" },
   { id: "m6", name: "Cheese & Veg Momo (10 Pcs)", price: 130, mrp: 160, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=500" },
-
   { id: "r1", name: "Single Egg Chicken Roll", price: 90, mrp: 120, cat: "rolls", inStock: true, img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500" },
   { id: "r2", name: "Double Egg Double Chicken Roll", price: 120, mrp: 150, cat: "rolls", inStock: true, img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=500" },
   { id: "r3", name: "Special Pork Roll", price: 130, mrp: 160, cat: "rolls", inStock: true, img: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500" },
   { id: "r4", name: "Crispy French Fries (Peri-Peri)", price: 80, mrp: 110, cat: "rolls", inStock: true, img: "https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500" },
-
   { id: "c1", name: "Chicken Butter Masala (Boneless)", price: 280, mrp: 350, cat: "chicken", inStock: true, img: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=500" },
   { id: "c2", name: "Chicken Curry / Kadhai Chicken", price: 260, mrp: 320, cat: "chicken", inStock: true, img: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500" },
   { id: "c3", name: "Crispy Chilli Chicken (Dry)", price: 220, mrp: 280, cat: "chicken", inStock: true, img: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=500" },
-
   { id: "p1", name: "Pork Curry with Bamboo Shoot", price: 300, mrp: 380, cat: "pork", inStock: true, img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500" },
   { id: "p2", name: "Smoked Pork Dry Fry", price: 320, mrp: 400, cat: "pork", inStock: true, img: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=500" },
   { id: "p3", name: "Pork Bhuna Masala", price: 310, mrp: 390, cat: "pork", inStock: true, img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500" },
-
   { id: "ct1", name: "Special Chicken Hakka Chowmein", price: 130, mrp: 170, cat: "chow_thukpa", inStock: true, img: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=500" },
   { id: "ct2", name: "Special Pork Chowmein", price: 150, mrp: 190, cat: "chow_thukpa", inStock: true, img: "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=500" },
   { id: "ct3", name: "Hot Chicken Thukpa Soup", price: 140, mrp: 180, cat: "chow_thukpa", inStock: true, img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=500" },
-
   { id: "ck1", name: "Chocolate Truffle Cake (1 Kg)", price: 850, mrp: 1100, cat: "cakes", inStock: true, img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500" },
   { id: "ck2", name: "Black Forest Cake (1 Kg)", price: 800, mrp: 1000, cat: "cakes", inStock: true, img: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=500" },
   { id: "ck3", name: "Vanilla / Pineapple Cake (1 Kg)", price: 750, mrp: 950, cat: "cakes", inStock: true, img: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=500" },
-
   { id: "dr1", name: "Cold Drinks 750ml (Coke / Sprite)", price: 45, mrp: 50, cat: "drinks", inStock: true, img: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500" },
   { id: "dr2", name: "Fresh Sweet Lassi / Cold Coffee", price: 70, mrp: 90, cat: "drinks", inStock: true, img: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=500" }
 ];
@@ -73,10 +66,9 @@ let coinsRedeemed = false;
 let currentPdpItem = null;
 let selectedCakeWeight = 1.0;
 let selectedCakePrice = 850;
-let adminUploadBase64 = "";
-let editUploadBase64 = "";
+let isStoreOpen = true;
 
-// Firebase Cloud Sync
+// Firebase Cloud Sync (Menu, Store Status, Banner)
 if (db) {
   db.ref("restaurant_menu").on("value", snapshot => {
     const cloudMenu = snapshot.val();
@@ -89,6 +81,51 @@ if (db) {
       }
     }
   });
+
+  // Store Status Sync
+  db.ref("store_status").on("value", snap => {
+    const val = snap.val();
+    if (val !== null) {
+      isStoreOpen = val;
+      updateStoreStatusUI(isStoreOpen);
+    }
+  });
+
+  // Banner Title Sync
+  db.ref("banner_headline").on("value", snap => {
+    const headline = snap.val();
+    if (headline) {
+      updateBannerUI(headline);
+    }
+  });
+}
+
+function updateStoreStatusUI(open) {
+  const btn = document.getElementById('storeStatusBtn');
+  if (btn) {
+    btn.innerText = open ? "Restaurant is: OPEN (8am - 10pm)" : "Restaurant is: CLOSED (Offline)";
+    btn.style.background = open ? "#10b981" : "#ef4444";
+  }
+  let closedAlert = document.getElementById('storeClosedBanner');
+  if (!closedAlert) {
+    closedAlert = document.createElement('div');
+    closedAlert.id = 'storeClosedBanner';
+    closedAlert.style.cssText = "background:#ef4444; color:#fff; font-weight:bold; font-size:12px; text-align:center; padding:8px; border-radius:8px; margin:10px 16px; display:none;";
+    closedAlert.innerText = "⚠️ Restaurant is currently CLOSED. Ordering is temporarily disabled.";
+    const header = document.querySelector('header') || document.body;
+    header.parentNode.insertBefore(closedAlert, header.nextSibling);
+  }
+  closedAlert.style.display = open ? "none" : "block";
+}
+
+function updateBannerUI(headline) {
+  const titles = document.querySelectorAll('.hero-title, #bannerTitle, .banner-title');
+  titles.forEach(el => { el.innerText = headline; });
+  const bannerBox = document.querySelector('.hero-banner, .festival-deal-card, [style*="FESTIVAL DEAL"]');
+  if (bannerBox) {
+    const strong = bannerBox.querySelector('h2, strong, div[style*="font-size: 18px"], div[style*="font-size:18px"]');
+    if (strong) strong.innerText = headline;
+  }
 }
 
 function saveMenuToStorageAndCloud() {
@@ -154,9 +191,9 @@ function renderFoodItems(items) {
   items.forEach(dish => {
     const isWished = wishlist.includes(dish.id);
     const stockBadge = dish.inStock ? '' : '<span class="out-of-stock-badge" style="position:absolute;top:8px;left:8px;background:#ef4444;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:bold;">SOLD OUT</span>';
-    const addBtnHtml = dish.inStock 
+    const addBtnHtml = (dish.inStock && isStoreOpen)
       ? `<button class="add-btn" onclick="event.stopPropagation(); addToCart('${dish.id}', '${dish.name}', ${dish.price}, '${dish.img}')">ADD +</button>`
-      : `<button class="add-btn" style="background:#f1f5f9; color:#94a3b8; border-color:#cbd5e1;" disabled>SOLD OUT</button>`;
+      : `<button class="add-btn" style="background:#f1f5f9; color:#94a3b8; border-color:#cbd5e1;" disabled>${isStoreOpen ? 'SOLD OUT' : 'CLOSED'}</button>`;
 
     container.innerHTML += `
       <div class="food-card" onclick="openProductDetail('${dish.id}')">
@@ -281,6 +318,10 @@ function shareCurrentItem() {
 
 // ==================== 6. CART OPERATIONS ====================
 function addToCart(id, name, price, img) {
+  if (!isStoreOpen) {
+    alert("Restaurant is currently closed for new orders.");
+    return;
+  }
   const existing = cart.find(i => i.id === id);
   if (existing) {
     existing.qty += 1;
@@ -367,24 +408,53 @@ function toggleCoinRedemption() {
 }
 
 function applyDiscountCoupon() {
-  const codeEl = document.getElementById('couponCodeInput');
+  const codeEl = document.getElementById('couponCodeInput') || document.querySelector('input[placeholder*="promo" i]');
   const code = codeEl ? codeEl.value.trim().toUpperCase() : '';
-  if (code === "KD50" || code === "WELCOME") {
-    appliedDiscount = 50;
-    const dRow = document.getElementById('discountRow');
-    const bDisc = document.getElementById('billDiscount');
-    if (dRow) dRow.style.display = 'flex';
-    if (bDisc) bDisc.innerText = `-₹50`;
-    alert("🎉 Promo Code Applied: ₹50 Discount!");
-    updateCartBar();
-    openCartModal();
-  } else {
-    alert("Invalid Promo Code. Try 'KD50'");
+
+  if (!code) {
+    alert("Please enter a promo code!");
+    return;
   }
+
+  // Check database first, then local
+  if (db) {
+    db.ref("promos/" + code).once("value", snap => {
+      const disc = snap.val();
+      if (disc && Number(disc) > 0) {
+        setCouponDiscount(Number(disc), code);
+      } else if (code === "KD50" || code === "WELCOME") {
+        setCouponDiscount(50, code);
+      } else {
+        alert("Invalid Promo Code!");
+      }
+    });
+  } else {
+    if (code === "KD50" || code === "WELCOME") {
+      setCouponDiscount(50, code);
+    } else {
+      alert("Invalid Promo Code!");
+    }
+  }
+}
+
+function setCouponDiscount(amount, code) {
+  appliedDiscount = amount;
+  const dRow = document.getElementById('discountRow');
+  const bDisc = document.getElementById('billDiscount');
+  if (dRow) dRow.style.display = 'flex';
+  if (bDisc) bDisc.innerText = `-₹${amount}`;
+  alert(`🎉 Promo Code '${code}' Applied: ₹${amount} Discount!`);
+  updateCartBar();
+  openCartModal();
 }
 
 // ==================== 7. PLACE ORDER & LIVE SYNC ====================
 function placeOrder() {
+  if (!isStoreOpen) {
+    alert("Sorry, the restaurant is currently closed!");
+    return;
+  }
+
   const name = document.getElementById('custName')?.value.trim();
   const phone = document.getElementById('custPhone')?.value.trim();
   const address = document.getElementById('custAddress')?.value.trim();
@@ -602,12 +672,9 @@ function openAdminGateway() {
 function unlockAdminWithPin() {
   const pinInput = document.getElementById('adminPinInput');
   const pin = pinInput ? pinInput.value.trim() : '';
-
-  // Master Private Password
   const MASTER_KEY = "KD@1234";
 
   if (pin === MASTER_KEY) {
-    // Admin login hote hi browser audio permission unlock
     adminRingerAudio.play().then(() => {
       adminRingerAudio.pause();
       adminRingerAudio.currentTime = 0;
@@ -648,7 +715,6 @@ function loadAdminOrdersList() {
     Object.keys(data).reverse().forEach(k => {
       const ord = data[k];
 
-      // Stage 1 pending order check (Live Ringer ke liye)
       if (Number(ord.stage) === 1) {
         hasPendingOrders = true;
       }
@@ -683,7 +749,6 @@ function loadAdminOrdersList() {
       `;
     });
 
-    // Ringer trigger logic
     if (hasPendingOrders && isAudioUnlocked) {
       adminRingerAudio.play().catch(e => console.log("Audio play error: ", e));
     } else {
@@ -718,7 +783,10 @@ function deleteAdminOrder(key) {
   }
 }
 
-// ==================== 10. MENU EDIT & GALLERY PHOTO UPLOAD ====================
+// ==================== 10. MENU EDIT & NEW DISH SAVE ====================
+let adminUploadBase64 = "";
+let editUploadBase64 = "";
+
 function renderAdminMenuItems() {
   const container = document.getElementById('adminMenuItemsList');
   if (!container) return;
@@ -795,9 +863,7 @@ function previewEditImage(input, id) {
     reader.onload = function(e) {
       editUploadBase64 = e.target.result;
       const preview = document.getElementById(`editPreviewImg_${id}`);
-      if (preview) {
-        preview.src = e.target.result;
-      }
+      if (preview) preview.src = e.target.result;
     };
     reader.readAsDataURL(input.files[0]);
   }
@@ -844,13 +910,18 @@ function deleteMenuItem(id) {
 }
 
 function adminSaveNewDish() {
-  const name = document.getElementById('newDishName').value.trim();
-  const price = Number(document.getElementById('newDishPrice').value);
-  const cat = document.getElementById('newDishCat').value;
-  const imgUrl = document.getElementById('newDishImgUrl').value.trim() || adminUploadBase64 || "https://images.unsplash.com/photo-1544025162-d76694265947?w=500";
+  const nameInput = document.getElementById('newDishName') || document.querySelector('input[placeholder="Dish Name"]');
+  const priceInput = document.getElementById('newDishPrice') || document.querySelector('input[placeholder*="Price"]');
+  const catSelect = document.getElementById('newDishCat') || document.querySelector('select');
+  const urlInput = document.getElementById('newDishImgUrl') || document.querySelector('input[placeholder*="Image URL"]');
+
+  const name = nameInput ? nameInput.value.trim() : '';
+  const price = priceInput ? Number(priceInput.value) : 0;
+  const cat = catSelect ? catSelect.value : 'momos';
+  const imgUrl = (urlInput ? urlInput.value.trim() : '') || adminUploadBase64 || "https://images.unsplash.com/photo-1544025162-d76694265947?w=500";
 
   if (!name || !price) {
-    alert("Please enter dish name and price.");
+    alert("Please enter both dish name and price.");
     return;
   }
 
@@ -866,14 +937,12 @@ function adminSaveNewDish() {
 
   menuCatalog.unshift(newDish);
   saveMenuToStorageAndCloud();
-  alert("New dish added to menu!");
+  alert("✅ New dish successfully added to menu!");
 
-  document.getElementById('newDishName').value = '';
-  document.getElementById('newDishPrice').value = '';
-  document.getElementById('newDishImgUrl').value = '';
+  if (nameInput) nameInput.value = '';
+  if (priceInput) priceInput.value = '';
+  if (urlInput) urlInput.value = '';
   adminUploadBase64 = '';
-  const prev = document.getElementById('adminDishPreview');
-  if (prev) prev.style.display = 'none';
 }
 
 function previewAdminDishUpload(input) {
@@ -881,57 +950,101 @@ function previewAdminDishUpload(input) {
     const reader = new FileReader();
     reader.onload = function(e) {
       adminUploadBase64 = e.target.result;
-      const preview = document.getElementById('adminDishPreview');
-      if (preview) {
-        preview.src = e.target.result;
-        preview.style.display = 'block';
-      }
     };
     reader.readAsDataURL(input.files[0]);
   }
 }
 
+// Bind file input event listener automatically
+document.addEventListener('change', function(e) {
+  if (e.target && e.target.type === 'file' && e.target.closest('#adminModal, #adminDashboard')) {
+    previewAdminDishUpload(e.target);
+  }
+});
+
+// ==================== 11. CONTROLS: PROMO, BANNER, STORE, VIP ====================
 function adminCreateCoupon() {
-  const code = document.getElementById('newCouponCode').value.trim().toUpperCase();
-  const disc = Number(document.getElementById('newCouponDiscount').value);
+  const codeEl = document.getElementById('newCouponCode') || document.querySelector('input[placeholder*="BIKASH50"]');
+  const discEl = document.getElementById('newCouponDiscount') || document.querySelector('input[placeholder*="Discount Value"]');
+
+  const code = codeEl ? codeEl.value.trim().toUpperCase() : '';
+  const disc = discEl ? Number(discEl.value) : 0;
+
   if (!code || !disc) {
-    alert("Enter promo code and discount!");
+    alert("Please enter promo code and discount amount!");
     return;
   }
-  localStorage.setItem("kd_promo_" + code, disc);
-  alert(`Promo code ${code} (₹${disc} OFF) created!`);
-  document.getElementById('newCouponCode').value = '';
-  document.getElementById('newCouponDiscount').value = '';
+
+  if (db) {
+    db.ref("promos/" + code).set(disc).then(() => {
+      alert(`🎉 Promo Code '${code}' (₹${disc} OFF) created and synced online!`);
+      if (codeEl) codeEl.value = '';
+      if (discEl) discEl.value = '';
+    });
+  } else {
+    localStorage.setItem("kd_promo_" + code, disc);
+    alert(`Promo Code '${code}' saved locally!`);
+  }
 }
 
 function toggleStoreStatus() {
-  const btn = document.getElementById('storeStatusBtn');
-  if (btn.innerText.includes('OPEN')) {
-    btn.innerText = "Restaurant is: CLOSED (Currently Offline)";
-    btn.style.background = "#ef4444";
-  } else {
-    btn.innerText = "Restaurant is: OPEN (8am - 10pm)";
-    btn.style.background = "#10b981";
+  isStoreOpen = !isStoreOpen;
+  if (db) {
+    db.ref("store_status").set(isStoreOpen);
   }
+  updateStoreStatusUI(isStoreOpen);
+  renderFoodItems(menuCatalog);
+  alert(`Store is now ${isStoreOpen ? 'OPEN' : 'CLOSED'}!`);
 }
 
 function editPromoBanner() {
-  const newHeading = prompt("Enter new Promo Banner headline:");
-  if (newHeading) {
-    document.getElementById('bannerTitle').innerText = newHeading;
-    localStorage.setItem("kd_banner_title", newHeading);
+  const currentTitle = document.getElementById('bannerTitle')?.innerText || "K.D RABHA SPECIAL";
+  const newHeading = prompt("Enter new Offer / Festival headline:", currentTitle);
+  if (newHeading && newHeading.trim() !== '') {
+    const val = newHeading.trim();
+    if (db) {
+      db.ref("banner_headline").set(val);
+    }
+    updateBannerUI(val);
+    alert("Banner headline updated across all phones!");
   }
 }
 
 function assignVipBadge() {
-  const ph = document.getElementById('vipCustPhone').value.trim();
+  const phEl = document.getElementById('vipCustPhone') || document.querySelector('input[placeholder*="Mobile Number"]');
+  const ph = phEl ? phEl.value.trim() : '';
   if (ph) {
-    alert(`Customer +91 ${ph} is now upgraded to VIP Gold Member!`);
-    document.getElementById('vipCustPhone').value = '';
+    if (db) {
+      db.ref("customers/" + ph + "/vip").set(true);
+    }
+    alert(`Customer +91 ${ph} is upgraded to VIP Gold Member!`);
+    if (phEl) phEl.value = '';
+  } else {
+    alert("Please enter mobile number!");
   }
 }
 
-// ==================== 11. CAKE STUDIO & ACCOUNT ====================
+// Auto Carousel for Festival Banner
+function setupBannerSlider() {
+  const deals = [
+    { title: "K.D RABHA SPECIAL", sub: "Flat ₹9 Fixed Delivery on All Orders in Bengbari!" },
+    { title: "FESTIVAL OFFER 🎉", sub: "Use Code KD50 to get Flat ₹50 OFF on orders!" },
+    { title: "MOMO CELEBRATION 🥟", sub: "Fresh Steamed & Fried Momo starting at ₹120 only!" }
+  ];
+  let curr = 0;
+  const bannerBox = document.querySelector('.hero-banner, .festival-deal-card, [style*="FESTIVAL DEAL"]');
+  if (!bannerBox) return;
+
+  setInterval(() => {
+    curr = (curr + 1) % deals.length;
+    const titleEl = bannerBox.querySelector('h2, strong, div[style*="font-size: 18px"], div[style*="font-size:18px"]');
+    const subEl = bannerBox.querySelector('p, div[style*="font-size: 12px"], div[style*="font-size:12px"]');
+    if (titleEl) titleEl.innerText = deals[curr].title;
+    if (subEl) subEl.innerText = deals[curr].sub;
+  }, 4000);
+}
+
+// ==================== 12. CAKE STUDIO & ACCOUNT ====================
 function openCakeStudio() {
   openModal('cakeStudioModal');
 }
@@ -1034,7 +1147,7 @@ function uploadCustomerAvatar(input) {
   }
 }
 
-// ==================== 12. NAVIGATION TABS ====================
+// ==================== 13. NAVIGATION TABS ====================
 function switchNavTab(tab) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
 
@@ -1064,12 +1177,28 @@ function switchNavTab(tab) {
 // Initial Run
 window.addEventListener('DOMContentLoaded', () => {
   renderFoodItems(menuCatalog);
+  setupBannerSlider();
+
+  // Bind Buttons with functions dynamically
+  const saveDishBtn = document.querySelector('button[onclick*="adminSaveNewDish"], .btn-save-dish') || Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('SAVE DISH TO MENU'));
+  if (saveDishBtn) saveDishBtn.onclick = adminSaveNewDish;
+
+  const savePromoBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('SAVE PROMO CODE'));
+  if (savePromoBtn) savePromoBtn.onclick = adminCreateCoupon;
+
+  const storeBtn = document.getElementById('storeStatusBtn') || Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('Restaurant is:'));
+  if (storeBtn) {
+    storeBtn.id = 'storeStatusBtn';
+    storeBtn.onclick = toggleStoreStatus;
+  }
+
+  const editHeadlineBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('Edit Carousel Banner Headline'));
+  if (editHeadlineBtn) editHeadlineBtn.onclick = editPromoBanner;
+
+  const vipBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('ACTIVATE VIP GOLD BADGE'));
+  if (vipBtn) vipBtn.onclick = assignVipBadge;
+
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   if (profile.name && document.getElementById('accNameDisplay')) document.getElementById('accNameDisplay').innerText = profile.name;
   if (profile.phone && document.getElementById('accPhoneDisplay')) document.getElementById('accPhoneDisplay').innerText = "+91 " + profile.phone;
-
-  const savedBanner = localStorage.getItem("kd_banner_title");
-  if (savedBanner && document.getElementById('bannerTitle')) {
-    document.getElementById('bannerTitle').innerText = savedBanner;
-  }
 });
