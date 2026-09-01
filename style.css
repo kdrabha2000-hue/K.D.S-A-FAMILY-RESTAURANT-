@@ -660,3 +660,109 @@ body {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
+/* Splash Screen Styles */
+#custom-splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #1a222d 0%, #080b11 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999999;
+  font-family: sans-serif;
+  transition: opacity 0.5s ease-out, visibility 0.5s;
+}
+
+.splash-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 20px;
+}
+
+.splash-brand {
+  color: #ffc233;
+  font-size: 22px;
+  margin: 0;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 12px rgba(255, 194, 51, 0.4);
+}
+
+.splash-sub {
+  color: #94a3b8;
+  font-size: 10px;
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+.splash-glow-box {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 15px 0;
+  border-radius: 24px;
+  border: 2px solid #00d2ff;
+  box-shadow: 0 0 20px rgba(0, 210, 255, 0.6), inset 0 0 15px rgba(0, 210, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.splash-logo-img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+}
+
+.splash-food-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.splash-food-tags span {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 194, 51, 0.3);
+  color: #ffe082;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+}
+
+.splash-bar {
+  width: 160px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.splash-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #ffc233, #00d2ff);
+  animation: moveBar 1.5s infinite ease-in-out;
+}
+
+.splash-tagline {
+  color: #64748b;
+  font-size: 10px;
+  margin-top: 5px;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes moveBar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
