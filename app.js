@@ -1202,3 +1202,15 @@ window.addEventListener('DOMContentLoaded', () => {
   if (profile.name && document.getElementById('accNameDisplay')) document.getElementById('accNameDisplay').innerText = profile.name;
   if (profile.phone && document.getElementById('accPhoneDisplay')) document.getElementById('accPhoneDisplay').innerText = "+91 " + profile.phone;
 });
+// Splash Screen Auto Hide
+window.addEventListener("load", () => {
+  const splash = document.getElementById("custom-splash-screen");
+  if (splash) {
+    setTimeout(() => {
+      splash.style.opacity = "0";
+      setTimeout(() => {
+        splash.style.display = "none";
+      }, 500);
+    }, 1500);
+  }
+});
