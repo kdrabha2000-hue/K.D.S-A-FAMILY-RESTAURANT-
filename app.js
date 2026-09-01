@@ -735,16 +735,19 @@ function loadAdminOrdersList() {
           </div>
           <div style="font-size:12px; color:#cbd5e1; margin:6px 0;">🍲 ${itemsStr}</div>
           <div style="font-size:11px; margin-bottom:6px; color:${isCancelled ? '#ef4444' : '#38bdf8'}; font-weight:bold;">Status: ${ord.status || 'Pending'}</div>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+                <a href="tel:${ord.phone}" class="admin-btn" style="background:#0284c7; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold;">📞 Call</a>
+                <a href="https://wa.me/91${(ord.phone || '').replace(/[^0-9]/g, '')}?text=Namaste%20${encodeURIComponent(ord.customerName || 'Customer')},%20A%26A%20Family%20Restaurant%20se%20aapka%20special%20offer%20code%20hai:%20KD50" target="_blank" class="admin-btn" style="background:#25d366; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; display:inline-flex; align-items:center;">💬 WhatsApp</a>
+                ${(!isCancelled ? `
+                  <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 2, '2. In Kitchen')" style="background:#e11d48; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🍳 Kitchen</button>
+                  <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 3, '3. Out for Delivery')" style="background:#f59e0b; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🛵 Out</button>
+                  <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 4, '4. Delivered')" style="background:#10b981; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">✅ Done</button>
+                  <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 0, 'Cancelled by Restaurant')" style="background:#dc2626; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">❌ Cancel</button>
+                ` : '')}
+                <button onclick="deleteAdminOrder('${k}')" style="background:#475569; color:#fff; border:none; padding:5px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️</button>
+              </div>
+
           
-          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
-            <a href="tel:${ord.phone}" class="admin-btn" style="background:#0284c7; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold;">📞 Call</a>
-            ${!isCancelled ? `
-              <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 2, '2. In Kitchen')" style="background:#e11d48; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🍳 Kitchen</button>
-              <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 3, '3. Out for Delivery')" style="background:#f59e0b; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🛵 Out</button>
-              <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 4, '4. Delivered')" style="background:#10b981; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">✅ Done</button>
-            ` : ''}
-            <button onclick="deleteAdminOrder('${k}')" style="background:#475569; color:#fff; border:none; padding:5px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️</button>
-          </div>
         </div>
       `;
     });
