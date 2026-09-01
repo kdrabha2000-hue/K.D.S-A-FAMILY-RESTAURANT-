@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="style.css?v=202" />
+  <link rel="stylesheet" href="style.css?v=203" />
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -375,9 +375,9 @@
           <i class="fa-solid fa-heart" style="color:#ef4444;"></i>
           <span>Saved Items</span>
         </div>
-        <div class="acc-tile" onclick="triggerPwaInstall()">
-          <i class="fa-solid fa-mobile-screen-button" style="color:#0284c7;"></i>
-          <span>Install App</span>
+        <div class="acc-tile" onclick="openLanguageModal()">
+          <i class="fa-solid fa-language" style="color:#0284c7;"></i>
+          <span>Language</span>
         </div>
         <div class="acc-tile" onclick="window.open('tel:8453270362')">
           <i class="fa-solid fa-headset" style="color:#10b981;"></i>
@@ -402,17 +402,45 @@
       </div>
 
       <div class="acc-menu-list">
-        <div class="acc-menu-row" onclick="alert('Refer code: KD100. Share with friends to earn 50 Coins!')">
-          <div><i class="fa-solid fa-share-nodes"></i> Refer & Earn with S&A</div>
+        <div class="acc-menu-row" onclick="triggerPwaInstall()">
+          <div><i class="fa-solid fa-mobile-screen-button" style="color:#0284c7;"></i> Install Mobile App</div>
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
+        <div class="acc-menu-row" onclick="shareReferralLink()">
+          <div><i class="fa-solid fa-share-nodes" style="color:#10b981;"></i> Refer & Earn with S&A (Get ₹20)</div>
           <i class="fa-solid fa-chevron-right"></i>
         </div>
         <div class="acc-menu-row" onclick="openSavedItemsModal()">
-          <div><i class="fa-solid fa-heart"></i> My Wishlist & Favourites</div>
+          <div><i class="fa-solid fa-heart" style="color:#ef4444;"></i> My Wishlist & Favourites</div>
           <i class="fa-solid fa-chevron-right"></i>
         </div>
         <div class="acc-menu-row" onclick="openAdminGateway()">
           <div><i class="fa-solid fa-shield-halved"></i> Restaurant Admin Gateway</div>
           <i class="fa-solid fa-chevron-right"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Language Selection Modal -->
+  <div class="full-modal" id="languageModal" style="display:none !important;">
+    <div class="modal-header">
+      <h3>🌐 Select Language</h3>
+      <i class="fa-solid fa-xmark close-btn" onclick="closeModal('languageModal')"></i>
+    </div>
+    <div style="padding:16px;">
+      <div style="background:#fff; border-radius:12px; border:1px solid #e2e8f0; overflow:hidden;">
+        <div style="padding:14px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="selectLanguage('English')">
+          <span style="font-weight:600;">English</span>
+          <i class="fa-solid fa-circle-check" style="color:#10b981;"></i>
+        </div>
+        <div style="padding:14px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="selectLanguage('Assamese')">
+          <span style="font-weight:600;">অসমীয়া (Assamese)</span>
+          <i class="fa-solid fa-chevron-right" style="color:#94a3b8;"></i>
+        </div>
+        <div style="padding:14px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="selectLanguage('Hindi')">
+          <span style="font-weight:600;">हिन्दी (Hindi)</span>
+          <i class="fa-solid fa-chevron-right" style="color:#94a3b8;"></i>
         </div>
       </div>
     </div>
@@ -490,7 +518,7 @@
       <div id="cartItemsList"></div>
 
       <div style="display:flex; gap:8px; margin:12px 0;">
-        <input type="text" id="couponCodeInput" class="form-input" placeholder="Promo Code (e.g. KD50)" style="margin-bottom:0;" />
+        <input type="text" id="couponCodeInput" class="form-input" placeholder="Promo Code (e.g. KD20)" style="margin-bottom:0;" />
         <button class="add-btn" style="padding:0 16px;" onclick="applyDiscountCoupon()">APPLY</button>
       </div>
 
@@ -601,7 +629,7 @@
 
       <div class="admin-card">
         <h4 style="font-size:14px; color:#38bdf8; margin-bottom:10px;"><i class="fa-solid fa-tags"></i> Promo Code Creator</h4>
-        <input type="text" id="newCouponCode" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Code (e.g. BIKASH50)" />
+        <input type="text" id="newCouponCode" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Code (e.g. KD20)" />
         <input type="number" id="newCouponDiscount" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Discount Value in ₹" />
         <button class="admin-btn btn-blue" onclick="adminCreateCoupon()">SAVE PROMO CODE</button>
       </div>
@@ -641,7 +669,7 @@
 
   <audio id="orderAudioAlert" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
-  <script src="app.js?v=202"></script>
+  <script src="app.js?v=203"></script>
 
   <!-- Celebration Popup Modal -->
   <div id="order-success-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:9999999; align-items:center; justify-content:center; text-align:center; padding:20px;">
