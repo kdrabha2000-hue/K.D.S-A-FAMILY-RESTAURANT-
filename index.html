@@ -4,17 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>S & A FAMILY RESTAURANT</title>
-  
+
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#ff3e6c" />
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=202" />
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 </head>
 <body>
@@ -33,7 +33,7 @@
     z-index: 2147483647 !important;
     font-family: 'Segoe UI', Arial, sans-serif;
     color: #ffffff;
-    transition: opacity 0.6s ease, visibility 0.6s ease;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
   }
   .splash-card {
     display: flex;
@@ -119,13 +119,36 @@
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
   }
+
+  /* PWA Install Banner Style */
+  #pwaInstallBanner {
+    display: none;
+    position: fixed;
+    bottom: 65px;
+    left: 12px;
+    right: 12px;
+    background: #1e293b;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    z-index: 99999;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #38bdf8;
+    animation: bounceIn 0.5s ease;
+  }
+  @keyframes bounceIn {
+    0% { transform: translateY(50px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
 </style>
 
 <div id="custom-splash-screen">
   <div class="splash-card">
-    <h1 class="splash-brand">A&A FAMILY RESTAURANT</h1>
+    <h1 class="splash-brand" id="splashBrandText">S&A FAMILY RESTAURANT</h1>
     <p class="splash-sub">WHERE EVERY MEAL FEELS LIKE HOME</p>
-    
+
     <div class="splash-glow-box">
       <img src="logo.png" onerror="this.src='https://img.icons8.com/color/512/restaurant.png'" alt="Logo" class="splash-logo-img">
     </div>
@@ -147,20 +170,34 @@
       var s = document.getElementById("custom-splash-screen");
       if (s) {
         s.style.opacity = "0";
-        setTimeout(function() { s.style.display = "none"; }, 600);
+        setTimeout(function() { s.style.display = "none"; }, 300);
       }
     }
-    setTimeout(dismissSplash, 2000);
-    window.addEventListener("load", function() { setTimeout(dismissSplash, 1500); });
+    window.addEventListener("DOMContentLoaded", function() { setTimeout(dismissSplash, 500); });
+    window.addEventListener("load", dismissSplash);
   })();
 </script>
 <!-- === FULL SELF-CONTAINED SPLASH SCREEN END === -->
 
+  <!-- PWA Install Popup Bar -->
+  <div id="pwaInstallBanner">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <img src="logo.png" onerror="this.src='https://img.icons8.com/color/512/restaurant.png'" style="width:36px; height:36px; border-radius:8px;" />
+      <div>
+        <div style="font-weight:700; font-size:13px; color:#ffca42;">S&A RESTAURANT APP</div>
+        <div style="font-size:10px; color:#94a3b8;">Install for instant ordering & offers</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:6px;">
+      <button id="pwaInstallBtn" style="background:#10b981; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer;"><i class="fa-solid fa-download"></i> Install</button>
+      <button onclick="document.getElementById('pwaInstallBanner').style.display='none'" style="background:transparent; color:#94a3b8; border:none; font-size:16px; cursor:pointer;">✕</button>
+    </div>
+  </div>
 
   <header class="app-header">
     <div class="top-bar">
       <div class="brand-box">
-        <h1>S & A FAMILY RESTAURANT</h1>
+        <h1 id="mainBrandTitle">S & A FAMILY RESTAURANT</h1>
         <p><i class="fa-solid fa-location-dot"></i> Bengbari, Udalguri (784523)</p>
       </div>
       <div class="header-actions">
@@ -168,7 +205,7 @@
         <div class="admin-icon-btn" onclick="openAdminGateway()" title="Admin Control Room"><i class="fa-solid fa-shield-halved"></i></div>
       </div>
     </div>
-    
+
     <div class="search-box">
       <i class="fa-solid fa-magnifying-glass search-icon"></i>
       <input type="text" id="searchInput" placeholder="Search momos, rolls, thukpa, cakes..." onkeyup="searchDishes()" />
@@ -280,14 +317,19 @@
         </div>
 
         <div class="review-section">
-          <h4>Customer Reviews (Bengbari Food Lovers)</h4>
-          <div class="review-item">
-            <div class="rev-header"><span>⭐ 5.0 - Pranjal R.</span><small>Yesterday</small></div>
-            <p>Super delicious momos and fast delivery in Batiyamari area!</p>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <h4>Customer Reviews (Bengbari Food Lovers)</h4>
+            <button onclick="openReviewModal()" style="background:#ff3e6c; color:#fff; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">+ Write Review</button>
           </div>
-          <div class="review-item">
-            <div class="rev-header"><span>⭐ 5.0 - Anjana R.</span><small>3 days ago</small></div>
-            <p>Best custom birthday cake in Udalguri. Very soft & fresh.</p>
+          <div id="pdpReviewsList">
+            <div class="review-item">
+              <div class="rev-header"><span>⭐ 5.0 - Pranjal R.</span><small>Yesterday</small></div>
+              <p>Super delicious momos and fast delivery in Batiyamari area!</p>
+            </div>
+            <div class="review-item">
+              <div class="rev-header"><span>⭐ 5.0 - Anjana R.</span><small>3 days ago</small></div>
+              <p>Best custom birthday cake in Udalguri. Very soft & fresh.</p>
+            </div>
           </div>
         </div>
 
@@ -309,7 +351,7 @@
       <h3>My Account</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('accountModal')"></i>
     </div>
-    
+
     <div class="account-container">
       <div style="background:#fff; border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:14px; box-shadow:0 4px 20px rgba(0,0,0,0.08); margin-bottom:14px;">
         <div style="position:relative; width:65px; height:65px; min-width:65px; flex-shrink:0;">
@@ -319,9 +361,8 @@
         </div>
         <div style="flex:1;">
           <h3 id="accNameDisplay" style="font-size:16px; margin-bottom:2px; font-weight:700;">Guest User</h3>
-<p id="accPhoneDisplay" style="font-size:12px; color:#64748b; margin-bottom:4px;">Login to Account</p>
-<span class="vip-pill"><i class="fa-solid fa-user"></i> New Customer</span>
-
+          <p id="accPhoneDisplay" style="font-size:12px; color:#64748b; margin-bottom:4px;">Login to Account</p>
+          <span class="vip-pill"><i class="fa-solid fa-user"></i> New Customer</span>
         </div>
       </div>
 
@@ -334,9 +375,9 @@
           <i class="fa-solid fa-heart" style="color:#ef4444;"></i>
           <span>Saved Items</span>
         </div>
-        <div class="acc-tile" onclick="alert('Language: English / Assamese / Hindi')">
-          <i class="fa-solid fa-language" style="color:#0284c7;"></i>
-          <span>Language</span>
+        <div class="acc-tile" onclick="triggerPwaInstall()">
+          <i class="fa-solid fa-mobile-screen-button" style="color:#0284c7;"></i>
+          <span>Install App</span>
         </div>
         <div class="acc-tile" onclick="window.open('tel:8453270362')">
           <i class="fa-solid fa-headset" style="color:#10b981;"></i>
@@ -412,7 +453,7 @@
     </div>
     <div style="padding:16px;">
       <p style="font-size:12px; color:var(--gray); margin-bottom:12px;">Customize weight, message and design for fresh delivery in Udalguri.</p>
-      
+
       <label class="form-label">Select Flavor</label>
       <select id="cakeFlavorSelect" class="form-input">
         <option value="Black Forest Special">Black Forest Special (Fresh Cream)</option>
@@ -496,14 +537,14 @@
       <h3 style="color:#f8fafc;"><i class="fa-solid fa-user-shield" style="color:var(--primary);"></i> S&A Manager Admin Room</h3>
       <i class="fa-solid fa-xmark close-btn" style="color:#f8fafc;" onclick="closeModal('adminModal')"></i>
     </div>
-    
+
     <div id="adminLockScreen" style="padding:30px 20px; text-align:center;">
       <div style="width:80px; height:80px; border-radius:50%; background:#1e293b; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border:2px solid var(--primary);">
         <i class="fa-solid fa-lock" style="font-size:32px; color:var(--primary);"></i>
       </div>
       <h3 style="margin-bottom:6px; color:#fff;">Restricted Manager Access</h3>
       <p style="font-size:12px; color:#94a3b8; margin-bottom:20px;">Enter Private Master Password to Unlock</p>
-      
+
       <input type="password" id="adminPinInput" placeholder="Enter Master Password" style="width:100%; padding:14px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#fff; text-align:center; font-size:16px; margin-bottom:12px;" />
       <button class="admin-btn btn-primary" onclick="unlockAdminWithPin()"><i class="fa-solid fa-key"></i> Unlock Admin Panel</button>
     </div>
@@ -544,7 +585,7 @@
           <option value="cakes">Cakes</option>
           <option value="drinks">Drinks</option>
         </select>
-        
+
         <label class="form-label" style="color:#94a3b8;">Select Photo from Camera / Gallery</label>
         <input type="file" id="newDishPhotoFile" accept="image/*" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" onchange="previewAdminDishUpload(this)" />
         <input type="text" id="newDishImgUrl" class="form-input" style="background:#0f172a; color:#fff; border-color:#334155;" placeholder="Or Paste Image URL Link" />
@@ -579,18 +620,38 @@
     </div>
   </div>
 
-  <audio id="orderAudioAlert" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
-  
-  <script src="app.js?v=201"></script>
-<!-- Celebration Popup Modal -->
-<div id="order-success-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:9999999; align-items:center; justify-content:center; text-align:center; padding:20px;">
-  <div style="background:#141a24; border:1px solid #ffca42; border-radius:24px; padding:30px 20px; width:100%; max-width:320px; color:#fff; box-shadow:0 0 25px rgba(255,202,66,0.3);">
-    <div style="font-size:50px; margin-bottom:10px;">🎉</div>
-    <h2 style="color:#ffca42; margin:0 0 8px 0; font-size:22px;">Order Successful!</h2>
-    <p style="color:#94a3b8; font-size:13px; margin:0 0 20px 0;">Aapka swadist khana taiyar ho raha hai!</p>
-    <button onclick="document.getElementById('order-success-modal').style.display='none'; openOrderHistoryModal();" style="background:linear-gradient(135deg, #ffca42, #ff9800); color:#000; border:none; padding:12px 20px; border-radius:12px; font-weight:bold; cursor:pointer; width:100%; font-size:14px;">View My Orders 🛵</button>
+  <!-- Customer Review Modal -->
+  <div class="full-modal" id="reviewModal" style="display:none !important;">
+    <div class="modal-header">
+      <h3>⭐ Customer Feedback</h3>
+      <i class="fa-solid fa-xmark close-btn" onclick="closeModal('reviewModal')"></i>
+    </div>
+    <div style="padding:16px;">
+      <label class="form-label">Your Rating</label>
+      <select id="reviewRatingSelect" class="form-input">
+        <option value="5">⭐⭐⭐⭐⭐ (5/5 Excellent)</option>
+        <option value="4">⭐⭐⭐⭐ (4/5 Very Good)</option>
+        <option value="3">⭐⭐⭐ (3/5 Good)</option>
+      </select>
+      <label class="form-label">Your Review Message</label>
+      <textarea id="reviewText" class="form-input" placeholder="Khana kaisa laga? Feedback share karein..."></textarea>
+      <button class="admin-btn btn-primary" onclick="submitCustomerReview()">SUBMIT REVIEW</button>
+    </div>
   </div>
-</div>
+
+  <audio id="orderAudioAlert" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+
+  <script src="app.js?v=202"></script>
+
+  <!-- Celebration Popup Modal -->
+  <div id="order-success-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:9999999; align-items:center; justify-content:center; text-align:center; padding:20px;">
+    <div style="background:#141a24; border:1px solid #ffca42; border-radius:24px; padding:30px 20px; width:100%; max-width:320px; color:#fff; box-shadow:0 0 25px rgba(255,202,66,0.3);">
+      <div style="font-size:50px; margin-bottom:10px;">🎉</div>
+      <h2 style="color:#ffca42; margin:0 0 8px 0; font-size:22px;">Order Successful!</h2>
+      <p style="color:#94a3b8; font-size:13px; margin:0 0 20px 0;">Aapka swadist khana taiyar ho raha hai!</p>
+      <button onclick="document.getElementById('order-success-modal').style.display='none'; openOrderHistoryModal();" style="background:linear-gradient(135deg, #ffca42, #ff9800); color:#000; border:none; padding:12px 20px; border-radius:12px; font-weight:bold; cursor:pointer; width:100%; font-size:14px;">View My Orders 🛵</button>
+    </div>
+  </div>
 
 </body>
 </html>
