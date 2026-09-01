@@ -58,6 +58,41 @@ document.addEventListener('DOMContentLoaded', () => {
   if (installBtn) installBtn.addEventListener('click', triggerPwaInstall);
 });
 
+// ==================== LANGUAGE MODAL ====================
+function openLanguageModal() {
+  openModal('languageModal');
+}
+
+function selectLanguage(lang) {
+  alert(`Language set to ${lang}`);
+  closeModal('languageModal');
+}
+
+// ==================== REFER & EARN SHARE SYSTEM ====================
+function shareReferralLink() {
+  const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
+  const custName = profile.name || "Aapke dost";
+  const appUrl = window.location.origin + window.location.pathname;
+  
+  const shareText = `🍔 ${custName} ne aapko S&A FAMILY RESTAURANT par invite kiya hai!\n\n🎉 Use Promo Code: *KD20* to get Flat ₹20 OFF on your first order!\n\n👉 Abhi online order karein ya App install karein:\n${appUrl}`;
+
+  if (navigator.share) {
+    navigator.share({
+      title: "S&A Family Restaurant - Special Offer",
+      text: shareText,
+      url: appUrl
+    }).catch((err) => console.log("Share dismissed"));
+  } else {
+    navigator.clipboard.writeText(shareText).then(() => {
+      const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+      window.open(waUrl, '_blank');
+    }).catch(() => {
+      const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+      window.open(waUrl, '_blank');
+    });
+  }
+}
+
 // ==================== 2. MENU DATA & STORAGE ====================
 const defaultMenu = [
   { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, mrp: 160, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" },
@@ -97,7 +132,7 @@ let selectedCakeWeight = 1.0;
 let selectedCakePrice = 850;
 let isStoreOpen = true;
 
-// Firebase Cloud Sync (Menu, Store Status, Banner)
+// Firebase Cloud Sync
 if (db) {
   db.ref("restaurant_menu").on("value", snapshot => {
     const cloudMenu = snapshot.val();
@@ -111,7 +146,6 @@ if (db) {
     }
   });
 
-  // Store Status Sync
   db.ref("store_status").on("value", snap => {
     const val = snap.val();
     if (val !== null) {
@@ -120,7 +154,6 @@ if (db) {
     }
   });
 
-  // Banner Title Sync
   db.ref("banner_headline").on("value", snap => {
     const headline = snap.val();
     if (headline) {
@@ -181,7 +214,8 @@ window.addEventListener('popstate', function(event) {
     'cakeStudioModal',
     'cartModal',
     'adminModal',
-    'reviewModal'
+    'reviewModal',
+    'languageModal'
   ];
 
   let modalClosed = false;
@@ -510,15 +544,15 @@ function applyDiscountCoupon() {
       const disc = snap.val();
       if (disc && Number(disc) > 0) {
         setCouponDiscount(Number(disc), code);
-      } else if (code === "KD50" || code === "WELCOME" || code === "BIKASH50") {
-        setCouponDiscount(50, code);
+      } else if (code === "KD20" || code === "WELCOME" || code === "BIKASH50") {
+        setCouponDiscount(20, code);
       } else {
         alert("Invalid Promo Code!");
       }
     });
   } else {
-    if (code === "KD50" || code === "WELCOME" || code === "BIKASH50") {
-      setCouponDiscount(50, code);
+    if (code === "KD20" || code === "WELCOME" || code === "BIKASH50") {
+      setCouponDiscount(20, code);
     } else {
       alert("Invalid Promo Code!");
     }
@@ -844,7 +878,7 @@ function loadAdminOrdersList() {
           <div style="font-size:11px; margin-bottom:6px; color:${isCancelled ? '#ef4444' : '#38bdf8'}; font-weight:bold;">Status: ${ord.status || 'Pending'}</div>
           <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
             <a href="tel:${ord.phone}" class="admin-btn" style="background:#0284c7; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold;">📞 Call</a>
-            <a href="https://wa.me/91${(ord.phone || '').replace(/[^0-9]/g, '')}?text=Namaste%20${encodeURIComponent(ord.customerName || 'Customer')},%20S%26A%20Family%20Restaurant%20se%20aapka%20special%20offer%20code%20hai:%20KD50" target="_blank" class="admin-btn" style="background:#25d366; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; display:inline-flex; align-items:center;">💬 WhatsApp</a>
+            <a href="https://wa.me/91${(ord.phone || '').replace(/[^0-9]/g, '')}?text=Namaste%20${encodeURIComponent(ord.customerName || 'Customer')},%20S%26A%20Family%20Restaurant%20se%20aapka%20special%20offer%20code%20hai:%20KD20" target="_blank" class="admin-btn" style="background:#25d366; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; display:inline-flex; align-items:center;">💬 WhatsApp</a>
             ${(!isCancelled ? `
               <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 2, '2. In Kitchen')" style="background:#e11d48; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🍳 Kitchen</button>
               <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 3, '3. Out for Delivery')" style="background:#f59e0b; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🛵 Out</button>
@@ -1071,7 +1105,7 @@ document.addEventListener('change', function(e) {
 
 // ==================== 11. CONTROLS: PROMO, BANNER, STORE, VIP ====================
 function adminCreateCoupon() {
-  const codeEl = document.getElementById('newCouponCode') || document.querySelector('input[placeholder*="BIKASH50"]');
+  const codeEl = document.getElementById('newCouponCode') || document.querySelector('input[placeholder*="KD20"]');
   const discEl = document.getElementById('newCouponDiscount') || document.querySelector('input[placeholder*="Discount Value"]');
 
   const code = codeEl ? codeEl.value.trim().toUpperCase() : '';
@@ -1135,7 +1169,7 @@ function assignVipBadge() {
 function setupBannerSlider() {
   const deals = [
     { title: "K.D RABHA SPECIAL", sub: "Flat ₹9 Fixed Delivery on All Orders in Bengbari!" },
-    { title: "FESTIVAL OFFER 🎉", sub: "Use Code KD50 to get Flat ₹50 OFF on orders!" },
+    { title: "FESTIVAL OFFER 🎉", sub: "Use Code KD20 to get Flat ₹20 OFF on orders!" },
     { title: "MOMO CELEBRATION 🥟", sub: "Fresh Steamed & Fried Momo starting at ₹120 only!" }
   ];
   let curr = 0;
