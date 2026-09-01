@@ -18,7 +18,109 @@
 
 </head>
 <body>
-<!-- Splash Screen HTML -->
+<!-- === FULL SELF-CONTAINED SPLASH SCREEN START === -->
+<style>
+  #custom-splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at center, #1b2430 0%, #0a0d14 100%) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2147483647 !important;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #ffffff;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+  .splash-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    max-width: 90%;
+  }
+  .splash-brand {
+    color: #ffca42 !important;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin: 0 0 4px 0;
+    text-shadow: 0 0 15px rgba(255, 202, 66, 0.4);
+  }
+  .splash-sub {
+    color: #c9d1d9 !important;
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin: 0 0 16px 0;
+    opacity: 0.85;
+  }
+  .splash-glow-box {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin: 10px 0 15px 0;
+    border-radius: 24px;
+    border: 2px solid #00d2ff;
+    box-shadow: 0 0 25px rgba(0, 210, 255, 0.6), inset 0 0 15px rgba(0, 210, 255, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: splashPulse 2s infinite ease-in-out;
+  }
+  .splash-logo-img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+  }
+  .splash-food-tags {
+    display: flex;
+    gap: 6px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .splash-food-tags span {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 202, 66, 0.3);
+    color: #ffdf7e !important;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+  }
+  .splash-bar {
+    width: 160px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 15px;
+  }
+  .splash-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #ffca42, #00d2ff);
+    animation: splashMove 1.5s infinite ease-in-out;
+  }
+  .splash-tagline {
+    color: #8b949e !important;
+    font-size: 11px;
+    margin-top: 8px;
+    font-style: italic;
+  }
+  @keyframes splashPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  @keyframes splashMove {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+</style>
+
 <div id="custom-splash-screen">
   <div class="splash-card">
     <h1 class="splash-brand">A&A FAMILY RESTAURANT</h1>
@@ -26,7 +128,7 @@
     
     <div class="splash-glow-box">
       <img src="logo.png" onerror="this.src='https://img.icons8.com/color/512/restaurant.png'" alt="Logo" class="splash-logo-img">
-
+    </div>
 
     <div class="splash-food-tags">
       <span>🍕 Pizza</span>
@@ -38,6 +140,22 @@
     <p class="splash-tagline">Crafting moments, one flavor at a time.</p>
   </div>
 </div>
+
+<script>
+  (function() {
+    function dismissSplash() {
+      var s = document.getElementById("custom-splash-screen");
+      if (s) {
+        s.style.opacity = "0";
+        setTimeout(function() { s.style.display = "none"; }, 600);
+      }
+    }
+    setTimeout(dismissSplash, 2000);
+    window.addEventListener("load", function() { setTimeout(dismissSplash, 1500); });
+  })();
+</script>
+<!-- === FULL SELF-CONTAINED SPLASH SCREEN END === -->
+
 
   <header class="app-header">
     <div class="top-bar">
