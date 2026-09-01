@@ -29,6 +29,35 @@ document.addEventListener('click', () => {
   }
 }, { once: true });
 
+// ==================== PWA INSTALL SETUP ====================
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.getElementById('pwaInstallBanner');
+  if (banner) banner.style.display = 'flex';
+});
+
+function triggerPwaInstall() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        const banner = document.getElementById('pwaInstallBanner');
+        if (banner) banner.style.display = 'none';
+      }
+      deferredPrompt = null;
+    });
+  } else {
+    alert("App already installed or please use Chrome 'Add to Home screen' option!");
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const installBtn = document.getElementById('pwaInstallBtn');
+  if (installBtn) installBtn.addEventListener('click', triggerPwaInstall);
+});
+
 // ==================== 2. MENU DATA & STORAGE ====================
 const defaultMenu = [
   { id: "m1", name: "Chicken Steamed Momo (10 Pcs)", price: 120, mrp: 160, cat: "momos", inStock: true, img: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" },
@@ -151,7 +180,8 @@ window.addEventListener('popstate', function(event) {
     'wishlistModal',
     'cakeStudioModal',
     'cartModal',
-    'adminModal'
+    'adminModal',
+    'reviewModal'
   ];
 
   let modalClosed = false;
@@ -234,7 +264,7 @@ function triggerVoiceSearch() {
   alert("Voice Search: Say dish name (e.g. 'Pork Momo' or 'Chicken Roll')");
 }
 
-// ==================== 5. PRODUCT DETAIL PAGE (PDP) ====================
+// ==================== 5. PRODUCT DETAIL PAGE (PDP) & REVIEWS ====================
 function openProductDetail(dishId) {
   const dish = menuCatalog.find(d => d.id === dishId);
   if (!dish) return;
@@ -310,10 +340,49 @@ function buyNowPdp() {
 
 function shareCurrentItem() {
   if (navigator.share && currentPdpItem) {
-    navigator.share({ title: currentPdpItem.name, text: `Check out ${currentPdpItem.name} at S&A Restaurant!`, url: window.location.href });
+    navigator.share({ title: currentPdpItem.name, text: `Check out ${currentPdpItem.name} at S&A FAMILY RESTAURANT!`, url: window.location.href });
   } else {
     alert("Link copied to clipboard!");
   }
+}
+
+function openReviewModal() {
+  openModal('reviewModal');
+}
+
+function submitCustomerReview() {
+  const rating = document.getElementById('reviewRatingSelect')?.value || "5";
+  const msg = document.getElementById('reviewText')?.value.trim();
+  const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
+  const author = profile.name || "Happy Customer";
+
+  if (!msg) {
+    alert("Please write a few words about your experience!");
+    return;
+  }
+
+  const reviewHtml = `
+    <div class="review-item">
+      <div class="rev-header"><span>⭐ ${rating}.0 - ${author}</span><small>Just now</small></div>
+      <p>${msg}</p>
+    </div>
+  `;
+
+  const list = document.getElementById('pdpReviewsList');
+  if (list) list.insertAdjacentHTML('afterbegin', reviewHtml);
+
+  if (db) {
+    db.ref("customer_reviews").push({
+      author: author,
+      rating: rating,
+      message: msg,
+      timestamp: Date.now()
+    });
+  }
+
+  alert("Thank you for your valuable review!");
+  if (document.getElementById('reviewText')) document.getElementById('reviewText').value = '';
+  closeModal('reviewModal');
 }
 
 // ==================== 6. CART OPERATIONS ====================
@@ -402,7 +471,6 @@ function toggleCoinRedemption() {
   const chk = document.getElementById('redeemCoinsCheck');
   if (!chk) return;
 
-  // 1-Time SuperCoin Usage Check
   const coinsUsed = localStorage.getItem("kd_coins_used") === "true";
   if (chk.checked && coinsUsed) {
     alert("❌ Aap pehle hi apne SuperCoins redeem kar chuke hain! Admin ke naye coins issue karne tak aap dobara use nahi kar sakte.");
@@ -431,14 +499,12 @@ function applyDiscountCoupon() {
     return;
   }
 
-  // 1-Time Promo Code Usage Check
   const usedPromos = JSON.parse(localStorage.getItem("kd_used_promos") || "[]");
   if (usedPromos.includes(code)) {
     alert(`❌ Code "${code}" aap pehle use kar chuke hain! Yeh dubara apply nahi hoga.`);
     return;
   }
 
-  // Check database first, then local
   if (typeof db !== 'undefined' && db) {
     db.ref("promos/" + code).once("value", snap => {
       const disc = snap.val();
@@ -461,8 +527,7 @@ function applyDiscountCoupon() {
 
 function setCouponDiscount(amount, code) {
   appliedDiscount = amount;
-  
-  // Save used promo code so it cannot be used again
+
   const usedPromos = JSON.parse(localStorage.getItem("kd_used_promos") || "[]");
   if (!usedPromos.includes(code)) {
     usedPromos.push(code);
@@ -496,7 +561,6 @@ function placeOrder() {
 
   localStorage.setItem("kd_cust_profile", JSON.stringify({ name, phone, address }));
 
-  // Agar user ne coins redeem kiye hain toh unhe permanently locked mark kar do
   if (coinsRedeemed) {
     localStorage.setItem("kd_coins_used", "true");
   }
@@ -533,7 +597,6 @@ function placeOrder() {
   updateCartBar();
   closeModal('cartModal');
 
-  // Trigger Celebration Popup Animation
   const animModal = document.getElementById("order-success-modal");
   if (animModal) {
     animModal.style.display = "flex";
@@ -779,19 +842,17 @@ function loadAdminOrdersList() {
           </div>
           <div style="font-size:12px; color:#cbd5e1; margin:6px 0;">🍲 ${itemsStr}</div>
           <div style="font-size:11px; margin-bottom:6px; color:${isCancelled ? '#ef4444' : '#38bdf8'}; font-weight:bold;">Status: ${ord.status || 'Pending'}</div>
-                        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
-                <a href="tel:${ord.phone}" class="admin-btn" style="background:#0284c7; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold;">📞 Call</a>
-                <a href="https://wa.me/91${(ord.phone || '').replace(/[^0-9]/g, '')}?text=Namaste%20${encodeURIComponent(ord.customerName || 'Customer')},%20A%26A%20Family%20Restaurant%20se%20aapka%20special%20offer%20code%20hai:%20KD50" target="_blank" class="admin-btn" style="background:#25d366; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; display:inline-flex; align-items:center;">💬 WhatsApp</a>
-                ${(!isCancelled ? `
-                  <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 2, '2. In Kitchen')" style="background:#e11d48; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🍳 Kitchen</button>
-                  <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 3, '3. Out for Delivery')" style="background:#f59e0b; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🛵 Out</button>
-                  <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 4, '4. Delivered')" style="background:#10b981; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">✅ Done</button>
-                  <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 0, 'Cancelled by Restaurant')" style="background:#dc2626; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">❌ Cancel</button>
-                ` : '')}
-                <button onclick="deleteAdminOrder('${k}')" style="background:#475569; color:#fff; border:none; padding:5px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️</button>
-              </div>
-
-          
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+            <a href="tel:${ord.phone}" class="admin-btn" style="background:#0284c7; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold;">📞 Call</a>
+            <a href="https://wa.me/91${(ord.phone || '').replace(/[^0-9]/g, '')}?text=Namaste%20${encodeURIComponent(ord.customerName || 'Customer')},%20S%26A%20Family%20Restaurant%20se%20aapka%20special%20offer%20code%20hai:%20KD50" target="_blank" class="admin-btn" style="background:#25d366; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; display:inline-flex; align-items:center;">💬 WhatsApp</a>
+            ${(!isCancelled ? `
+              <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 2, '2. In Kitchen')" style="background:#e11d48; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🍳 Kitchen</button>
+              <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 3, '3. Out for Delivery')" style="background:#f59e0b; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">🛵 Out</button>
+              <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 4, '4. Delivered')" style="background:#10b981; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">✅ Done</button>
+              <button onclick="setAdminOrderStatus('${k}', '${ord.orderId}', '${ord.phone}', 0, 'Cancelled by Restaurant')" style="background:#dc2626; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">❌ Cancel</button>
+            ` : '')}
+            <button onclick="deleteAdminOrder('${k}')" style="background:#475569; color:#fff; border:none; padding:5px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️</button>
+          </div>
         </div>
       `;
     });
@@ -1002,7 +1063,6 @@ function previewAdminDishUpload(input) {
   }
 }
 
-// Bind file input event listener automatically
 document.addEventListener('change', function(e) {
   if (e.target && e.target.type === 'file' && e.target.closest('#adminModal, #adminDashboard')) {
     previewAdminDishUpload(e.target);
@@ -1221,12 +1281,22 @@ function switchNavTab(tab) {
   }
 }
 
-// Initial Run
+// ==================== 14. INITIAL RUN & FAST LOAD ====================
+function hideSplashScreen() {
+  const splash = document.getElementById("custom-splash-screen");
+  if (splash && splash.style.display !== "none") {
+    splash.style.opacity = "0";
+    setTimeout(() => {
+      splash.style.display = "none";
+    }, 300);
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   renderFoodItems(menuCatalog);
   setupBannerSlider();
+  hideSplashScreen();
 
-  // Bind Buttons with functions dynamically
   const saveDishBtn = document.querySelector('button[onclick*="adminSaveNewDish"], .btn-save-dish') || Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('SAVE DISH TO MENU'));
   if (saveDishBtn) saveDishBtn.onclick = adminSaveNewDish;
 
@@ -1249,17 +1319,5 @@ window.addEventListener('DOMContentLoaded', () => {
   if (profile.name && document.getElementById('accNameDisplay')) document.getElementById('accNameDisplay').innerText = profile.name;
   if (profile.phone && document.getElementById('accPhoneDisplay')) document.getElementById('accPhoneDisplay').innerText = "+91 " + profile.phone;
 });
-// Splash Screen Auto Hide
-// Splash Screen Guaranteed Auto-Hide
-function hideSplashScreen() {
-  const splash = document.getElementById("custom-splash-screen");
-  if (splash && splash.style.display !== "none") {
-    splash.style.opacity = "0";
-    setTimeout(() => {
-      splash.style.display = "none";
-    }, 500);
-  }
-}
 
-setTimeout(hideSplashScreen, 1500);
-window.addEventListener("load", () => setTimeout(hideSplashScreen, 1500));
+window.addEventListener("load", hideSplashScreen);
