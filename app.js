@@ -1203,14 +1203,16 @@ window.addEventListener('DOMContentLoaded', () => {
   if (profile.phone && document.getElementById('accPhoneDisplay')) document.getElementById('accPhoneDisplay').innerText = "+91 " + profile.phone;
 });
 // Splash Screen Auto Hide
-window.addEventListener("load", () => {
+// Splash Screen Guaranteed Auto-Hide
+function hideSplashScreen() {
   const splash = document.getElementById("custom-splash-screen");
-  if (splash) {
+  if (splash && splash.style.display !== "none") {
+    splash.style.opacity = "0";
     setTimeout(() => {
-      splash.style.opacity = "0";
-      setTimeout(() => {
-        splash.style.display = "none";
-      }, 500);
-    }, 1500);
+      splash.style.display = "none";
+    }, 500);
   }
-});
+}
+
+setTimeout(hideSplashScreen, 1500);
+window.addEventListener("load", () => setTimeout(hideSplashScreen, 1500));
