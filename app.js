@@ -400,7 +400,22 @@ function setPaymentMethod(method) {
 
 function toggleCoinRedemption() {
   const chk = document.getElementById('redeemCoinsCheck');
-  coinsRedeemed = chk ? chk.checked : false;
+  if (!chk) return;
+
+  // 1-Time SuperCoin Usage Check
+  const coinsUsed = localStorage.getItem("kd_coins_used") === "true";
+  if (chk.checked && coinsUsed) {
+    alert("❌ Aap pehle hi apne SuperCoins redeem kar chuke hain! Admin ke naye coins issue karne tak aap dobara use nahi kar sakte.");
+    chk.checked = false;
+    coinsRedeemed = false;
+    const row = document.getElementById('coinsDiscountRow');
+    if (row) row.style.display = 'none';
+    updateCartBar();
+    openCartModal();
+    return;
+  }
+
+  coinsRedeemed = chk.checked;
   const row = document.getElementById('coinsDiscountRow');
   if (row) row.style.display = coinsRedeemed ? 'flex' : 'none';
   updateCartBar();
@@ -416,20 +431,27 @@ function applyDiscountCoupon() {
     return;
   }
 
+  // 1-Time Promo Code Usage Check
+  const usedPromos = JSON.parse(localStorage.getItem("kd_used_promos") || "[]");
+  if (usedPromos.includes(code)) {
+    alert(`❌ Code "${code}" aap pehle use kar chuke hain! Yeh dubara apply nahi hoga.`);
+    return;
+  }
+
   // Check database first, then local
-  if (db) {
+  if (typeof db !== 'undefined' && db) {
     db.ref("promos/" + code).once("value", snap => {
       const disc = snap.val();
       if (disc && Number(disc) > 0) {
         setCouponDiscount(Number(disc), code);
-      } else if (code === "KD50" || code === "WELCOME") {
+      } else if (code === "KD50" || code === "WELCOME" || code === "BIKASH50") {
         setCouponDiscount(50, code);
       } else {
         alert("Invalid Promo Code!");
       }
     });
   } else {
-    if (code === "KD50" || code === "WELCOME") {
+    if (code === "KD50" || code === "WELCOME" || code === "BIKASH50") {
       setCouponDiscount(50, code);
     } else {
       alert("Invalid Promo Code!");
@@ -439,6 +461,14 @@ function applyDiscountCoupon() {
 
 function setCouponDiscount(amount, code) {
   appliedDiscount = amount;
+  
+  // Save used promo code so it cannot be used again
+  const usedPromos = JSON.parse(localStorage.getItem("kd_used_promos") || "[]");
+  if (!usedPromos.includes(code)) {
+    usedPromos.push(code);
+    localStorage.setItem("kd_used_promos", JSON.stringify(usedPromos));
+  }
+
   const dRow = document.getElementById('discountRow');
   const bDisc = document.getElementById('billDiscount');
   if (dRow) dRow.style.display = 'flex';
@@ -466,6 +496,11 @@ function placeOrder() {
 
   localStorage.setItem("kd_cust_profile", JSON.stringify({ name, phone, address }));
 
+  // Agar user ne coins redeem kiye hain toh unhe permanently locked mark kar do
+  if (coinsRedeemed) {
+    localStorage.setItem("kd_coins_used", "true");
+  }
+
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const coinDiscount = coinsRedeemed ? 20 : 0;
   const grandTotal = Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount);
@@ -479,13 +514,14 @@ function placeOrder() {
     items: cart,
     grandTotal: grandTotal,
     paymentMode: activePayment,
+    coinsUsed: coinsRedeemed,
     status: "1. Order Confirmed",
     stage: 1,
     eta: 30,
     timestamp: Date.now()
   };
 
-  if (db) {
+  if (typeof db !== 'undefined' && db) {
     const newOrderRef = db.ref("orders").push();
     newOrderRef.set(orderPayload);
     db.ref("customer_history/" + phone + "/" + newOrderRef.key).set(orderPayload);
@@ -496,13 +532,21 @@ function placeOrder() {
   coinsRedeemed = false;
   updateCartBar();
   closeModal('cartModal');
-  openOrderHistoryModal();
+
+  // Trigger Celebration Popup Animation
+  const animModal = document.getElementById("order-success-modal");
+  if (animModal) {
+    animModal.style.display = "flex";
+  } else {
+    openOrderHistoryModal();
+  }
 }
 
 // ==================== 8. ORDERS HISTORY & LIVE TRACKING ====================
 function openOrderHistoryModal() {
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   const phone = profile.phone;
+
   const container = document.getElementById('orderHistoryContainer');
   openModal('orderHistoryModal');
 
