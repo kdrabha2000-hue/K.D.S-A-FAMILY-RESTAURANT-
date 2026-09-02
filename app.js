@@ -138,7 +138,9 @@ if (db) {
     const cloudMenu = snapshot.val();
     if (cloudMenu && Array.isArray(cloudMenu)) {
       menuCatalog = cloudMenu;
-      localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
+      try {
+        localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
+      } catch(e) { console.warn("LocalStorage cache full"); }
       renderFoodItems(menuCatalog);
       if (document.getElementById('adminDashboard')?.style.display === 'block') {
         renderAdminMenuItems();
@@ -191,7 +193,11 @@ function updateBannerUI(headline) {
 }
 
 function saveMenuToStorageAndCloud() {
-  localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
+  try {
+    localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
+  } catch (e) {
+    console.warn("LocalStorage quota exceeded, relying on Firebase Realtime DB.");
+  }
   if (db) {
     db.ref("restaurant_menu").set(menuCatalog);
   }
@@ -348,7 +354,9 @@ function toggleCardWish(id, el) {
     wishlist.push(id);
     if (el) el.classList.add('active');
   }
-  localStorage.setItem("kd_wishlist", JSON.stringify(wishlist));
+  try {
+    localStorage.setItem("kd_wishlist", JSON.stringify(wishlist));
+  } catch(e) {}
 }
 
 function selectDishVariant(type, extra, el) {
@@ -565,7 +573,9 @@ function setCouponDiscount(amount, code) {
   const usedPromos = JSON.parse(localStorage.getItem("kd_used_promos") || "[]");
   if (!usedPromos.includes(code)) {
     usedPromos.push(code);
-    localStorage.setItem("kd_used_promos", JSON.stringify(usedPromos));
+    try {
+      localStorage.setItem("kd_used_promos", JSON.stringify(usedPromos));
+    } catch(e) {}
   }
 
   const dRow = document.getElementById('discountRow');
@@ -593,10 +603,14 @@ function placeOrder() {
     return;
   }
 
-  localStorage.setItem("kd_cust_profile", JSON.stringify({ name, phone, address }));
+  try {
+    localStorage.setItem("kd_cust_profile", JSON.stringify({ name, phone, address }));
+  } catch(e) {}
 
   if (coinsRedeemed) {
-    localStorage.setItem("kd_coins_used", "true");
+    try {
+      localStorage.setItem("kd_coins_used", "true");
+    } catch(e) {}
   }
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -925,9 +939,30 @@ function deleteAdminOrder(key) {
   }
 }
 
-// ==================== 10. MENU EDIT & NEW DISH SAVE ====================
+// ==================== 10. FAST IMAGE COMPRESSOR & MENU EDIT ====================
 let adminUploadBase64 = "";
 let editUploadBase64 = "";
+
+// Image compression function to prevent website lag & crash
+function compressImage(file, callback) {
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = function (event) {
+    const img = new Image();
+    img.src = event.target.result;
+    img.onload = function () {
+      const canvas = document.createElement('canvas');
+      const max_width = 450;
+      const scaleSize = max_width / img.width;
+      canvas.width = max_width;
+      canvas.height = img.height * scaleSize;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const compressedUrl = canvas.toDataURL('image/jpeg', 0.7);
+      callback(compressedUrl);
+    };
+  };
+}
 
 function renderAdminMenuItems() {
   const container = document.getElementById('adminMenuItemsList');
@@ -1001,13 +1036,11 @@ function closeDishEditBox(id) {
 
 function previewEditImage(input, id) {
   if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      editUploadBase64 = e.target.result;
+    compressImage(input.files[0], (compressed) => {
+      editUploadBase64 = compressed;
       const preview = document.getElementById(`editPreviewImg_${id}`);
-      if (preview) preview.src = e.target.result;
-    };
-    reader.readAsDataURL(input.files[0]);
+      if (preview) preview.src = compressed;
+    });
   }
 }
 
@@ -1051,16 +1084,29 @@ function deleteMenuItem(id) {
   }
 }
 
+function previewAdminDishUpload(input) {
+  if (input.files && input.files[0]) {
+    compressImage(input.files[0], (compressed) => {
+      adminUploadBase64 = compressed;
+      const prev = document.getElementById('adminDishPreview');
+      if (prev) {
+        prev.src = compressed;
+        prev.style.display = 'block';
+      }
+    });
+  }
+}
+
 function adminSaveNewDish() {
-  const nameInput = document.getElementById('newDishName') || document.querySelector('input[placeholder="Dish Name"]');
-  const priceInput = document.getElementById('newDishPrice') || document.querySelector('input[placeholder*="Price"]');
-  const catSelect = document.getElementById('newDishCat') || document.querySelector('select');
-  const urlInput = document.getElementById('newDishImgUrl') || document.querySelector('input[placeholder*="Image URL"]');
+  const nameInput = document.getElementById('newDishName');
+  const priceInput = document.getElementById('newDishPrice');
+  const catSelect = document.getElementById('newDishCat');
+  const urlInput = document.getElementById('newDishImgUrl');
 
   const name = nameInput ? nameInput.value.trim() : '';
   const price = priceInput ? Number(priceInput.value) : 0;
   const cat = catSelect ? catSelect.value : 'momos';
-  const imgUrl = (urlInput ? urlInput.value.trim() : '') || adminUploadBase64 || "https://images.unsplash.com/photo-1544025162-d76694265947?w=500";
+  const imgUrl = adminUploadBase64 || (urlInput ? urlInput.value.trim() : '') || "https://images.unsplash.com/photo-1544025162-d76694265947?w=500";
 
   if (!name || !price) {
     alert("Please enter both dish name and price.");
@@ -1084,29 +1130,15 @@ function adminSaveNewDish() {
   if (nameInput) nameInput.value = '';
   if (priceInput) priceInput.value = '';
   if (urlInput) urlInput.value = '';
+  const prev = document.getElementById('adminDishPreview');
+  if (prev) prev.style.display = 'none';
   adminUploadBase64 = '';
 }
 
-function previewAdminDishUpload(input) {
-  if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      adminUploadBase64 = e.target.result;
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-
-document.addEventListener('change', function(e) {
-  if (e.target && e.target.type === 'file' && e.target.closest('#adminModal, #adminDashboard')) {
-    previewAdminDishUpload(e.target);
-  }
-});
-
 // ==================== 11. CONTROLS: PROMO, BANNER, STORE, VIP ====================
 function adminCreateCoupon() {
-  const codeEl = document.getElementById('newCouponCode') || document.querySelector('input[placeholder*="KD20"]');
-  const discEl = document.getElementById('newCouponDiscount') || document.querySelector('input[placeholder*="Discount Value"]');
+  const codeEl = document.getElementById('newCouponCode');
+  const discEl = document.getElementById('newCouponDiscount');
 
   const code = codeEl ? codeEl.value.trim().toUpperCase() : '';
   const disc = discEl ? Number(discEl.value) : 0;
@@ -1123,7 +1155,9 @@ function adminCreateCoupon() {
       if (discEl) discEl.value = '';
     });
   } else {
-    localStorage.setItem("kd_promo_" + code, disc);
+    try {
+      localStorage.setItem("kd_promo_" + code, disc);
+    } catch(e) {}
     alert(`Promo Code '${code}' saved locally!`);
   }
 }
@@ -1152,7 +1186,7 @@ function editPromoBanner() {
 }
 
 function assignVipBadge() {
-  const phEl = document.getElementById('vipCustPhone') || document.querySelector('input[placeholder*="Mobile Number"]');
+  const phEl = document.getElementById('vipCustPhone');
   const ph = phEl ? phEl.value.trim() : '';
   if (ph) {
     if (db) {
@@ -1173,13 +1207,13 @@ function setupBannerSlider() {
     { title: "MOMO CELEBRATION 🥟", sub: "Fresh Steamed & Fried Momo starting at ₹120 only!" }
   ];
   let curr = 0;
-  const bannerBox = document.querySelector('.hero-banner, .festival-deal-card, [style*="FESTIVAL DEAL"]');
+  const bannerBox = document.querySelector('.promo-carousel, .hero-banner');
   if (!bannerBox) return;
 
   setInterval(() => {
     curr = (curr + 1) % deals.length;
-    const titleEl = bannerBox.querySelector('h2, strong, div[style*="font-size: 18px"], div[style*="font-size:18px"]');
-    const subEl = bannerBox.querySelector('p, div[style*="font-size: 12px"], div[style*="font-size:12px"]');
+    const titleEl = document.getElementById('bannerTitle');
+    const subEl = document.getElementById('bannerSub');
     if (titleEl) titleEl.innerText = deals[curr].title;
     if (subEl) subEl.innerText = deals[curr].sub;
   }, 4000);
@@ -1217,15 +1251,13 @@ function addCustomCakeToCart() {
 
 function previewCakeUpload(input) {
   if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
+    compressImage(input.files[0], (compressed) => {
       const p = document.getElementById('cakePhotoPreview');
       if (p) {
-        p.src = e.target.result;
+        p.src = compressed;
         p.style.display = 'block';
       }
-    };
-    reader.readAsDataURL(input.files[0]);
+    });
   }
 }
 
@@ -1264,7 +1296,9 @@ function saveCustomerAccount() {
   }
 
   const profile = { name, phone, address };
-  localStorage.setItem("kd_cust_profile", JSON.stringify(profile));
+  try {
+    localStorage.setItem("kd_cust_profile", JSON.stringify(profile));
+  } catch(e) {}
 
   if (document.getElementById('accNameDisplay') && name) document.getElementById('accNameDisplay').innerText = name;
   if (document.getElementById('accPhoneDisplay') && phone) document.getElementById('accPhoneDisplay').innerText = "+91 " + phone;
@@ -1279,12 +1313,10 @@ function saveCustomerAccount() {
 
 function uploadCustomerAvatar(input) {
   if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
+    compressImage(input.files[0], (compressed) => {
       const img = document.getElementById('userAvatarImg');
-      if (img) img.src = e.target.result;
-    };
-    reader.readAsDataURL(input.files[0]);
+      if (img) img.src = compressed;
+    });
   }
 }
 
@@ -1330,24 +1362,6 @@ window.addEventListener('DOMContentLoaded', () => {
   renderFoodItems(menuCatalog);
   setupBannerSlider();
   hideSplashScreen();
-
-  const saveDishBtn = document.querySelector('button[onclick*="adminSaveNewDish"], .btn-save-dish') || Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('SAVE DISH TO MENU'));
-  if (saveDishBtn) saveDishBtn.onclick = adminSaveNewDish;
-
-  const savePromoBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('SAVE PROMO CODE'));
-  if (savePromoBtn) savePromoBtn.onclick = adminCreateCoupon;
-
-  const storeBtn = document.getElementById('storeStatusBtn') || Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('Restaurant is:'));
-  if (storeBtn) {
-    storeBtn.id = 'storeStatusBtn';
-    storeBtn.onclick = toggleStoreStatus;
-  }
-
-  const editHeadlineBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('Edit Carousel Banner Headline'));
-  if (editHeadlineBtn) editHeadlineBtn.onclick = editPromoBanner;
-
-  const vipBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('ACTIVATE VIP GOLD BADGE'));
-  if (vipBtn) vipBtn.onclick = assignVipBadge;
 
   const profile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   if (profile.name && document.getElementById('accNameDisplay')) document.getElementById('accNameDisplay').innerText = profile.name;
