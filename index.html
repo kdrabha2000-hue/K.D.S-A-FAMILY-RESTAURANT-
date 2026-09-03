@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="style.css?v=205" />
+  <link rel="stylesheet" href="style.css?v=206" />
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -226,6 +226,8 @@
         <p><i class="fa-solid fa-location-dot"></i> Bengbari, Udalguri (784523)</p>
       </div>
       <div class="header-actions">
+        <!-- TOP WISHLIST BUTTON -->
+        <div class="admin-icon-btn" onclick="openSavedItemsModal()" title="Saved Dishes (Wishlist)" style="color:#ef4444;"><i class="fa-solid fa-heart"></i></div>
         <div class="coin-pill" onclick="switchNavTab('account')"><i class="fa-solid fa-coins"></i> <span id="headerCoins">25</span></div>
         <div class="admin-icon-btn" onclick="openAdminGateway()" title="Admin Control Room"><i class="fa-solid fa-shield-halved"></i></div>
       </div>
@@ -294,9 +296,11 @@
     <div style="font-weight:700;">View Cart <i class="fa-solid fa-arrow-right"></i></div>
   </div>
 
+  <!-- BOTTOM NAVIGATION BAR WITH DIRECT CART -->
   <nav class="bottom-nav">
     <div class="nav-tab active" id="tabHome" onclick="switchNavTab('home')"><i class="fa-solid fa-house"></i>Home</div>
     <div class="nav-tab" id="tabCakes" onclick="openCakeStudio()"><i class="fa-solid fa-cake-candles"></i>Cakes</div>
+    <div class="nav-tab" id="tabCartDirect" onclick="openCartModal()"><i class="fa-solid fa-cart-shopping"></i>Cart</div>
     <div class="nav-tab" id="tabOrders" onclick="openOrderHistoryModal()"><i class="fa-solid fa-bag-shopping"></i>My Orders</div>
     <div class="nav-tab" id="tabAccount" onclick="switchNavTab('account')"><i class="fa-solid fa-circle-user"></i>Account</div>
   </nav>
@@ -367,7 +371,7 @@
     </div>
 
     <div class="pdp-bottom-bar">
-      <button class="pdp-btn btn-cart" onclick="addPdpToCart()"><i class="fa-solid fa-bag-shopping"></i> Add to Cart</button>
+      <button class="pdp-btn btn-cart" onclick="addPdpToCart()"><i class="fa-solid fa-cart-plus"></i> Add to Cart</button>
       <button class="pdp-btn btn-buy" onclick="buyNowPdp()"><i class="fa-solid fa-bolt"></i> Order Now</button>
     </div>
   </div>
@@ -480,7 +484,7 @@
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('cartModal')"></i>
     </div>
     <div style="padding:16px;">
-      <!-- STEP 1: CART & COUPONS -->
+      <!-- STEP 1: CART ITEMS, +/- CONTROLS, SAVE & DELETE -->
       <div id="checkoutStep1">
         <div id="cartItemsList"></div>
 
@@ -525,7 +529,7 @@
         </div>
       </div>
 
-      <!-- STEP 3: PAYMENT OPTION, QR & DIRECT INTENT -->
+      <!-- STEP 3: PAYMENT OPTION, QR, DIRECT INTENT & VERIFICATION -->
       <div id="checkoutStep3" style="display:none;">
         <div class="bill-box" style="margin-bottom:14px;">
           <div class="bill-row" style="font-weight:700;"><span>Total Amount to Pay:</span><span id="step3GrandTotal" style="color:var(--primary); font-size:16px;">₹0</span></div>
@@ -554,6 +558,15 @@
           <button id="directUpiPayBtn" onclick="launchDirectUpiPayment()" style="width:100%; margin-top:12px; padding:12px; background:linear-gradient(135deg, #00c853, #10b981); color:#fff; border:none; border-radius:10px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 4px 12px rgba(16,185,129,0.3);">
             ⚡ PAY NOW (GPay / PhonePe / Paytm)
           </button>
+
+          <!-- UTR Verification Box for Safe Payment -->
+          <div id="upiVerifyBox" style="margin-top:12px; text-align:left; background:#1e293b; padding:10px 12px; border-radius:8px; border:1px dashed #38bdf8;">
+            <label style="font-size:11px; color:#ffca42; font-weight:700; display:block; margin-bottom:4px;">
+              ⚠️ Payment ke baad 12-Digit UPI Ref / UTR Number daalein:
+            </label>
+            <input type="text" id="upiUtrInput" class="form-input" placeholder="e.g. 423589123456 (12 digits)" maxlength="16" style="background:#0f172a; color:#fff; border-color:#475569; margin-bottom:4px;" />
+            <small style="font-size:10px; color:#94a3b8;">Payment ke bina online order confirm nahi hoga.</small>
+          </div>
         </div>
 
         <div style="display:flex; gap:10px; margin-top:14px;">
@@ -765,6 +778,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=205"></script>
+  <script src="app.js?v=206"></script>
 </body>
 </html>
