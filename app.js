@@ -322,7 +322,7 @@ function closeModal(id) {
   }
 }
 
-// 3-Minute Auto-Shuffle Timer
+// 3-Minute Auto-Shuffle Timer (Freezes during any active modal)
 setInterval(() => {
   if (!isAnyModalOpen && menuCatalog.length > 2) {
     const shuffled = [...menuCatalog];
@@ -525,7 +525,7 @@ function submitCustomerReview() {
   closeModal('reviewModal');
 }
 
-// ==================== 6. CART OPERATIONS & TOAST ====================
+// ==================== 6. CART OPERATIONS, PLUS/MINUS & TOAST ====================
 function showCartToast(dishName) {
   const toast = document.getElementById('cartToast');
   if (toast) {
@@ -550,6 +550,39 @@ function addToCart(id, name, price, img) {
   showCartToast(name);
 }
 
+function changeCartQty(id, delta) {
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+
+  item.qty += delta;
+  if (item.qty <= 0) {
+    cart = cart.filter(i => i.id !== id);
+  }
+  updateCartBar();
+  renderCartModalItems();
+}
+
+function removeCartItem(id) {
+  cart = cart.filter(i => i.id !== id);
+  updateCartBar();
+  renderCartModalItems();
+}
+
+function moveCartItemToSaved(id) {
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+
+  const rawId = id.replace('_dbl', '');
+  if (!wishlist.includes(rawId)) {
+    wishlist.push(rawId);
+    try { localStorage.setItem("kd_wishlist", JSON.stringify(wishlist)); } catch(e) {}
+  }
+  cart = cart.filter(i => i.id !== id);
+  updateCartBar();
+  renderCartModalItems();
+  alert(`❤️ "${item.name}" moved to Saved Items!`);
+}
+
 function updateCartBar() {
   const cartBar = document.getElementById('floatingCart');
   if (!cartBar) return;
@@ -565,6 +598,60 @@ function updateCartBar() {
   if (document.getElementById('cartCount')) document.getElementById('cartCount').innerText = `${totalQty} Item${totalQty > 1 ? 's' : ''}`;
   if (document.getElementById('cartTotal')) document.getElementById('cartTotal').innerText = `₹${grandTotal}`;
   cartBar.style.display = 'flex';
+}
+
+function renderCartModalItems() {
+  const list = document.getElementById('cartItemsList');
+  if (!list) return;
+  list.innerHTML = '';
+  let subtotal = 0;
+
+  if (cart.length === 0) {
+    list.innerHTML = '<p style="text-align:center; color:var(--gray); padding:20px;">Your cart is empty.</p>';
+    goToCheckoutStep(1);
+    return;
+  }
+
+  cart.forEach(item => {
+    subtotal += (item.price * item.qty);
+    list.innerHTML += `
+      <div style="background:#fff; border-radius:12px; padding:10px 12px; margin-bottom:10px; border:1px solid #f1f5f9; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <img src="${item.img}" style="width:44px; height:44px; border-radius:8px; object-fit:cover;" />
+            <div>
+              <div style="font-size:13px; font-weight:700; color:#1e293b;">${item.name}</div>
+              <div style="font-size:12px; color:var(--primary); font-weight:700;">₹${item.price}</div>
+            </div>
+          </div>
+          <div style="font-weight:800; font-size:14px;">₹${item.price * item.qty}</div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:8px; border-top:1px dashed #f1f5f9;">
+          <!-- Plus / Minus Controls -->
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button onclick="changeCartQty('${item.id}', -1)" style="width:26px; height:26px; border-radius:6px; border:1px solid #cbd5e1; background:#f8fafc; font-weight:bold; cursor:pointer;">-</button>
+            <span style="font-weight:700; font-size:13px; min-width:16px; text-align:center;">${item.qty}</span>
+            <button onclick="changeCartQty('${item.id}', 1)" style="width:26px; height:26px; border-radius:6px; border:1px solid #cbd5e1; background:#f8fafc; font-weight:bold; cursor:pointer;">+</button>
+          </div>
+
+          <!-- Save for Later & Remove Actions -->
+          <div style="display:flex; gap:8px;">
+            <button onclick="moveCartItemToSaved('${item.id}')" style="background:#fef2f2; color:#ef4444; border:none; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer;" title="Save for Later">
+              <i class="fa-solid fa-heart"></i> Save
+            </button>
+            <button onclick="removeCartItem('${item.id}')" style="background:#f1f5f9; color:#64748b; border:none; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer;" title="Remove Item">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  const coinDiscount = coinsRedeemed ? 20 : 0;
+  if (document.getElementById('billSubtotal')) document.getElementById('billSubtotal').innerText = `₹${subtotal}`;
+  if (document.getElementById('billGrandTotal')) document.getElementById('billGrandTotal').innerText = `₹${Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount)}`;
 }
 
 function goToCheckoutStep(step) {
@@ -623,35 +710,12 @@ function goToCheckoutStep(step) {
 }
 
 function openCartModal() {
-  const list = document.getElementById('cartItemsList');
-  if (!list) return;
-  list.innerHTML = '';
-  let subtotal = 0;
-
-  cart.forEach(item => {
-    subtotal += (item.price * item.qty);
-    list.innerHTML += `
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #f1f5f9; padding-bottom:6px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <img src="${item.img}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;" />
-          <div>
-            <div style="font-size:13px; font-weight:600;">${item.name}</div>
-            <div style="font-size:11px; color:var(--gray);">₹${item.price} x ${item.qty}</div>
-          </div>
-        </div>
-        <div style="font-weight:700;">₹${item.price * item.qty}</div>
-      </div>
-    `;
-  });
+  renderCartModalItems();
 
   const savedProfile = JSON.parse(localStorage.getItem("kd_cust_profile") || "{}");
   if (savedProfile.name && document.getElementById('custName')) document.getElementById('custName').value = savedProfile.name;
   if (savedProfile.phone && document.getElementById('custPhone')) document.getElementById('custPhone').value = savedProfile.phone;
   if (savedProfile.address && document.getElementById('custAddress')) document.getElementById('custAddress').value = savedProfile.address;
-
-  const coinDiscount = coinsRedeemed ? 20 : 0;
-  if (document.getElementById('billSubtotal')) document.getElementById('billSubtotal').innerText = `₹${subtotal}`;
-  if (document.getElementById('billGrandTotal')) document.getElementById('billGrandTotal').innerText = `₹${Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount)}`;
 
   goToCheckoutStep(1);
   openModal('cartModal');
@@ -691,7 +755,7 @@ function toggleCoinRedemption() {
     const row = document.getElementById('coinsDiscountRow');
     if (row) row.style.display = 'none';
     updateCartBar();
-    openCartModal();
+    renderCartModalItems();
     return;
   }
 
@@ -699,7 +763,7 @@ function toggleCoinRedemption() {
   const row = document.getElementById('coinsDiscountRow');
   if (row) row.style.display = coinsRedeemed ? 'flex' : 'none';
   updateCartBar();
-  openCartModal();
+  renderCartModalItems();
 }
 
 function applyDiscountCoupon() {
@@ -751,10 +815,10 @@ function setCouponDiscount(amount, code) {
   if (bDisc) bDisc.innerText = `-₹${amount}`;
   alert(`🎉 Promo Code '${code}' Applied: ₹${amount} Discount!`);
   updateCartBar();
-  openCartModal();
+  renderCartModalItems();
 }
 
-// ==================== 7. PLACE ORDER & LIVE SYNC ====================
+// ==================== 7. PLACE ORDER WITH PAYMENT SECURITY ====================
 function placeOrder() {
   if (!isStoreOpen) {
     alert("Sorry, the restaurant is currently closed!");
@@ -768,6 +832,18 @@ function placeOrder() {
   if (!name || !phone || !address) {
     alert("Please fill Name, Phone and Complete Delivery Address.");
     return;
+  }
+
+  // Strict Online Payment Check
+  let utrVal = "";
+  if (activePayment === 'UPI') {
+    const utrInput = document.getElementById('upiUtrInput');
+    utrVal = utrInput ? utrInput.value.trim() : '';
+    if (!utrVal || utrVal.length < 10) {
+      alert("⚠️ Kripya pehle PAY NOW dabakar payment karein aur receipt ka 12-digit UTR/UPI Ref number yahan daalein!");
+      if (utrInput) utrInput.focus();
+      return;
+    }
   }
 
   try { localStorage.setItem("kd_cust_profile", JSON.stringify({ name, phone, address })); } catch(e) {}
@@ -789,6 +865,7 @@ function placeOrder() {
     items: cart,
     grandTotal: grandTotal,
     paymentMode: activePayment,
+    utrNumber: utrVal || "N/A (Cash on Delivery)",
     coinsUsed: coinsRedeemed,
     status: "1. Order Confirmed",
     stage: 1,
@@ -805,6 +882,9 @@ function placeOrder() {
   cart = [];
   appliedDiscount = 0;
   coinsRedeemed = false;
+  const utrEl = document.getElementById('upiUtrInput');
+  if (utrEl) utrEl.value = '';
+
   updateCartBar();
   closeModal('cartModal');
 
@@ -1048,6 +1128,7 @@ function loadAdminOrdersList() {
           </div>
           <div style="font-size:12px; color:#cbd5e1; margin:6px 0;">🍲 ${itemsStr}</div>
           <div style="font-size:11px; margin-bottom:6px; color:${isCancelled ? '#ef4444' : '#38bdf8'}; font-weight:bold;">Status: ${ord.status || 'Pending'}</div>
+          ${ord.paymentMode === 'UPI' ? `<div style="font-size:11px; margin-bottom:6px; color:#ffca42; font-weight:bold;">💳 UTR / Ref: ${ord.utrNumber || 'N/A'}</div>` : ''}
           <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
             <a href="tel:${ord.phone}" class="admin-btn" style="background:#0284c7; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold;">📞 Call</a>
             <a href="https://wa.me/91${(ord.phone || '').replace(/[^0-9]/g, '')}?text=Namaste%20${encodeURIComponent(ord.customerName || 'Customer')},%20S%26A%20Family%20Restaurant%20se%20aapka%20special%20offer%20code%20hai:%20KD20" target="_blank" class="admin-btn" style="background:#25d366; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; display:inline-flex; align-items:center;">💬 WhatsApp</a>
@@ -1474,7 +1555,7 @@ function uploadCustomerAvatar(input) {
 
 // ==================== 13. NAVIGATION TABS ====================
 function switchNavTab(tab) {
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav .nav-tab').forEach(t => t.classList.remove('active'));
 
   if (tab === 'home') {
     document.getElementById('tabHome')?.classList.add('active');
