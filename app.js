@@ -81,7 +81,7 @@ function shareReferralLink() {
       title: "S&A Family Restaurant - Special Offer",
       text: shareText,
       url: appUrl
-    }).catch((err) => console.log("Share dismissed"));
+    }).catch(() => {});
   } else {
     navigator.clipboard.writeText(shareText).then(() => {
       const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
@@ -132,15 +132,20 @@ let selectedCakeWeight = 1.0;
 let selectedCakePrice = 850;
 let isStoreOpen = true;
 
-// Firebase Cloud Sync
+// ==================== PAYMENT SETTINGS SYNC ====================
+let paymentSettings = {
+  codEnabled: true,
+  upiId: "6000026478@okbizaxis",
+  payeeName: "S&A FAMILY RESTAURANT"
+};
+
 if (db) {
+  // Menu Sync
   db.ref("restaurant_menu").on("value", snapshot => {
     const cloudMenu = snapshot.val();
     if (cloudMenu && Array.isArray(cloudMenu)) {
       menuCatalog = cloudMenu;
-      try {
-        localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
-      } catch(e) { console.warn("LocalStorage cache full"); }
+      try { localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog)); } catch(e) {}
       renderFoodItems(menuCatalog);
       if (document.getElementById('adminDashboard')?.style.display === 'block') {
         renderAdminMenuItems();
@@ -148,6 +153,7 @@ if (db) {
     }
   });
 
+  // Store Status Sync
   db.ref("store_status").on("value", snap => {
     const val = snap.val();
     if (val !== null) {
@@ -156,11 +162,79 @@ if (db) {
     }
   });
 
+  // Banner Headline Sync
   db.ref("banner_headline").on("value", snap => {
     const headline = snap.val();
-    if (headline) {
-      updateBannerUI(headline);
+    if (headline) updateBannerUI(headline);
+  });
+
+  // Payment Settings (COD & UPI) Sync
+  db.ref("payment_settings").on("value", snap => {
+    const val = snap.val();
+    if (val) {
+      paymentSettings = val;
+      updatePaymentSettingsUI();
     }
+  });
+}
+
+function updatePaymentSettingsUI() {
+  const codBtn = document.getElementById('codBtn');
+  const adminCodBtn = document.getElementById('adminCodToggleBtn');
+  if (adminCodBtn) {
+    adminCodBtn.innerText = paymentSettings.codEnabled ? "Cash on Delivery: ENABLED" : "Cash on Delivery: DISABLED";
+    adminCodBtn.style.background = paymentSettings.codEnabled ? "#10b981" : "#ef4444";
+  }
+
+  if (codBtn) {
+    if (!paymentSettings.codEnabled) {
+      codBtn.style.display = 'none';
+      setPaymentMethod('UPI');
+    } else {
+      codBtn.style.display = 'block';
+    }
+  }
+
+  const upiText = document.getElementById('displayUpiIdText');
+  if (upiText) upiText.innerText = paymentSettings.upiId;
+
+  const adminUpi = document.getElementById('adminUpiInput');
+  const adminName = document.getElementById('adminUpiNameInput');
+  if (adminUpi && !adminUpi.value) adminUpi.value = paymentSettings.upiId;
+  if (adminName && !adminName.value) adminName.value = paymentSettings.payeeName;
+}
+
+function toggleCodStatus() {
+  paymentSettings.codEnabled = !paymentSettings.codEnabled;
+  if (db) {
+    db.ref("payment_settings/codEnabled").set(paymentSettings.codEnabled);
+  }
+  updatePaymentSettingsUI();
+  alert(`Cash on Delivery is now ${paymentSettings.codEnabled ? 'ENABLED' : 'DISABLED'}!`);
+}
+
+function saveAdminPaymentSettings() {
+  const newUpi = document.getElementById('adminUpiInput')?.value.trim();
+  const newName = document.getElementById('adminUpiNameInput')?.value.trim();
+
+  if (!newUpi || !newName) {
+    alert("Please fill both UPI ID and Payee Name.");
+    return;
+  }
+
+  paymentSettings.upiId = newUpi;
+  paymentSettings.payeeName = newName;
+
+  if (db) {
+    db.ref("payment_settings").set(paymentSettings);
+  }
+  updatePaymentSettingsUI();
+  alert("Payment details & QR code updated online!");
+}
+
+function copyUpiId() {
+  navigator.clipboard.writeText(paymentSettings.upiId).then(() => {
+    alert("UPI ID copied: " + paymentSettings.upiId);
   });
 }
 
@@ -196,7 +270,7 @@ function saveMenuToStorageAndCloud() {
   try {
     localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
   } catch (e) {
-    console.warn("LocalStorage quota exceeded, relying on Firebase Realtime DB.");
+    console.warn("Storage full, syncing to Firebase.");
   }
   if (db) {
     db.ref("restaurant_menu").set(menuCatalog);
@@ -354,9 +428,7 @@ function toggleCardWish(id, el) {
     wishlist.push(id);
     if (el) el.classList.add('active');
   }
-  try {
-    localStorage.setItem("kd_wishlist", JSON.stringify(wishlist));
-  } catch(e) {}
+  try { localStorage.setItem("kd_wishlist", JSON.stringify(wishlist)); } catch(e) {}
 }
 
 function selectDishVariant(type, extra, el) {
@@ -427,7 +499,7 @@ function submitCustomerReview() {
   closeModal('reviewModal');
 }
 
-// ==================== 6. CART OPERATIONS ====================
+// ==================== 6. CART & 3-STEP CHECKOUT ====================
 function addToCart(id, name, price, img) {
   if (!isStoreOpen) {
     alert("Restaurant is currently closed for new orders.");
@@ -457,6 +529,63 @@ function updateCartBar() {
   if (document.getElementById('cartCount')) document.getElementById('cartCount').innerText = `${totalQty} Item${totalQty > 1 ? 's' : ''}`;
   if (document.getElementById('cartTotal')) document.getElementById('cartTotal').innerText = `₹${grandTotal}`;
   cartBar.style.display = 'flex';
+}
+
+function goToCheckoutStep(step) {
+  const s1 = document.getElementById('checkoutStep1');
+  const s2 = document.getElementById('checkoutStep2');
+  const s3 = document.getElementById('checkoutStep3');
+  const title = document.getElementById('checkoutStepTitle');
+
+  if (step === 2) {
+    if (cart.length === 0) {
+      alert("Bag is empty!");
+      return;
+    }
+    s1.style.display = 'none';
+    s2.style.display = 'block';
+    s3.style.display = 'none';
+    if (title) title.innerText = "2. Delivery Address";
+  } else if (step === 3) {
+    const name = document.getElementById('custName')?.value.trim();
+    const phone = document.getElementById('custPhone')?.value.trim();
+    const address = document.getElementById('custAddress')?.value.trim();
+
+    if (!name || !phone || !address) {
+      alert("Please fill Name, Phone and Delivery Address!");
+      return;
+    }
+
+    try {
+      localStorage.setItem("kd_cust_profile", JSON.stringify({ name, phone, address }));
+    } catch(e) {}
+
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const coinDiscount = coinsRedeemed ? 20 : 0;
+    const grandTotal = Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount);
+
+    const step3Total = document.getElementById('step3GrandTotal');
+    if (step3Total) step3Total.innerText = `₹${grandTotal}`;
+
+    // Dynamic QR Generator
+    const qrImg = document.getElementById('checkoutQrImg');
+    if (qrImg) {
+      const upiUri = `upi://pay?pa=${encodeURIComponent(paymentSettings.upiId)}&pn=${encodeURIComponent(paymentSettings.payeeName)}&am=${grandTotal}&cu=INR`;
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUri)}`;
+    }
+
+    setPaymentMethod(paymentSettings.codEnabled ? 'COD' : 'UPI');
+
+    s1.style.display = 'none';
+    s2.style.display = 'none';
+    s3.style.display = 'block';
+    if (title) title.innerText = "3. Select Payment";
+  } else {
+    s1.style.display = 'block';
+    s2.style.display = 'none';
+    s3.style.display = 'none';
+    if (title) title.innerText = "1. Review Bag & Summary";
+  }
 }
 
 function openCartModal() {
@@ -490,14 +619,20 @@ function openCartModal() {
   if (document.getElementById('billSubtotal')) document.getElementById('billSubtotal').innerText = `₹${subtotal}`;
   if (document.getElementById('billGrandTotal')) document.getElementById('billGrandTotal').innerText = `₹${Math.max(0, subtotal + 9 - appliedDiscount - coinDiscount)}`;
 
+  goToCheckoutStep(1);
   openModal('cartModal');
 }
 
 function setPaymentMethod(method) {
+  if (method === 'COD' && !paymentSettings.codEnabled) {
+    alert("Cash on Delivery is currently disabled by Restaurant.");
+    method = 'UPI';
+  }
   activePayment = method;
   const cod = document.getElementById('codBtn');
   const upi = document.getElementById('upiBtn');
-  const qr = document.getElementById('upiQrBox');
+  const qrBox = document.getElementById('upiQrBox');
+
   if (cod) {
     cod.style.background = (method === 'COD') ? 'var(--primary)' : '#f1f5f9';
     cod.style.color = (method === 'COD') ? '#fff' : 'var(--dark)';
@@ -506,7 +641,9 @@ function setPaymentMethod(method) {
     upi.style.background = (method === 'UPI') ? 'var(--primary)' : '#f1f5f9';
     upi.style.color = (method === 'UPI') ? '#fff' : 'var(--dark)';
   }
-  if (qr) qr.style.display = (method === 'UPI') ? 'block' : 'none';
+  if (qrBox) {
+    qrBox.style.display = (method === 'UPI') ? 'block' : 'none';
+  }
 }
 
 function toggleCoinRedemption() {
@@ -515,7 +652,7 @@ function toggleCoinRedemption() {
 
   const coinsUsed = localStorage.getItem("kd_coins_used") === "true";
   if (chk.checked && coinsUsed) {
-    alert("❌ Aap pehle hi apne SuperCoins redeem kar chuke hain! Admin ke naye coins issue karne tak aap dobara use nahi kar sakte.");
+    alert("❌ Aap pehle hi apne SuperCoins redeem kar chuke hain!");
     chk.checked = false;
     coinsRedeemed = false;
     const row = document.getElementById('coinsDiscountRow');
@@ -543,7 +680,7 @@ function applyDiscountCoupon() {
 
   const usedPromos = JSON.parse(localStorage.getItem("kd_used_promos") || "[]");
   if (usedPromos.includes(code)) {
-    alert(`❌ Code "${code}" aap pehle use kar chuke hain! Yeh dubara apply nahi hoga.`);
+    alert(`❌ Code "${code}" aap pehle use kar chuke hain!`);
     return;
   }
 
@@ -569,13 +706,10 @@ function applyDiscountCoupon() {
 
 function setCouponDiscount(amount, code) {
   appliedDiscount = amount;
-
   const usedPromos = JSON.parse(localStorage.getItem("kd_used_promos") || "[]");
   if (!usedPromos.includes(code)) {
     usedPromos.push(code);
-    try {
-      localStorage.setItem("kd_used_promos", JSON.stringify(usedPromos));
-    } catch(e) {}
+    try { localStorage.setItem("kd_used_promos", JSON.stringify(usedPromos)); } catch(e) {}
   }
 
   const dRow = document.getElementById('discountRow');
@@ -603,14 +737,10 @@ function placeOrder() {
     return;
   }
 
-  try {
-    localStorage.setItem("kd_cust_profile", JSON.stringify({ name, phone, address }));
-  } catch(e) {}
+  try { localStorage.setItem("kd_cust_profile", JSON.stringify({ name, phone, address })); } catch(e) {}
 
   if (coinsRedeemed) {
-    try {
-      localStorage.setItem("kd_coins_used", "true");
-    } catch(e) {}
+    try { localStorage.setItem("kd_coins_used", "true"); } catch(e) {}
   }
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -797,15 +927,9 @@ function openLiveTrackingPopup(key, phone) {
 function cancelCustomerCurrentOrder(orderKey, phone) {
   if (confirm("Kya aap sach me apna order cancel karna chahte hain?")) {
     if (db) {
-      db.ref("orders/" + orderKey).update({ 
-        stage: 0, 
-        status: "Cancelled by Customer" 
-      });
+      db.ref("orders/" + orderKey).update({ stage: 0, status: "Cancelled by Customer" });
       if (phone) {
-        db.ref("customer_history/" + phone + "/" + orderKey).update({ 
-          stage: 0, 
-          status: "Cancelled by Customer" 
-        });
+        db.ref("customer_history/" + phone + "/" + orderKey).update({ stage: 0, status: "Cancelled by Customer" });
       }
       alert("Order successfully cancel kar diya gaya hai.");
       closeModal('trackingModal');
@@ -843,6 +967,7 @@ function unlockAdminWithPin() {
 
     loadAdminOrdersList();
     renderAdminMenuItems();
+    updatePaymentSettingsUI();
   } else {
     alert("Access Denied! Incorrect Password.");
     if (pinInput) pinInput.value = '';
@@ -943,7 +1068,6 @@ function deleteAdminOrder(key) {
 let adminUploadBase64 = "";
 let editUploadBase64 = "";
 
-// Image compression function to prevent website lag & crash
 function compressImage(file, callback) {
   const reader = new FileReader();
   reader.readAsDataURL(file);
@@ -1155,9 +1279,7 @@ function adminCreateCoupon() {
       if (discEl) discEl.value = '';
     });
   } else {
-    try {
-      localStorage.setItem("kd_promo_" + code, disc);
-    } catch(e) {}
+    try { localStorage.setItem("kd_promo_" + code, disc); } catch(e) {}
     alert(`Promo Code '${code}' saved locally!`);
   }
 }
@@ -1296,9 +1418,7 @@ function saveCustomerAccount() {
   }
 
   const profile = { name, phone, address };
-  try {
-    localStorage.setItem("kd_cust_profile", JSON.stringify(profile));
-  } catch(e) {}
+  try { localStorage.setItem("kd_cust_profile", JSON.stringify(profile)); } catch(e) {}
 
   if (document.getElementById('accNameDisplay') && name) document.getElementById('accNameDisplay').innerText = name;
   if (document.getElementById('accPhoneDisplay') && phone) document.getElementById('accPhoneDisplay').innerText = "+91 " + phone;
