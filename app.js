@@ -128,6 +128,7 @@ let activePayment = 'COD';
 let appliedDiscount = 0;
 let coinsRedeemed = false;
 let currentPdpItem = null;
+let currentPortionType = 'standard';
 let selectedCakeWeight = 1.0;
 let selectedCakePrice = 850;
 let isStoreOpen = true;
@@ -140,7 +141,6 @@ let paymentSettings = {
 };
 
 if (db) {
-  // Menu Sync
   db.ref("restaurant_menu").on("value", snapshot => {
     const cloudMenu = snapshot.val();
     if (cloudMenu && Array.isArray(cloudMenu)) {
@@ -153,7 +153,6 @@ if (db) {
     }
   });
 
-  // Store Status Sync
   db.ref("store_status").on("value", snap => {
     const val = snap.val();
     if (val !== null) {
@@ -162,17 +161,17 @@ if (db) {
     }
   });
 
-  // Banner Headline Sync
   db.ref("banner_headline").on("value", snap => {
     const headline = snap.val();
     if (headline) updateBannerUI(headline);
   });
 
-  // Payment Settings (COD & UPI) Sync
   db.ref("payment_settings").on("value", snap => {
     const val = snap.val();
     if (val) {
-      paymentSettings = val;
+      paymentSettings.codEnabled = (val.codEnabled !== undefined) ? val.codEnabled : true;
+      paymentSettings.upiId = val.upiId || "6000026478@okbizaxis";
+      paymentSettings.payeeName = val.payeeName || "S&A FAMILY RESTAURANT";
       updatePaymentSettingsUI();
     }
   });
@@ -187,21 +186,19 @@ function updatePaymentSettingsUI() {
   }
 
   if (codBtn) {
+    codBtn.style.display = paymentSettings.codEnabled ? 'block' : 'none';
     if (!paymentSettings.codEnabled) {
-      codBtn.style.display = 'none';
       setPaymentMethod('UPI');
-    } else {
-      codBtn.style.display = 'block';
     }
   }
 
   const upiText = document.getElementById('displayUpiIdText');
-  if (upiText) upiText.innerText = paymentSettings.upiId;
+  if (upiText) upiText.innerText = paymentSettings.upiId || "6000026478@okbizaxis";
 
   const adminUpi = document.getElementById('adminUpiInput');
   const adminName = document.getElementById('adminUpiNameInput');
-  if (adminUpi && !adminUpi.value) adminUpi.value = paymentSettings.upiId;
-  if (adminName && !adminName.value) adminName.value = paymentSettings.payeeName;
+  if (adminUpi) adminUpi.value = paymentSettings.upiId || "6000026478@okbizaxis";
+  if (adminName) adminName.value = paymentSettings.payeeName || "S&A FAMILY RESTAURANT";
 }
 
 function toggleCodStatus() {
@@ -210,17 +207,11 @@ function toggleCodStatus() {
     db.ref("payment_settings/codEnabled").set(paymentSettings.codEnabled);
   }
   updatePaymentSettingsUI();
-  alert(`Cash on Delivery is now ${paymentSettings.codEnabled ? 'ENABLED' : 'DISABLED'}!`);
 }
 
 function saveAdminPaymentSettings() {
-  const newUpi = document.getElementById('adminUpiInput')?.value.trim();
-  const newName = document.getElementById('adminUpiNameInput')?.value.trim();
-
-  if (!newUpi || !newName) {
-    alert("Please fill both UPI ID and Payee Name.");
-    return;
-  }
+  const newUpi = document.getElementById('adminUpiInput')?.value.trim() || "6000026478@okbizaxis";
+  const newName = document.getElementById('adminUpiNameInput')?.value.trim() || "S&A FAMILY RESTAURANT";
 
   paymentSettings.upiId = newUpi;
   paymentSettings.payeeName = newName;
@@ -229,13 +220,19 @@ function saveAdminPaymentSettings() {
     db.ref("payment_settings").set(paymentSettings);
   }
   updatePaymentSettingsUI();
-  alert("Payment details & QR code updated online!");
+  alert("UPI ID and QR settings successfully updated!");
 }
 
 function copyUpiId() {
   navigator.clipboard.writeText(paymentSettings.upiId).then(() => {
     alert("UPI ID copied: " + paymentSettings.upiId);
   });
+}
+
+function launchDirectUpiPayment() {
+  const step3Total = document.getElementById('step3GrandTotal')?.innerText.replace('₹', '') || '0';
+  const upiUri = `upi://pay?pa=${encodeURIComponent(paymentSettings.upiId)}&pn=${encodeURIComponent(paymentSettings.payeeName)}&am=${step3Total}&cu=INR`;
+  window.location.href = upiUri;
 }
 
 function updateStoreStatusUI(open) {
@@ -259,19 +256,12 @@ function updateStoreStatusUI(open) {
 function updateBannerUI(headline) {
   const titles = document.querySelectorAll('.hero-title, #bannerTitle, .banner-title');
   titles.forEach(el => { el.innerText = headline; });
-  const bannerBox = document.querySelector('.hero-banner, .festival-deal-card, [style*="FESTIVAL DEAL"]');
-  if (bannerBox) {
-    const strong = bannerBox.querySelector('h2, strong, div[style*="font-size: 18px"], div[style*="font-size:18px"]');
-    if (strong) strong.innerText = headline;
-  }
 }
 
 function saveMenuToStorageAndCloud() {
   try {
     localStorage.setItem("kd_live_menu", JSON.stringify(menuCatalog));
-  } catch (e) {
-    console.warn("Storage full, syncing to Firebase.");
-  }
+  } catch (e) {}
   if (db) {
     db.ref("restaurant_menu").set(menuCatalog);
   }
@@ -279,7 +269,9 @@ function saveMenuToStorageAndCloud() {
   renderAdminMenuItems();
 }
 
-// ==================== 3. HARDWARE BACK BUTTON HANDLER ====================
+// ==================== 3. MODAL STATE & 3-MINUTE SHUFFLE ====================
+let isAnyModalOpen = false;
+
 function pushModalState(modalId) {
   window.history.pushState({ openModal: modalId }, "");
 }
@@ -308,6 +300,7 @@ window.addEventListener('popstate', function(event) {
   });
 
   if (modalClosed) {
+    isAnyModalOpen = false;
     event.preventDefault();
   }
 });
@@ -316,6 +309,7 @@ function openModal(id) {
   const m = document.getElementById(id);
   if (m) {
     m.style.setProperty('display', 'flex', 'important');
+    isAnyModalOpen = true;
     pushModalState(id);
   }
 }
@@ -324,8 +318,21 @@ function closeModal(id) {
   const m = document.getElementById(id);
   if (m) {
     m.style.setProperty('display', 'none', 'important');
+    isAnyModalOpen = false;
   }
 }
+
+// 3-Minute Auto-Shuffle Timer
+setInterval(() => {
+  if (!isAnyModalOpen && menuCatalog.length > 2) {
+    const shuffled = [...menuCatalog];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    renderFoodItems(shuffled);
+  }
+}, 180000);
 
 // ==================== 4. RENDER FOOD CATALOG & SEARCH ====================
 function renderFoodItems(items) {
@@ -378,16 +385,31 @@ function triggerVoiceSearch() {
   alert("Voice Search: Say dish name (e.g. 'Pork Momo' or 'Chicken Roll')");
 }
 
-// ==================== 5. PRODUCT DETAIL PAGE (PDP) & REVIEWS ====================
+// ==================== 5. PRODUCT DETAIL PAGE (PDP) & DYNAMIC COMBO ====================
+function calculateDoubleCombo(basePrice) {
+  const doubleRaw = basePrice * 2;
+  const comboDiscount = Math.round(doubleRaw * 0.05); // 5% Discount
+  return doubleRaw - comboDiscount;
+}
+
 function openProductDetail(dishId) {
   const dish = menuCatalog.find(d => d.id === dishId);
   if (!dish) return;
   currentPdpItem = dish;
+  currentPortionType = 'standard';
 
   if (document.getElementById('pdpImg')) document.getElementById('pdpImg').src = dish.img;
   if (document.getElementById('pdpTitle')) document.getElementById('pdpTitle').innerText = dish.name;
   if (document.getElementById('pdpPrice')) document.getElementById('pdpPrice').innerText = `₹${dish.price}`;
   if (document.getElementById('pdpMrp')) document.getElementById('pdpMrp').innerText = `₹${dish.mrp || (dish.price + 50)}`;
+
+  const comboPrice = calculateDoubleCombo(dish.price);
+  const pillDbl = document.getElementById('pillDouble');
+  if (pillDbl) pillDbl.innerText = `Double Combo (2 Plates - ₹${comboPrice})`;
+
+  document.querySelectorAll('#pdpVariantBox .weight-pill').forEach(p => p.classList.remove('active'));
+  const pillStd = document.getElementById('pillStandard');
+  if (pillStd) pillStd.classList.add('active');
 
   const isWished = wishlist.includes(dish.id);
   const wishBtn = document.getElementById('pdpWishBtn');
@@ -412,6 +434,20 @@ function openProductDetail(dishId) {
   openModal('productDetailModal');
 }
 
+function selectDishPortion(type) {
+  currentPortionType = type;
+  document.querySelectorAll('#pdpVariantBox .weight-pill').forEach(p => p.classList.remove('active'));
+
+  if (type === 'double') {
+    document.getElementById('pillDouble')?.classList.add('active');
+    const comboPrice = calculateDoubleCombo(currentPdpItem.price);
+    document.getElementById('pdpPrice').innerText = `₹${comboPrice}`;
+  } else {
+    document.getElementById('pillStandard')?.classList.add('active');
+    document.getElementById('pdpPrice').innerText = `₹${currentPdpItem.price}`;
+  }
+}
+
 function toggleCurrentWish() {
   if (!currentPdpItem) return;
   toggleCardWish(currentPdpItem.id);
@@ -431,24 +467,19 @@ function toggleCardWish(id, el) {
   try { localStorage.setItem("kd_wishlist", JSON.stringify(wishlist)); } catch(e) {}
 }
 
-function selectDishVariant(type, extra, el) {
-  document.querySelectorAll('#pdpVariantBox .weight-pill').forEach(p => p.classList.remove('active'));
-  if (el) el.classList.add('active');
-  if (currentPdpItem) {
-    document.getElementById('pdpPrice').innerText = `₹${currentPdpItem.price + extra}`;
-  }
-}
-
 function addPdpToCart() {
   if (!currentPdpItem) return;
-  addToCart(currentPdpItem.id, currentPdpItem.name, currentPdpItem.price, currentPdpItem.img);
+  if (currentPortionType === 'double') {
+    const comboPrice = calculateDoubleCombo(currentPdpItem.price);
+    addToCart(currentPdpItem.id + "_dbl", `${currentPdpItem.name} (Double Combo - 2x)`, comboPrice, currentPdpItem.img);
+  } else {
+    addToCart(currentPdpItem.id, currentPdpItem.name, currentPdpItem.price, currentPdpItem.img);
+  }
   closeModal('productDetailModal');
 }
 
 function buyNowPdp() {
-  if (!currentPdpItem) return;
-  addToCart(currentPdpItem.id, currentPdpItem.name, currentPdpItem.price, currentPdpItem.img);
-  closeModal('productDetailModal');
+  addPdpToCart();
   openCartModal();
 }
 
@@ -486,12 +517,7 @@ function submitCustomerReview() {
   if (list) list.insertAdjacentHTML('afterbegin', reviewHtml);
 
   if (db) {
-    db.ref("customer_reviews").push({
-      author: author,
-      rating: rating,
-      message: msg,
-      timestamp: Date.now()
-    });
+    db.ref("customer_reviews").push({ author, rating, message: msg, timestamp: Date.now() });
   }
 
   alert("Thank you for your valuable review!");
@@ -499,7 +525,16 @@ function submitCustomerReview() {
   closeModal('reviewModal');
 }
 
-// ==================== 6. CART & 3-STEP CHECKOUT ====================
+// ==================== 6. CART OPERATIONS & TOAST ====================
+function showCartToast(dishName) {
+  const toast = document.getElementById('cartToast');
+  if (toast) {
+    toast.innerText = `✅ ${dishName} Added to Cart!`;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 2200);
+  }
+}
+
 function addToCart(id, name, price, img) {
   if (!isStoreOpen) {
     alert("Restaurant is currently closed for new orders.");
@@ -512,6 +547,7 @@ function addToCart(id, name, price, img) {
     cart.push({ id, name, price, qty: 1, img: img || "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=500" });
   }
   updateCartBar();
+  showCartToast(name);
 }
 
 function updateCartBar() {
@@ -539,7 +575,7 @@ function goToCheckoutStep(step) {
 
   if (step === 2) {
     if (cart.length === 0) {
-      alert("Bag is empty!");
+      alert("Cart is empty!");
       return;
     }
     s1.style.display = 'none';
@@ -552,13 +588,11 @@ function goToCheckoutStep(step) {
     const address = document.getElementById('custAddress')?.value.trim();
 
     if (!name || !phone || !address) {
-      alert("Please fill Name, Phone and Delivery Address!");
+      alert("Please fill Name, Phone and Complete Delivery Address!");
       return;
     }
 
-    try {
-      localStorage.setItem("kd_cust_profile", JSON.stringify({ name, phone, address }));
-    } catch(e) {}
+    try { localStorage.setItem("kd_cust_profile", JSON.stringify({ name, phone, address })); } catch(e) {}
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const coinDiscount = coinsRedeemed ? 20 : 0;
@@ -584,7 +618,7 @@ function goToCheckoutStep(step) {
     s1.style.display = 'block';
     s2.style.display = 'none';
     s3.style.display = 'none';
-    if (title) title.innerText = "1. Review Bag & Summary";
+    if (title) title.innerText = "1. Review Cart & Summary";
   }
 }
 
@@ -625,7 +659,6 @@ function openCartModal() {
 
 function setPaymentMethod(method) {
   if (method === 'COD' && !paymentSettings.codEnabled) {
-    alert("Cash on Delivery is currently disabled by Restaurant.");
     method = 'UPI';
   }
   activePayment = method;
@@ -1321,7 +1354,6 @@ function assignVipBadge() {
   }
 }
 
-// Auto Carousel for Festival Banner
 function setupBannerSlider() {
   const deals = [
     { title: "K.D RABHA SPECIAL", sub: "Flat ₹9 Fixed Delivery on All Orders in Bengbari!" },
