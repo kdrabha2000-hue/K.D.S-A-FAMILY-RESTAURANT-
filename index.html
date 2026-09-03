@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="style.css?v=204" />
+  <link rel="stylesheet" href="style.css?v=205" />
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -142,6 +142,28 @@
     0% { transform: translateY(50px); opacity: 0; }
     100% { transform: translateY(0); opacity: 1; }
   }
+
+  /* Floating Toast Notification */
+  #cartToast {
+    display: none;
+    position: fixed;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #10b981;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    font-size: 13px;
+    font-weight: 700;
+    z-index: 9999999;
+    animation: fadeInDown 0.3s ease;
+  }
+  @keyframes fadeInDown {
+    0% { transform: translate(-50%, -20px); opacity: 0; }
+    100% { transform: translate(-50%, 0); opacity: 1; }
+  }
 </style>
 
 <div id="custom-splash-screen">
@@ -178,6 +200,9 @@
   })();
 </script>
 <!-- === FULL SELF-CONTAINED SPLASH SCREEN END === -->
+
+  <!-- Added To Cart Toast Notification -->
+  <div id="cartToast">✅ Added to Cart!</div>
 
   <!-- PWA Install Popup Bar -->
   <div id="pwaInstallBanner">
@@ -266,7 +291,7 @@
       <span id="cartCount" style="font-weight:700;">1 Item</span> | <span id="cartTotal">₹0</span>
       <div style="font-size:10px; opacity:0.8;">+ ₹9 Fixed Delivery</div>
     </div>
-    <div style="font-weight:700;">View Bag <i class="fa-solid fa-arrow-right"></i></div>
+    <div style="font-weight:700;">View Cart <i class="fa-solid fa-arrow-right"></i></div>
   </div>
 
   <nav class="bottom-nav">
@@ -306,8 +331,8 @@
         <div class="variant-box" id="pdpVariantBox">
           <label class="form-label">Select Portion / Quantity</label>
           <div class="weight-pills">
-            <div class="weight-pill active" onclick="selectDishVariant('standard', 0, this)">Standard Portion</div>
-            <div class="weight-pill" onclick="selectDishVariant('double', 60, this)">Double Combo (+₹60)</div>
+            <div class="weight-pill active" id="pillStandard" onclick="selectDishPortion('standard')">Standard Portion</div>
+            <div class="weight-pill" id="pillDouble" onclick="selectDishPortion('double')">Double Combo (2x)</div>
           </div>
         </div>
 
@@ -342,7 +367,7 @@
     </div>
 
     <div class="pdp-bottom-bar">
-      <button class="pdp-btn btn-cart" onclick="addPdpToCart()"><i class="fa-solid fa-bag-shopping"></i> Add to Bag</button>
+      <button class="pdp-btn btn-cart" onclick="addPdpToCart()"><i class="fa-solid fa-bag-shopping"></i> Add to Cart</button>
       <button class="pdp-btn btn-buy" onclick="buyNowPdp()"><i class="fa-solid fa-bolt"></i> Order Now</button>
     </div>
   </div>
@@ -451,11 +476,11 @@
   <!-- Multi-Step Cart & Checkout Modal -->
   <div class="full-modal" id="cartModal" style="display:none !important;">
     <div class="modal-header">
-      <h3 id="checkoutStepTitle">1. Review Bag & Summary</h3>
+      <h3 id="checkoutStepTitle">1. Review Cart & Summary</h3>
       <i class="fa-solid fa-xmark close-btn" onclick="closeModal('cartModal')"></i>
     </div>
     <div style="padding:16px;">
-      <!-- STEP 1: BAG & COUPONS -->
+      <!-- STEP 1: CART & COUPONS -->
       <div id="checkoutStep1">
         <div id="cartItemsList"></div>
 
@@ -500,7 +525,7 @@
         </div>
       </div>
 
-      <!-- STEP 3: PAYMENT OPTION & QR -->
+      <!-- STEP 3: PAYMENT OPTION, QR & DIRECT INTENT -->
       <div id="checkoutStep3" style="display:none;">
         <div class="bill-box" style="margin-bottom:14px;">
           <div class="bill-row" style="font-weight:700;"><span>Total Amount to Pay:</span><span id="step3GrandTotal" style="color:var(--primary); font-size:16px;">₹0</span></div>
@@ -524,6 +549,11 @@
             <span style="font-size:11px; color:#cbd5e1;">UPI ID: <strong id="displayUpiIdText" style="color:#ffca42;">6000026478@okbizaxis</strong></span>
             <button onclick="copyUpiId()" style="background:#0284c7; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; cursor:pointer;">Copy</button>
           </div>
+
+          <!-- Direct UPI Intent Launcher -->
+          <button id="directUpiPayBtn" onclick="launchDirectUpiPayment()" style="width:100%; margin-top:12px; padding:12px; background:linear-gradient(135deg, #00c853, #10b981); color:#fff; border:none; border-radius:10px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 4px 12px rgba(16,185,129,0.3);">
+            ⚡ PAY NOW (GPay / PhonePe / Paytm)
+          </button>
         </div>
 
         <div style="display:flex; gap:10px; margin-top:14px;">
@@ -735,6 +765,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=204"></script>
+  <script src="app.js?v=205"></script>
 </body>
 </html>
